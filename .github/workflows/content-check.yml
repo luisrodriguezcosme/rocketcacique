@@ -1,0 +1,25 @@
+name: Content safety check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Scan content for infrastructure identifiers
+        run: |
+          set -euo pipefail
+          # Generic patterns only: private IPs, cloud identifiers, key prefixes,
+          # internal domains. Fails the build so nothing slips out unreviewed.
+          if grep -rInE '10\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}|172\.31\.[0-9]{1,3}\.[0-9]{1,3}|arn:aws|AKIA[A-Z0-9]{16}|ccci\.org|oci\.cru\.org' src/ public/ 2>/dev/null; then
+            echo "::error::Draft contains infrastructure identifiers — review against the publishing policy."
+            exit 1
+          fi
+          echo "content clean"
