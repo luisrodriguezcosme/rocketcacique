@@ -38,7 +38,7 @@ body {
 
 h1, h2, h3 {
   font-family: 'Fraunces Variable', Georgia, serif;
-  font-variation-settings: 'SOFT' 60, 'WONK' 1;
+  font-variation-settings: 'SOFT' 30, 'WONK' 0;
   color: var(--sea);
   line-height: 1.15;
   margin: 0 0 0.5rem;
