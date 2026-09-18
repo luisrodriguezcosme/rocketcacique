@@ -6,7 +6,7 @@ export async function GET(context) {
     .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
   return rss({
     title: 'Rocket Cacique',
-    description: 'Luis Rodriguez Cosme on infrastructure, AI tooling, and side projects.',
+    description: 'Luis A. Rodriguez on infrastructure, AI tooling, and side projects.',
     site: context.site,
     items: posts.map((p) => ({
       title: p.data.title,
