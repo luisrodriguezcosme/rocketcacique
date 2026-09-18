@@ -1,0 +1,55 @@
+---
+import Base from '../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('blog', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .slice(0, 3);
+
+const fmt = (d: Date) =>
+  d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
+---
+<Base title="Rocket Cacique — Luis Rodriguez Cosme">
+  <h1>I build the platforms other things launch from.</h1>
+  <p>
+    I'm Luis Rodriguez Cosme, an infrastructure engineer in Orlando. I've spent my career
+    building and running the technology behind a global nonprofit — starting with datacenter
+    hardware in 1998, and growing into the AWS platform its critical applications run on today.
+  </p>
+  <p>
+    The work I care most about is making infrastructure changes safe and routine: everything is
+    a reviewed, automated pull request. Lately that includes the AI kind — code review for
+    Terraform pipelines, ticket triage in production, and the guardrails that let teams use
+    large language models without regret.
+  </p>
+  <p class="quiet">
+    Want to reach me? <a href="https://www.linkedin.com/in/luis-r-49994a62">LinkedIn</a> is the door.
+  </p>
+
+  <h2>Recent writing</h2>
+  {posts.length === 0 && <p class="quiet">First post is on its way.</p>}
+  <ul class="ruled">
+    {posts.map((p) => (
+      <li>
+        <a href={`/blog/${p.id}/`}>{p.data.title}</a><br />
+        <span class="when">{fmt(p.data.date)}</span>
+      </li>
+    ))}
+  </ul>
+
+  <h2>Selected projects</h2>
+  <ul class="ruled">
+    <li>
+      <a href="/projects">open-code-review</a><br />
+      <span class="quiet">AI code review as a CLI, with AWS Bedrock as a native provider.</span>
+    </li>
+    <li>
+      <a href="/projects">Alarm panel, resurrected</a><br />
+      <span class="quiet">An ESP32 reading a 1990s DSC panel's zones directly.</span>
+    </li>
+    <li>
+      <a href="/projects">A resume as code</a><br />
+      <span class="quiet">Markdown sources, pandoc builds, four targeted versions.</span>
+    </li>
+  </ul>
+</Base>

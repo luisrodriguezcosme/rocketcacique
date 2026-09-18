@@ -1,0 +1,31 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base title="Projects — Rocket Cacique">
+  <h1>Projects</h1>
+  <p class="quiet">Things built on my own time, in my own repos.</p>
+
+  <h2>open-code-review</h2>
+  <p>
+    An open-source CLI that reviews code changes with an LLM and applies fixes autonomously.
+    I contributed AWS Bedrock as a built-in provider with native SigV4 auth, so it runs against
+    Bedrock without an API-key middleman.
+  </p>
+
+  <h2>Alarm panel, resurrected</h2>
+  <p>
+    My house came with a 1990s DSC alarm panel. Rather than rip it out, I put an ESP32 on it —
+    and when the panel itself finally died, pivoted to reading the zone wiring directly.
+    Perfboard, end-of-line resistors, and documentation discipline: every dead end is written down.
+  </p>
+
+  <h2>A resume as code</h2>
+  <p>
+    Four targeted resume versions kept as Markdown sources of truth, built into HTML, Word, and
+    LaTeX with pandoc and one small script. Diffable, reviewable, and no more "resume_final_v7.docx".
+  </p>
+
+  <p class="quiet">
+    More on <a href="https://github.com/luisrodriguezcosme">GitHub</a>.
+  </p>
+</Base>

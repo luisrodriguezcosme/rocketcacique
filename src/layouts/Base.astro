@@ -1,0 +1,45 @@
+---
+import '@fontsource-variable/fraunces';
+import '@fontsource/atkinson-hyperlegible';
+import '@fontsource/atkinson-hyperlegible/700.css';
+import '../styles/global.css';
+import SunMark from '../components/SunMark.astro';
+
+const { title, description = 'Luis Rodriguez Cosme — infrastructure engineer. Terraform, AWS, and AI platforms.' } = Astro.props;
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="robots" content="noai, noimageai" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="alternate" type="application/rss+xml" title="Rocket Cacique" href="/rss.xml" />
+  </head>
+  <body>
+    <div class="wrap">
+      <nav class="site">
+        <span class="mark">
+          <SunMark size={26} />
+          <a href="/">Rocket Cacique</a>
+        </span>
+        <a href="/projects">Projects</a>
+        <a href="/blog">Blog</a>
+      </nav>
+      <slot />
+      <footer class="site">
+        <p>
+          Luis Rodriguez Cosme, Orlando, Florida.
+          Find me on <a href="https://github.com/luisrodriguezcosme">GitHub</a> and
+          <a href="https://www.linkedin.com/in/luis-r-49994a62">LinkedIn</a>.
+        </p>
+        <p>A cacique was a Taíno chief; this one launches things.</p>
+      </footer>
+    </div>
+  </body>
+</html>
