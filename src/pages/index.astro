@@ -11,7 +11,7 @@ const fmt = (d: Date) =>
 ---
 <Base title="Rocket Cacique — Luis A. Rodriguez">
   <h1>I build the platforms other things launch from.</h1>
-  <p>
+  <p class="lede">
     I'm Luis, an infrastructure engineer in Orlando. I've spent my career
     building and running the technology behind a global nonprofit — starting with datacenter
     hardware in 1998, and growing into the AWS platform its critical applications run on today.
@@ -31,8 +31,10 @@ const fmt = (d: Date) =>
   <ul class="ruled">
     {posts.map((p) => (
       <li>
-        <a href={`/blog/${p.id}/`}>{p.data.title}</a><br />
-        <span class="when">{fmt(p.data.date)}</span>
+        <span class="row">
+          <a href={`/blog/${p.id}/`}>{p.data.title}</a>
+          <span class="when">{fmt(p.data.date)}</span>
+        </span>
       </li>
     ))}
   </ul>
@@ -40,16 +42,16 @@ const fmt = (d: Date) =>
   <h2>Selected projects</h2>
   <ul class="ruled">
     <li>
-      <a href="/projects">open-code-review</a><br />
-      <span class="quiet">AI code review as a CLI, with AWS Bedrock as a native provider.</span>
+      <a href="/projects">open-code-review</a>
+      <span class="sub">AI code review as a CLI, with AWS Bedrock as a native provider.</span>
     </li>
     <li>
-      <a href="/projects">Alarm panel, resurrected</a><br />
-      <span class="quiet">An ESP32 reading a 1990s DSC panel's zones directly.</span>
+      <a href="/projects">Alarm panel, resurrected</a>
+      <span class="sub">An ESP32 reading a 1990s DSC panel's zones directly.</span>
     </li>
     <li>
-      <a href="/projects">A resume as code</a><br />
-      <span class="quiet">Markdown sources, pandoc builds, four targeted versions.</span>
+      <a href="/projects">A resume as code</a>
+      <span class="sub">Markdown sources, pandoc builds, four targeted versions.</span>
     </li>
   </ul>
 </Base>

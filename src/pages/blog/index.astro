@@ -17,9 +17,11 @@ const fmt = (d: Date) =>
   <ul class="ruled">
     {posts.map((p) => (
       <li>
-        <a href={`/blog/${p.id}/`}>{p.data.title}</a><br />
-        <span class="quiet">{p.data.description}</span><br />
-        <span class="when">{fmt(p.data.date)}</span>
+        <span class="row">
+          <a href={`/blog/${p.id}/`}>{p.data.title}</a>
+          <span class="when">{fmt(p.data.date)}</span>
+        </span>
+        <span class="sub">{p.data.description}</span>
       </li>
     ))}
   </ul>

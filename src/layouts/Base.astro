@@ -5,6 +5,9 @@ import '../styles/global.css';
 import SunMark from '../components/SunMark.astro';
 
 const { title, description = 'Luis A. Rodriguez — infrastructure engineer. Terraform, AWS, and AI platforms.' } = Astro.props;
+const path = Astro.url.pathname;
+const current = (p: string) =>
+  (p === '/' ? path === '/' : path.startsWith(p)) ? 'page' : undefined;
 ---
 <!doctype html>
 <html lang="en">
@@ -27,8 +30,8 @@ const { title, description = 'Luis A. Rodriguez — infrastructure engineer. Ter
           <SunMark size={26} />
           <a href="/">Rocket Cacique</a>
         </span>
-        <a href="/projects">Projects</a>
-        <a href="/blog">Blog</a>
+        <a href="/projects" aria-current={current('/projects')}>Projects</a>
+        <a href="/blog" aria-current={current('/blog')}>Blog</a>
       </nav>
       <slot />
       <footer class="site">

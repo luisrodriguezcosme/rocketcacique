@@ -16,7 +16,7 @@ const fmt = post.data.date.toLocaleDateString('en-US', {
 <Base title={`${post.data.title} — Rocket Cacique`} description={post.data.description}>
   <article class="post">
     <h1>{post.data.title}</h1>
-    <p class="postmeta">{fmt}</p>
+    <p class="postmeta">{fmt} · <span class="pillar">{post.data.pillar}</span></p>
     <Content />
   </article>
 </Base>
