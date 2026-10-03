@@ -50,7 +50,7 @@ Scripted tests are good at the questions you think to ask. A person playing the 
 
 ## Play it
 
-[Play Barnyard Dogfight](/games/barnyard-dogfight/). It runs in the browser and needs a keyboard.
+[Play Barnyard Dogfight](/games/barnyard-dogfight/). It runs in the browser. Use a keyboard, or the on-screen joystick and buttons on a phone or tablet.
 
 - Hold **R** for power. **K** and **I** pull the nose up and push it down. **J** and **L** bank.
 - **Space** fires. **1** through **7** change the ammo.

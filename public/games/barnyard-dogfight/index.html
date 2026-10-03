@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-180.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Dogfight"><meta name="theme-color" content="#D6E2E6"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Barnyard Dogfight</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -92,19 +92,26 @@
   @media (hover: none) and (pointer: coarse) {
     .kbd-only { display: none; }
     .touch-only { display: block; }
+    .seg.touch-only { display: flex; }
   }
   /* Touch screens: thumb buttons in the corners, the two cards tucked into a settings sheet (the gear opens it). */
   .touch-ui, .tclose, .rotate-hint { display: none; }
   @media (hover: none) and (pointer: coarse) {
-    .touch-ui { display: block; position: absolute; inset: 0; pointer-events: none; z-index: 2; --tbot: 16px; }
+    .touch-ui { display: block; position: absolute; inset: 0; pointer-events: none; z-index: 2; --tbot: 16px; --pad: 136px; }
     .tbtn { pointer-events: auto; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; display: grid; place-items: center; width: 64px; height: 64px; padding: 0; font: 700 22px/1 var(--body); color: var(--ink); background: rgba(17, 21, 25, 0.55); border: 1px solid rgba(255, 255, 255, 0.28); border-radius: 50%; }
     .tbtn.active { color: #1B1D20; background: rgba(242, 194, 48, 0.9); }
     .tsmall { width: auto; height: 40px; padding: 0 14px; font-size: 13px; letter-spacing: 0.04em; border-radius: 999px; }
     #tSettings { position: absolute; top: calc(10px + env(safe-area-inset-top, 0px)); left: calc(10px + env(safe-area-inset-left, 0px)); font-size: 20px; }
-    #tPause { position: absolute; top: calc(10px + env(safe-area-inset-top, 0px)); right: calc(10px + env(safe-area-inset-right, 0px)); }
+    .ttopr { position: absolute; top: calc(10px + env(safe-area-inset-top, 0px)); right: calc(10px + env(safe-area-inset-right, 0px)); display: flex; gap: 8px; }
     .tcluster { position: absolute; bottom: calc(var(--tbot) + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; align-items: center; gap: 10px; }
-    .tleft { left: calc(14px + env(safe-area-inset-left, 0px)); }
-    .tright { right: calc(14px + env(safe-area-inset-right, 0px)); }
+    /* Joystick on one side, power and FIRE on the other. The Joystick setting swaps the sides. */
+    .tact { right: calc(14px + env(safe-area-inset-right, 0px)); flex-direction: row; align-items: flex-end; }
+    .tcol { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    .tpad { position: absolute; left: calc(14px + env(safe-area-inset-left, 0px)); bottom: calc(var(--tbot) + env(safe-area-inset-bottom, 0px)); width: var(--pad); height: var(--pad); pointer-events: auto; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; border-radius: 50%; background: radial-gradient(circle, rgba(17, 21, 25, 0.22) 0 30%, rgba(17, 21, 25, 0.5) 72%); box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.24); }
+    .tknob { position: absolute; left: 50%; top: 50%; width: 54px; height: 54px; margin: -27px 0 0 -27px; border-radius: 50%; background: rgba(242, 194, 48, 0.8); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35); pointer-events: none; transition: transform 0.12s ease-out; }
+    .tpad.active .tknob { transition: none; background: rgba(242, 194, 48, 0.95); }
+    body.pad-right .tpad { left: auto; right: calc(14px + env(safe-area-inset-right, 0px)); }
+    body.pad-right .tact { right: auto; left: calc(14px + env(safe-area-inset-left, 0px)); flex-direction: row-reverse; }
     .tfire { width: 84px; height: 84px; font-size: 15px; letter-spacing: 0.08em; background: rgba(217, 71, 47, 0.72); }
     .intro, .crash { z-index: 4; }
     body:not(.menu-open) .top { display: none; }
@@ -212,6 +219,7 @@
   .intro-card h2 { margin: 0; font: 800 clamp(34px, 7vw, 48px)/1 var(--display); letter-spacing: 0.03em; color: var(--cub); }
   .crawl p { margin: 0 auto 1em; max-width: 36ch; font-size: clamp(17px, 2.4vw, 20px); line-height: 1.6; color: var(--ink); text-wrap: pretty; }
   .intro-card:focus { outline: none; }
+  .home-tip { margin: 12px auto 0; max-width: 40ch; font-size: 13px; line-height: 1.45; color: var(--cub); }
   .intro-card .dismiss { margin: 12px 0 0; font-size: 12.5px; letter-spacing: 0.04em; color: var(--dim); }
   @media (prefers-reduced-motion: reduce) {
     .stall { animation: none; }
@@ -228,6 +236,21 @@
     .panel.gauges { --gs: 64px; flex-wrap: nowrap; }
     .bottom { gap: 6px; bottom: calc(8px + env(safe-area-inset-bottom, 0px)); }
     .tsmall { height: 36px; padding: 0 12px; font-size: 12px; }
+    .touch-ui { --pad: 118px; }
+    /* One column on the action side, so the power buttons stay clear of the compass: ammo, transform, power, FIRE. */
+    .tact { display: grid; grid-template-columns: repeat(2, 52px); gap: 8px; justify-items: center; align-items: end; }
+    .tact .tcol { display: contents; }
+    #tAmmo, #tXform, #tFire { grid-column: span 2; }
+    #tAmmo { order: 1; }
+    #tXform { order: 2; }
+    #tUp { order: 3; width: 52px; height: 52px; }
+    #tDown { order: 4; width: 52px; height: 52px; }
+    #tFire { order: 5; }
+  }
+  @media (hover: none) and (pointer: coarse) and (max-height: 520px) and (max-width: 700px) {
+    .instruments { --cmp: 112px; }
+    .panel.gauges { --gs: 56px; }
+    .touch-ui { --pad: 108px; }
   }
   @media (hover: none) and (pointer: coarse) and (max-height: 520px) and (max-width: 760px) { .power { display: none; } }
   /* Upright: the buttons sit above the stacked gauges, and small phones get a hint to turn sideways. */
@@ -345,6 +368,11 @@
           <button type="button" data-value="right" aria-pressed="true">Right</button>
           <button type="button" data-value="left" aria-pressed="false">Left</button>
         </div>
+        <span class="choice-label touch-only" id="padLabel">Joystick</span>
+        <div class="seg touch-only" role="group" aria-labelledby="padLabel" data-choice="pad">
+          <button type="button" data-value="left" aria-pressed="true">Left</button>
+          <button type="button" data-value="right" aria-pressed="false">Right</button>
+        </div>
         <span class="choice-label" id="stickLabel">Stick</span>
         <div class="seg" role="group" aria-labelledby="stickLabel" data-choice="stick">
           <button type="button" data-value="pilot" aria-pressed="true" title="Pull back for nose up">Pilot</button>
@@ -390,22 +418,29 @@
         <dt><kbd>H</kbd></dt><dd>Hide this card</dd>
       </dl>
       <p class="kbd-only">Arrow keys work like the nose and bank keys. You can also drag with the mouse to fly. Idle power also brakes on the ground.</p>
-      <p class="touch-only">Drag on the screen to fly. ▲ and ▼ change power, or go up and down in a hover. Hold FIRE to shoot; inside the barn it drops the supplies. Next ammo and Transform are above FIRE.</p>
+      <p class="touch-only">Push the joystick to fly. With Stick on Pilot, pull it down to climb; with Game, push it up. You can also drag on the screen. ▲ and ▼ change power, or go up and down in a hover. Hold FIRE to shoot; inside the barn it drops the supplies. Next ammo and Transform are above FIRE. To move the joystick to the other side, pick Left or Right under Joystick.</p>
+      <p class="home-tip" hidden>Full screen on iPhone: tap Share (or ⋯, then Share), then Add to Home Screen. Then play from the new icon.</p>
       <p class="credit">Music made with Suno. Transformation sounds by Mekaal (CC0).</p>
     </aside>
   </div>
 
   <div class="touch-ui" id="touchUi">
     <button type="button" class="tbtn" id="tSettings" aria-label="Settings">⚙</button>
-    <button type="button" class="tbtn tsmall" id="tPause" aria-label="Pause">❚❚ Pause</button>
-    <div class="tcluster tleft">
-      <button type="button" class="tbtn" id="tUp" aria-label="More power, or up">▲</button>
-      <button type="button" class="tbtn" id="tDown" aria-label="Less power, or down">▼</button>
+    <div class="ttopr">
+      <button type="button" class="tbtn tsmall" id="tFull" hidden>Full screen</button>
+      <button type="button" class="tbtn tsmall" id="tPause" aria-label="Pause">❚❚ Pause</button>
     </div>
-    <div class="tcluster tright">
-      <button type="button" class="tbtn tsmall" id="tAmmo" aria-label="Next ammo">Snowballs</button>
-      <button type="button" class="tbtn tsmall" id="tXform" hidden>Transform</button>
-      <button type="button" class="tbtn tfire" id="tFire">FIRE</button>
+    <div class="tpad" id="tPad" role="img" aria-label="Joystick: push the knob to fly"><div class="tknob" id="tKnob"></div></div>
+    <div class="tcluster tact">
+      <div class="tcol">
+        <button type="button" class="tbtn" id="tUp" aria-label="More power, or up">▲</button>
+        <button type="button" class="tbtn" id="tDown" aria-label="Less power, or down">▼</button>
+      </div>
+      <div class="tcol">
+        <button type="button" class="tbtn tsmall" id="tAmmo" aria-label="Next ammo">Snowballs</button>
+        <button type="button" class="tbtn tsmall" id="tXform" hidden>Transform</button>
+        <button type="button" class="tbtn tfire" id="tFire">FIRE</button>
+      </div>
     </div>
     <div class="rotate-hint" id="rotateHint">Turn your phone sideways for the best view.</div>
   </div>
@@ -532,6 +567,7 @@
           <p>After you deliver the supplies, land back here at home base before the storm!</p>
         </div>
       </div>
+      <p class="home-tip" hidden>Full screen on iPhone: tap Share (or ⋯, then Share), then Add to Home Screen. Then play from the new icon.</p>
       <p class="dismiss" id="introHint">(spacebar to dismiss)</p>
     </div>
   </div>
@@ -2599,7 +2635,7 @@
   const LOCKED_PLANES = ['triplane', 'sleigh', 'ufo'], PLANE_NAMES = { triplane: 'Red Baron triplane', sleigh: "Santa's sleigh", ufo: 'UFO' };
   const hideSpecial = false;
   const planeOptions = [...$('planeSelect').options];
-  const choice = { mode: 'mission', barn: 'big', flying: 'easy', hands: 'right', stick: 'pilot', season: 'summer', wx: 'light', time: 'day', plane: 'cub', team: 'free', voice: 'on', sound: 'on', drone: 'on', foe: 'medium', ammo: 'snow', music: 'on', mixMusic: 100, mixFx: 100, mixEngine: 100, mixVoice: 100 };
+  const choice = { mode: 'mission', barn: 'big', flying: 'easy', hands: 'right', stick: 'pilot', pad: 'left', season: 'summer', wx: 'light', time: 'day', plane: 'cub', team: 'free', voice: 'on', sound: 'on', drone: 'on', foe: 'medium', ammo: 'snow', music: 'on', mixMusic: 100, mixFx: 100, mixEngine: 100, mixVoice: 100 };
   // Dogfight difficulty: bandits in wave 1 and at most, hits to down one, hits you can take, speed next to yours,
   // turn rate (rad/s), seconds between shots, aim wobble, how wide a nose cone they shoot in, and whether they break off.
   const FOES = {
@@ -3426,6 +3462,7 @@
     else if (kind === 'flying' && FLYING[value]) { choice.flying = value; flying = FLYING[value]; updatePerf(); }
     else if (kind === 'hands' && LAYOUTS[value]) { choice.hands = value; layout = LAYOUTS[value]; renderKeys(); restart = false; }
     else if (kind === 'stick' && (value === 'pilot' || value === 'game')) { choice.stick = value; renderKeys(); restart = false; }
+    else if (kind === 'pad' && (value === 'left' || value === 'right')) { choice.pad = value; document.body.classList.toggle('pad-right', value === 'right'); restart = false; }
     else if (kind === 'mode' && (value === 'mission' || value === 'fight')) {
       choice.mode = value;
       renderKeys();
@@ -3580,6 +3617,7 @@
   applyChoice('flying', FLYING[saved.flying] ? saved.flying : 'easy', false);
   applyChoice('hands', LAYOUTS[saved.hands] ? saved.hands : 'right', false);
   applyChoice('stick', saved.stick === 'game' ? 'game' : 'pilot', false);
+  applyChoice('pad', saved.pad === 'right' ? 'right' : 'left', false);
   applyChoice('wx', WX[saved.wx] ? saved.wx : 'light', false);
   applyChoice('time', ['dusk', 'night'].includes(saved.time) ? saved.time : 'day', false);
   applyChoice('plane', ['camel', 'triplane', 'sleigh', 'ufo', 'jet', 'heli', 'shifter'].includes(saved.plane) ? saved.plane : 'cub', false);
@@ -3701,6 +3739,7 @@
   function clearInputs() {
     keys.clear();
     drag = null;
+    padEnd();
     stick.pitch = stick.roll = 0;
     input.pitch = input.roll = 0;
   }
@@ -3725,13 +3764,61 @@
   holdButton($('tFire'), () => { touchFire = true; if (!introOpen && !paused && !menuOpen) spaceAction(); }, () => { touchFire = false; });
   holdButton($('tUp'), () => keys.add(layout.more), () => keys.delete(layout.more));
   holdButton($('tDown'), () => keys.add(layout.less), () => keys.delete(layout.less));
+  // Joystick: the knob follows the thumb inside the pad and sets the same stick a drag on the screen does, so the Stick
+  // setting (Pilot or Game) works the same way. A small dead zone keeps a resting thumb from steering, and a soft curve
+  // makes small pushes gentle (half way gives about a third) while a full push is still full. Letting go centers it.
+  const pad = $('tPad'), knob = $('tKnob');
+  let padId = null;
+  function padMove(e) {
+    const r = pad.getBoundingClientRect(), reach = r.width * 0.34, dead = 0.08;
+    let dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
+    const d = Math.hypot(dx, dy);
+    if (d > reach) { dx *= reach / d; dy *= reach / d; }
+    knob.style.transform = `translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px)`;
+    const axis = (v) => { if (Math.abs(v) < dead) return 0; const a = (v - Math.sign(v) * dead) / (1 - dead); return a * (0.4 + 0.6 * Math.abs(a)); };
+    stick.roll = axis(dx / reach);
+    stick.pitch = axis((pilotStick() ? dy : -dy) / reach);
+  }
+  function padEnd() {
+    if (padId === null) return;
+    padId = null;
+    pad.classList.remove('active');
+    knob.style.transform = '';
+    stick.pitch = stick.roll = 0;
+  }
+  pad.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    padId = e.pointerId;
+    try { pad.setPointerCapture(e.pointerId); } catch (err) { /* keep going: moves over the pad still count */ }
+    pad.classList.add('active');
+    startEngine();
+    padMove(e);
+  });
+  pad.addEventListener('pointermove', (e) => { if (e.pointerId === padId) padMove(e); });
+  for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) pad.addEventListener(ev, (e) => { if (e.pointerId === padId) padEnd(); });
+  // Full screen: iPad and Android browsers can fill the screen from a button. iPhone Safari can't, so iPhone players get a
+  // tip instead: add the game to the Home Screen and play from that icon, which opens it without the Safari bars.
+  const fullOk = !!(document.fullscreenEnabled || document.webkitFullscreenEnabled);
+  const appMode = navigator.standalone === true || window.matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches;
+  const fullEl = () => document.fullscreenElement || document.webkitFullscreenElement;
+  const syncFullBtn = () => { $('tFull').textContent = fullEl() ? 'Exit full screen' : 'Full screen'; };
+  function toggleFull() {
+    const d = document, el = d.documentElement;
+    if (fullEl()) { (d.exitFullscreen || d.webkitExitFullscreen).call(d); return; }
+    const go = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (go) Promise.resolve(go.call(el)).catch(() => toast('This browser would not go full screen.', 3));
+  }
+  $('tFull').hidden = !(TOUCH && fullOk && !appMode);
+  for (const tip of document.querySelectorAll('.home-tip')) tip.hidden = !(TOUCH && !fullOk && !appMode);
+  document.addEventListener('fullscreenchange', syncFullBtn);
+  document.addEventListener('webkitfullscreenchange', syncFullBtn);
   function setMenu(open) {
     menuOpen = open;
     document.body.classList.toggle('menu-open', open);
     clearInputs();
     touchFire = false;
   }
-  for (const [id, fn] of [['tPause', () => togglePause()], ['tXform', () => nextShifterMode()], ['tSettings', () => setMenu(true)], ['tClose', () => setMenu(false)],
+  for (const [id, fn] of [['tPause', () => togglePause()], ['tFull', toggleFull], ['tXform', () => nextShifterMode()], ['tSettings', () => setMenu(true)], ['tClose', () => setMenu(false)],
     ['tAmmo', () => pickAmmo((AMMO_KEYS.indexOf(choice.ammo) + 1) % AMMO_KEYS.length)]]) {
     $(id).addEventListener('click', () => { startEngine(); fn(); $(id).blur(); });
   }
@@ -3747,17 +3834,18 @@
   canvas.addEventListener('pointermove', (e) => {
     if (!drag || e.pointerId !== drag.id) return;
     if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 8) drag.moved = true;
+    if (padId !== null) return;
     stick.roll = clamp((e.clientX - drag.x) / 90, -1, 1);
     stick.pitch = clamp((pilotStick() ? e.clientY - drag.y : drag.y - e.clientY) / 90, -1, 1);
   });
   const release = (e) => {
     if (drag && e.type === 'pointerup' && !drag.moved && performance.now() - drag.t < 300) spaceAction();
     drag = null;
-    stick.pitch = stick.roll = 0;
+    if (padId === null) stick.pitch = stick.roll = 0;
   };
   canvas.addEventListener('pointerup', release);
   canvas.addEventListener('pointercancel', release);
-  canvas.addEventListener('lostpointercapture', () => { drag = null; stick.pitch = stick.roll = 0; });
+  canvas.addEventListener('lostpointercapture', () => { drag = null; if (padId === null) stick.pitch = stick.roll = 0; });
 
   function updateInputs(dt) {
     const L = layout;
@@ -5793,13 +5881,21 @@
     dropBtn.hidden = !nearBarnDrop();
   }
 
+  let viewW = 0, viewH = 0;
   function resize() {
     const w = window.innerWidth, h = window.innerHeight;
+    if (w === viewW && h === viewH) return;
+    viewW = w;
+    viewH = h;
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
   }
-  window.addEventListener('resize', resize);
+  // Phones can report the old size right after a turn, so check again a moment later.
+  const resizeSoon = () => { resize(); setTimeout(resize, 150); setTimeout(resize, 600); };
+  window.addEventListener('resize', resizeSoon);
+  window.addEventListener('orientationchange', resizeSoon);
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', resizeSoon);
   resize();
 
   // ---------- loop ----------
