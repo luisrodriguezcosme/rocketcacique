@@ -219,6 +219,7 @@
   .intro-card h2 { margin: 0; font: 800 clamp(34px, 7vw, 48px)/1 var(--display); letter-spacing: 0.03em; color: var(--cub); }
   .crawl p { margin: 0 auto 1em; max-width: 36ch; font-size: clamp(17px, 2.4vw, 20px); line-height: 1.6; color: var(--ink); text-wrap: pretty; }
   .intro-card:focus { outline: none; }
+  .side-tip { position: absolute; top: calc(62px + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%); width: max-content; max-width: min(460px, calc(100% - 32px)); padding: 8px 14px; font-size: 13px; line-height: 1.4; text-align: center; color: #1B1D20; background: rgba(242, 194, 48, 0.92); border-radius: 12px; pointer-events: auto; }
   .home-tip { margin: 12px auto 0; max-width: 40ch; font-size: 13px; line-height: 1.45; color: var(--cub); }
   .intro-card .dismiss { margin: 12px 0 0; font-size: 12.5px; letter-spacing: 0.04em; color: var(--dim); }
   @media (prefers-reduced-motion: reduce) {
@@ -442,6 +443,7 @@
         <button type="button" class="tbtn tfire" id="tFire">FIRE</button>
       </div>
     </div>
+    <div class="side-tip" id="sideTip" hidden>Safari keeps its bars on screen. For full screen, tap Share, then Add to Home Screen, and play from the new icon.</div>
     <div class="rotate-hint" id="rotateHint">Turn your phone sideways for the best view.</div>
   </div>
 
@@ -2663,7 +2665,7 @@
   // (engine, effects, and the radio's static) before the speakers; music, sound clips, and the spoken tower calls
   // scale their own volume. The tower voice tops out at 100 because speech can't play louder.
   const MIX = [['mixMusic', 150], ['mixFx', 150], ['mixEngine', 150], ['mixVoice', 100]];
-  const mixer = { engine: null, fx: null, voice: null };
+  const mixer = { engine: null, fx: null, voice: null, out: null };
   const dog = { on: false, restart: false, wave: 0, total: 0, foes: [], nextWave: 0, hp: 0, hpMax: 0, kills: 0, ref: 35, seq: 0 };
   const LAYOUTS = {
     right: { top: 'KeyI', bottom: 'KeyK', left: 'KeyJ', right: 'KeyL', more: 'KeyR', less: 'KeyF' },
@@ -2985,16 +2987,24 @@
     xformClips = { servos: XFORM_SERVOS.map(make), sweep: make(XFORM_SWEEP) };
     return xformClips;
   }
+  // A sound clip played through the effects bus, so the Effects slider sets its level on every device (iPhones ignore a
+  // clip's own volume). If the browser won't route it, the clip's own volume is the fallback.
+  function playClip(a, level) {
+    try {
+      const g = audioCtx.createGain();
+      g.gain.value = level;
+      audioCtx.createMediaElementSource(a).connect(g).connect(bus('fx'));
+    } catch (err) { a.volume = Math.min(1, level * MIX_BASE.fx * choice.mixFx / 100); }
+    a.play().catch(() => {});
+  }
   // Transforming: a servo clip (plus the rising sweep when it becomes a jet again) and a heavy clunk as the parts lock.
   // Without the clips, a built-in rising servo whir with three latch clicks stands in.
   function sfxTransform(next) {
     if (choice.sound !== 'on' || !audio()) return;
     const c = loadXformClips(), servos = c.servos.filter((a) => a.ready && !a.failed);
     if (servos.length) {
-      const a = servos[Math.floor(Math.random() * servos.length)].cloneNode();
-      a.volume = Math.min(1, 0.55 * choice.mixFx / 100);
-      a.play().catch(() => {});
-      if (next === 'jet' && c.sweep.ready && !c.sweep.failed) { const b = c.sweep.cloneNode(); b.volume = Math.min(1, 0.3 * choice.mixFx / 100); b.play().catch(() => {}); }
+      playClip(servos[Math.floor(Math.random() * servos.length)].cloneNode(), 0.275);
+      if (next === 'jet' && c.sweep.ready && !c.sweep.failed) playClip(c.sweep.cloneNode(), 0.15);
       thump(audioCtx.currentTime + 0.92, 140, 50, 0.18, 0.25);
       return;
     }
@@ -3275,18 +3285,33 @@
     radio('Mercy Flight, Valley Tower. Radio check, loud and clear.');
   });
   let audioCtx = null;
+  // Every bus, and the music, ends in one soft limiter ('out'): sound passes through unchanged up to about -3 dB and
+  // rounds off above that, so a crash on top of the engine and the music can't clip and crackle.
   function bus(kind) {
     if (!mixer.fx) {
-      for (const k of ['engine', 'fx', 'voice']) { mixer[k] = audioCtx.createGain(); mixer[k].connect(audioCtx.destination); }
+      const pre = audioCtx.createGain(), shaper = audioCtx.createWaveShaper(), n = 2049, curve = new Float32Array(n);
+      pre.gain.value = 0.5;
+      for (let i = 0; i < n; i++) {
+        const x = (i / (n - 1)) * 4 - 2, a = Math.abs(x);
+        curve[i] = Math.sign(x) * (a <= 0.7 ? a : 0.7 + 0.3 * Math.tanh((a - 0.7) / 0.3));
+      }
+      shaper.curve = curve;
+      shaper.oversample = '2x';
+      pre.connect(shaper).connect(audioCtx.destination);
+      mixer.out = pre;
+      for (const k of ['engine', 'fx', 'voice']) { mixer[k] = audioCtx.createGain(); mixer[k].connect(mixer.out); }
       applyMix();
     }
     return mixer[kind];
   }
+  // The balance at 100 on every slider, set by measuring the game while flying: full-power engine hum about a decibel
+  // under the shots and hits, and the music (see updateMusic) a little under both.
+  const MIX_BASE = { engine: 0.7, fx: 2 };
   function applyMix() {
     if (!mixer.fx) return;
     const t = audioCtx.currentTime;
-    mixer.engine.gain.setTargetAtTime(choice.mixEngine / 100, t, 0.05);
-    mixer.fx.gain.setTargetAtTime(choice.mixFx / 100, t, 0.05);
+    mixer.engine.gain.setTargetAtTime(MIX_BASE.engine * choice.mixEngine / 100, t, 0.05);
+    mixer.fx.gain.setTargetAtTime(MIX_BASE.fx * choice.mixFx / 100, t, 0.05);
     mixer.voice.gain.setTargetAtTime(choice.mixVoice / 100, t, 0.05);
   }
   function squelch(end) {
@@ -3657,6 +3682,7 @@
     introEl.hidden = true;
     keysEl.hidden = false;
     toast(tipStart(), 0);
+    sideTip();
   }
   $('introCard').addEventListener('click', () => { startEngine(); closeIntro(); });
 
@@ -3809,7 +3835,19 @@
     if (go) Promise.resolve(go.call(el)).catch(() => toast('This browser would not go full screen.', 3));
   }
   $('tFull').hidden = !(TOUCH && fullOk && !appMode);
-  for (const tip of document.querySelectorAll('.home-tip')) tip.hidden = !(TOUCH && !fullOk && !appMode);
+  const homeTipOn = TOUCH && !fullOk && !appMode;
+  for (const tip of document.querySelectorAll('.home-tip')) tip.hidden = !homeTipOn;
+  // Turning the phone sideways in iPhone Safari: once per visit, a tip that the bars stay and the Home Screen icon is the
+  // way to full screen. It shows for 8 seconds; a tap closes it sooner.
+  const sideTipEl = $('sideTip');
+  let sideTipDone = false;
+  function sideTip() {
+    if (!homeTipOn || sideTipDone || introOpen || window.innerWidth <= window.innerHeight) return;
+    sideTipDone = true;
+    sideTipEl.hidden = false;
+    setTimeout(() => { sideTipEl.hidden = true; }, 8000);
+  }
+  sideTipEl.addEventListener('click', () => { sideTipEl.hidden = true; });
   document.addEventListener('fullscreenchange', syncFullBtn);
   document.addEventListener('webkitfullscreenchange', syncFullBtn);
   function setMenu(open) {
@@ -5364,7 +5402,11 @@
 
   // Missions and free flying play Skyward Dash, the snowball fight Full-Band Riff, and the dogfight Full-Band Riff v2.
   // A song fades in over about a second and a half and the old one fades out; pausing or turning music off fades fast.
-  // A song that fails to load (no music/ folder) is skipped quietly.
+  // A song that fails to load (no music/ folder) is skipped quietly. Songs play through the sound engine (a gain per song)
+  // because iPhones and iPads ignore a song's own volume (it always reads 1). The fade is kept in a.level, never read back
+  // from a.volume; without the sound engine and without a working volume, songs switch at once, so an old song can't keep
+  // playing under the new one. At 100 on the Music slider a song plays at 25% (ducked to 9% while the tower talks).
+  const musicFades = (() => { try { const t = new Audio(); t.volume = 0.5; return Math.abs(t.volume - 0.5) < 0.01; } catch (err) { return false; } })();
   function musicTrack() { return choice.mode !== 'fight' ? 'sky' : choice.drone === 'dogfight' ? 'riff2' : 'riff'; }
   function updateMusic(dt) {
     if (!music.unlocked) return;
@@ -5372,19 +5414,30 @@
     music.duck = Math.max(0, music.duck - dt);
     for (const id of Object.keys(MUSIC)) {
       let a = music.tracks[id];
-      const target = on && id === want ? Math.min(1, (music.duck > 0 ? 0.12 : 0.32) * choice.mixMusic / 100) : 0;
+      const target = on && id === want ? Math.min(1, (music.duck > 0 ? 0.09 : 0.25) * choice.mixMusic / 100) : 0;
       if (!a) {
         if (target === 0) continue;
         a = music.tracks[id] = new Audio(MUSIC[id]);
         a.loop = true;
-        a.volume = 0;
+        a.level = 0;
         a.addEventListener('error', () => { a.failed = true; });
+        const ac = audio();
+        if (ac) {
+          try {
+            a.amp = ac.createGain();
+            a.amp.gain.value = 0;
+            ac.createMediaElementSource(a).connect(a.amp).connect(bus('out'));
+          } catch (err) { a.amp = null; }
+        }
+        if (!a.amp) a.volume = 0;
       }
       if (a.failed) continue;
-      const rate = target >= a.volume || on ? 0.22 : 2;
-      a.volume = clamp(a.volume + clamp(target - a.volume, -rate * dt, rate * dt), 0, 1);
+      const fades = !!a.amp || musicFades, rate = target >= a.level || on ? 0.22 : 2;
+      a.level = fades ? clamp(a.level + clamp(target - a.level, -rate * dt, rate * dt), 0, 1) : target;
+      if (a.amp) a.amp.gain.value = a.level;
+      else if (musicFades) a.volume = a.level;
       if (target > 0 && a.paused && !a.starting) { a.starting = true; a.play().catch(() => {}).finally(() => { a.starting = false; }); }
-      else if (target === 0 && a.volume <= 0.001 && !a.paused) a.pause();
+      else if (target === 0 && a.level <= 0.001 && !a.paused) a.pause();
     }
   }
 
@@ -5393,7 +5446,7 @@
   function audio() {
     try {
       audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
-      if (audioCtx.state === 'suspended') audioCtx.resume();
+      if (audioCtx.state === 'suspended' || audioCtx.state === 'interrupted') audioCtx.resume();
       if (!noiseBuf) {
         noiseBuf = audioCtx.createBuffer(1, audioCtx.sampleRate, audioCtx.sampleRate);
         const d = noiseBuf.getChannelData(0);
@@ -5404,7 +5457,8 @@
   }
   function startEngine() {
     music.unlocked = true;
-    if (engine || choice.sound !== 'on') return;
+    if (engine) { audio(); return; }
+    if (choice.sound !== 'on') return;
     const ac = audio();
     if (!ac) return;
     const o1 = ac.createOscillator(), o2 = ac.createOscillator(), lp = ac.createBiquadFilter(), g = ac.createGain();
@@ -5890,6 +5944,7 @@
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
+    sideTip();
   }
   // Phones can report the old size right after a turn, so check again a moment later.
   const resizeSoon = () => { resize(); setTimeout(resize, 150); setTimeout(resize, 600); };
