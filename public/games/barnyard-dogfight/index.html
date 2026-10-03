@@ -304,9 +304,10 @@
         </div>
         <span class="choice-label" id="flyLabel">Flying</span>
         <div class="seg" role="group" aria-labelledby="flyLabel" data-choice="flying">
+          <button type="button" data-value="novice" aria-pressed="false" title="The plane flies itself straight: no rolling over, no stalls">Novice</button>
           <button type="button" data-value="easy" aria-pressed="true">Easy</button>
           <button type="button" data-value="medium" aria-pressed="false">Medium</button>
-          <button type="button" data-value="hard" aria-pressed="false">Hard</button>
+          <button type="button" data-value="hard" aria-pressed="false" title="Full aerobatics, no help">Hard</button>
         </div>
         <span class="choice-label" id="seasonLabel">Season</span>
         <div class="seg" role="group" aria-labelledby="seasonLabel" data-choice="season">
@@ -396,6 +397,8 @@
           <button type="button" data-value="on" aria-pressed="true">On</button>
           <button type="button" data-value="off" aria-pressed="false">Off</button>
         </div>
+        <span class="choice-label" id="songLabel">Song</span>
+        <div class="fight-row"><button type="button" id="nextSong" class="fight-btn" aria-describedby="songName">Next song</button><span id="songName">Skyward Dash</span></div>
         <label class="choice-label" for="mixMusic">Music vol</label>
         <div class="fight-row mix-row"><input type="range" id="mixMusic" min="0" max="150" step="5" value="100"><span class="mix-val" id="mixMusicVal">100%</span></div>
         <label class="choice-label" for="mixFx">Effects vol</label>
@@ -1168,12 +1171,21 @@
     small: { doorW: 9, doorH: 8, half: 16, ceilingFt: 15 }
   };
   const FLYING = {
+    novice: { selfLevel: true, novice: true, pitch: 0.5, roll: 0.6, hardFpm: 1200, cd0: 0.028, thrust: 2900 },
     easy: { selfLevel: true, pitch: 0.6, roll: 0.8, hardFpm: 1000, cd0: 0.028, thrust: 2900 },
     medium: { selfLevel: true, pitch: 0.8, roll: 1.1, hardFpm: 800, cd0: 0.045, thrust: 3100 },
     hard: { selfLevel: false, pitch: 1.0, roll: 1.4, hardFpm: 700, cd0: 0.07, thrust: 3500 }
   };
   // Snowball fight flies an aerobatic setup: fast roll, stronger wing, more power, no self-leveling.
   const FIGHT_PERF = { selfLevel: false, pitch: 0.7, roll: 1.5, cd0: 0.03, thrust: 5000, vProp: 100, aStall: 0.3 };
+  // In a fight the Flying setting picks the handling: Novice flies itself straight (see noviceAssist), Easy and Medium
+  // level the wings when you let go and roll a little slower, and Hard is the full aerobatic setup above.
+  const FIGHT_HANDLING = {
+    novice: { selfLevel: true, novice: true, pitch: 0.55, roll: 0.8 },
+    easy: { selfLevel: true, pitch: 0.6, roll: 1.0 },
+    medium: { selfLevel: true, pitch: 0.65, roll: 1.25 },
+    hard: {}
+  };
   let perf = { ...FLYING.easy, vProp: 80, aStall: 0.26 };
   let barnSize = BARNS.big, flying = FLYING.easy, BARN_HALF = 0, BARN_W = 0, DOOR_W = 0, DOOR_H = 0, EAVE = 0, RIDGE = 0, LEAF = 0;
   const barnRoof = (lz) => EAVE + (RIDGE - EAVE) * (1 - Math.abs(lz) / BARN_W);
@@ -1478,7 +1490,7 @@
     applyTime();
   }
   // Wind: winter from 290 degrees, summer showers from 240; gusting and veering a little; lighter near the ground and inside the barn.
-  const WIND_START = { from: 290, base: 12, gust: 8 }, WIND_SCALE = { easy: 0.6, medium: 1, hard: 1.4 };
+  const WIND_START = { from: 290, base: 12, gust: 8 }, WIND_SCALE = { novice: 0.3, easy: 0.6, medium: 1, hard: 1.4 };
   let WIND = { ...WIND_START }, windFromNow = WIND_START.from, windKtNow = 0;
   const windVel = new THREE.Vector3(), air = new THREE.Vector3();
   let windT = 0;
@@ -2487,9 +2499,11 @@
     // Auto-trim: while you hold pitch, trim follows; let go and the plane holds that attitude and speed.
     if (Math.abs(input.pitch) > 0.08 && !s.onGround) s.trimA = clamp(alpha, -0.03, 0.14);
     const autoLevel = perf.selfLevel && Math.abs(input.roll) < 0.05 && Math.abs(euler.z) < 1.4 ? -euler.z * 0.9 : 0;
-    s.omega.x += ((input.pitch * perf.pitch - (alpha - s.trimA) * 3.0) * eff - s.omega.x) * k;
+    let pitchCmd = input.pitch * perf.pitch - (alpha - s.trimA) * 3.0, rollCmd = -input.roll * perf.roll + autoLevel;
+    if (perf.novice && !s.onGround) [pitchCmd, rollCmd] = noviceAssist(alpha, pitchCmd, rollCmd, dt);
+    s.omega.x += (pitchCmd * eff - s.omega.x) * k;
     s.omega.y += (-beta * 2.5 * eff - s.omega.y) * k;
-    s.omega.z += ((-input.roll * perf.roll + autoLevel) * eff - s.omega.z) * k;
+    s.omega.z += (rollCmd * eff - s.omega.z) * k;
     const w = s.omega.length();
     if (w > 1e-6) { dq.setFromAxisAngle(axis.copy(s.omega).divideScalar(w), w * dt); q.multiply(dq).normalize(); }
 
@@ -2507,6 +2521,24 @@
     else if (agl > 0.05) s.onGround = false;
     if (!s.onGround && agl > 1) s.airTime += dt;
     if (!s.frozen) { trackBarn(); trackStunts(); }
+  }
+
+  // Novice: the plane flies itself straight. Bank stops at about 50° and the nose stays between 20° down and 25° up; let
+  // go and the wings and the nose come back to level; while banked it pulls by itself, so a turn turns and holds height;
+  // near a stall the nose lowers by itself. (euler holds this frame's
+  // attitude: z is bank, left positive; x is the nose, up positive.)
+  const NOVICE = { bank: 0.87, up: 0.44, down: -0.35 };
+  function noviceAssist(alpha, pitchCmd, rollCmd, dt) {
+    const s = state, bank = euler.z, nose = euler.x;
+    if (Math.abs(input.roll) < 0.05) rollCmd = -bank * 1.6;
+    else if ((bank <= -NOVICE.bank && rollCmd < 0) || (bank >= NOVICE.bank && rollCmd > 0)) rollCmd = 0;
+    rollCmd -= (bank - clamp(bank, -NOVICE.bank, NOVICE.bank)) * 4;
+    if (Math.abs(input.pitch) < 0.08) { s.trimA += (TRIM_A - s.trimA) * Math.min(1, dt * 1.5); pitchCmd = -(nose - 0.03) * 1.5 + Math.abs(Math.sin(bank)) * 0.45; }
+    else if ((nose >= NOVICE.up && pitchCmd > 0) || (nose <= NOVICE.down && pitchCmd < 0)) pitchCmd = 0;
+    pitchCmd -= (nose - clamp(nose, NOVICE.down, NOVICE.up)) * 4;
+    const edge = perf.aStall - 0.04;
+    if (alpha > edge) pitchCmd = Math.min(pitchCmd, 0) - (alpha - edge) * 10;
+    return [pitchCmd, rollCmd];
   }
 
   const CRASH_TIPS = {
@@ -2660,7 +2692,7 @@
   const AMMO_KEYS = Object.keys(AMMO);
   // Music: one looping song per mode, from a music/ folder next to this page (no folder, no music).
   const MUSIC = { sky: 'music/skyward-dash.mp3', riff: 'music/full-band-riff.mp3', riff2: 'music/full-band-riff-v2.mp3' };
-  const music = { unlocked: false, tracks: {}, duck: 0 };
+  const music = { unlocked: false, tracks: {}, duck: 0, cur: null, mode: null };
   // Mixer: one volume per group, 100 = the game's normal level. Built-in sounds go through a gain node per group
   // (engine, effects, and the radio's static) before the speakers; music, sound clips, and the spoken tower calls
   // scale their own volume. The tower voice tops out at 100 because speech can't play louder.
@@ -3553,7 +3585,7 @@
     return clamp(drag / (perf.thrust * (1 - v / perf.vProp)), 0, 1);
   }
   function updatePerf() {
-    perf = choice.mode === 'fight' ? { ...FIGHT_PERF, hardFpm: flying.hardFpm } : { ...flying, vProp: 80, aStall: 0.26 };
+    perf = choice.mode === 'fight' ? { ...FIGHT_PERF, ...FIGHT_HANDLING[choice.flying], hardFpm: flying.hardFpm } : { ...flying, vProp: 80, aStall: 0.26 };
     if (['triplane', 'sleigh'].includes(flyPlane())) Object.assign(perf, { roll: perf.roll * 1.35, pitch: perf.pitch * 1.3, thrust: perf.thrust * 1.3, vProp: perf.vProp * 1.15 });
     if (flyPlane() === 'jet' || flyPlane() === 'shifter') Object.assign(perf, { roll: perf.roll * 2, pitch: perf.pitch * 1.5, thrust: perf.thrust * 3, vProp: 230, cd0: perf.cd0 * 0.55, aStall: 0.11 });
     if (flyPlane() === 'ufo') Object.assign(perf, { roll: perf.roll * 2.2, pitch: perf.pitch * 1.8, thrust: perf.thrust * 3, vProp: perf.vProp * 2.5, cd0: perf.cd0 * 0.7 });
@@ -3639,7 +3671,7 @@
   let saved = {};
   try { saved = JSON.parse(localStorage.getItem(STORE_CHOICE) || '{}') || {}; } catch (err) { saved = {}; }
   applyChoice('barn', BARNS[saved.barn] ? saved.barn : 'big', false);
-  applyChoice('flying', FLYING[saved.flying] ? saved.flying : 'easy', false);
+  applyChoice('flying', FLYING[saved.flying] ? saved.flying : TOUCH ? 'novice' : 'easy', false);
   applyChoice('hands', LAYOUTS[saved.hands] ? saved.hands : 'right', false);
   applyChoice('stick', saved.stick === 'game' ? 'game' : 'pilot', false);
   applyChoice('pad', saved.pad === 'right' ? 'right' : 'left', false);
@@ -5347,7 +5379,7 @@
   // Aiming dot: where a snowball thrown now will be at the range of the target ahead (120 m with none), with lead for
   // the target's motion, like a gunsight. Turns yellow when the dot sits on where that target will be.
   const aimEl = $('aim'), aimP = new THREE.Vector3(), aimV = new THREE.Vector3(), scr = new THREE.Vector3(), aimRel = new THREE.Vector3(), aimLead = new THREE.Vector3();
-  const HIT_R = { easy: 10, medium: 8, hard: 6.5 };
+  const HIT_R = { novice: 12, easy: 10, medium: 8, hard: 6.5 };
   function aimTargets() {
     const list = [];
     for (const gh of net.ghosts.values()) if (gh.mode === 'fight' && !gh.paused && gh.body.visible && !sameTeam(gh)) list.push({ p: gh.pos, v: gh.vel, px: 34 });
@@ -5400,17 +5432,33 @@
     aimEl.classList.toggle('on', onTarget);
   }
 
-  // Missions and free flying play Skyward Dash, the snowball fight Full-Band Riff, and the dogfight Full-Band Riff v2.
+  // The songs play as a playlist: each plays once, and a second and a half before it ends the next one fades in (Skyward
+  // Dash, Full-Band Riff, Full-Band Riff v2, and around again). A mode starts on its own song: missions and free flying
+  // on Skyward Dash, the snowball fight on Full-Band Riff, the dogfight on Full-Band Riff v2. Next song skips ahead.
   // A song fades in over about a second and a half and the old one fades out; pausing or turning music off fades fast.
   // A song that fails to load (no music/ folder) is skipped quietly. Songs play through the sound engine (a gain per song)
   // because iPhones and iPads ignore a song's own volume (it always reads 1). The fade is kept in a.level, never read back
   // from a.volume; without the sound engine and without a working volume, songs switch at once, so an old song can't keep
   // playing under the new one. At 100 on the Music slider a song plays at 25% (ducked to 9% while the tower talks).
   const musicFades = (() => { try { const t = new Audio(); t.volume = 0.5; return Math.abs(t.volume - 0.5) < 0.01; } catch (err) { return false; } })();
-  function musicTrack() { return choice.mode !== 'fight' ? 'sky' : choice.drone === 'dogfight' ? 'riff2' : 'riff'; }
+  const SONGS = Object.keys(MUSIC), SONG_NAMES = { sky: 'Skyward Dash', riff: 'Full-Band Riff', riff2: 'Full-Band Riff v2' };
+  function modeSong() { return choice.mode !== 'fight' ? 'sky' : choice.drone === 'dogfight' ? 'riff2' : 'riff'; }
+  function playSong(id) {
+    music.cur = id;
+    $('songName').textContent = SONG_NAMES[id];
+  }
+  // Next song: the one playing fades out and starts from the top next time it comes around.
+  function nextSong() {
+    const old = music.tracks[music.cur];
+    if (old) old.rewind = true;
+    playSong(SONGS[(SONGS.indexOf(music.cur) + 1) % SONGS.length]);
+  }
+  $('nextSong').addEventListener('click', () => { startEngine(); nextSong(); $('nextSong').blur(); });
   function updateMusic(dt) {
+    const mode = modeSong();
+    if (mode !== music.mode) { music.mode = mode; playSong(mode); }
     if (!music.unlocked) return;
-    const want = musicTrack(), on = choice.music === 'on' && choice.sound === 'on' && !paused && !introOpen;
+    const want = music.cur, on = choice.music === 'on' && choice.sound === 'on' && !paused && !introOpen;
     music.duck = Math.max(0, music.duck - dt);
     for (const id of Object.keys(MUSIC)) {
       let a = music.tracks[id];
@@ -5418,9 +5466,10 @@
       if (!a) {
         if (target === 0) continue;
         a = music.tracks[id] = new Audio(MUSIC[id]);
-        a.loop = true;
         a.level = 0;
         a.addEventListener('error', () => { a.failed = true; });
+        // Backup for when the frames stop (a hidden tab): a song that reaches its end still hands over to the next.
+        a.addEventListener('ended', () => { a.currentTime = 0; if (music.cur === id) nextSong(); });
         const ac = audio();
         if (ac) {
           try {
@@ -5431,13 +5480,22 @@
         }
         if (!a.amp) a.volume = 0;
       }
-      if (a.failed) continue;
+      if (a.failed) {
+        // A song that won't load is skipped, unless none of them load.
+        if (id === music.cur && SONGS.some((k) => !music.tracks[k] || !music.tracks[k].failed)) nextSong();
+        continue;
+      }
+      if (target > 0) a.rewind = false;
+      if (id === music.cur && !a.paused && a.duration > 5 && a.duration - a.currentTime < 1.5) nextSong();
       const fades = !!a.amp || musicFades, rate = target >= a.level || on ? 0.22 : 2;
       a.level = fades ? clamp(a.level + clamp(target - a.level, -rate * dt, rate * dt), 0, 1) : target;
       if (a.amp) a.amp.gain.value = a.level;
       else if (musicFades) a.volume = a.level;
       if (target > 0 && a.paused && !a.starting) { a.starting = true; a.play().catch(() => {}).finally(() => { a.starting = false; }); }
-      else if (target === 0 && a.level <= 0.001 && !a.paused) a.pause();
+      else if (target === 0 && a.level <= 0.001 && !a.paused) {
+        a.pause();
+        if (a.rewind) { a.currentTime = 0; a.rewind = false; }
+      }
     }
   }
 
