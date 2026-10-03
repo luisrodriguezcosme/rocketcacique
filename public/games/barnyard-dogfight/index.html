@@ -1171,7 +1171,7 @@
     small: { doorW: 9, doorH: 8, half: 16, ceilingFt: 15 }
   };
   const FLYING = {
-    novice: { selfLevel: true, novice: true, pitch: 0.5, roll: 0.6, hardFpm: 1200, cd0: 0.028, thrust: 2900 },
+    novice: { selfLevel: true, novice: true, pitch: 0.5, roll: 0.9, hardFpm: 1200, cd0: 0.028, thrust: 2900 },
     easy: { selfLevel: true, pitch: 0.6, roll: 0.8, hardFpm: 1000, cd0: 0.028, thrust: 2900 },
     medium: { selfLevel: true, pitch: 0.8, roll: 1.1, hardFpm: 800, cd0: 0.045, thrust: 3100 },
     hard: { selfLevel: false, pitch: 1.0, roll: 1.4, hardFpm: 700, cd0: 0.07, thrust: 3500 }
@@ -1181,7 +1181,7 @@
   // In a fight the Flying setting picks the handling: Novice flies itself straight (see noviceAssist), Easy and Medium
   // level the wings when you let go and roll a little slower, and Hard is the full aerobatic setup above.
   const FIGHT_HANDLING = {
-    novice: { selfLevel: true, novice: true, pitch: 0.55, roll: 0.8 },
+    novice: { selfLevel: true, novice: true, pitch: 0.55, roll: 1.0 },
     easy: { selfLevel: true, pitch: 0.6, roll: 1.0 },
     medium: { selfLevel: true, pitch: 0.65, roll: 1.25 },
     hard: {}
@@ -2506,6 +2506,13 @@
     s.omega.z += (rollCmd * eff - s.omega.z) * k;
     const w = s.omega.length();
     if (w > 1e-6) { dq.setFromAxisAngle(axis.copy(s.omega).divideScalar(w), w * dt); q.multiply(dq).normalize(); }
+    // Novice turn assist: the plane and its motion swing around together, so it turns without skidding.
+    if (perf.novice && !s.onGround) {
+      const yaw = -input.roll * NOVICE.turn * Math.min(1, speed / 30) * dt;
+      dq.setFromAxisAngle(Y_AXIS, yaw);
+      q.premultiply(dq).normalize();
+      s.vel.applyAxisAngle(Y_AXIS, yaw);
+    }
 
     s.vel.addScaledVector(force, dt / MASS);
     s.pos.addScaledVector(s.vel, dt);
@@ -2523,11 +2530,12 @@
     if (!s.frozen) { trackBarn(); trackStunts(); }
   }
 
-  // Novice: the plane flies itself straight. Bank stops at about 50° and the nose stays between 20° down and 25° up; let
-  // go and the wings and the nose come back to level; while banked it pulls by itself, so a turn turns and holds height;
-  // near a stall the nose lowers by itself. (euler holds this frame's
-  // attitude: z is bank, left positive; x is the nose, up positive.)
-  const NOVICE = { bank: 0.87, up: 0.44, down: -0.35 };
+  // Novice: the plane flies itself straight. Bank stops at 60° and the nose stays between 20° down and 25° up; let go
+  // and the wings and the nose come back to level; while banked it pulls by itself, so a turn turns and holds height;
+  // near a stall the nose lowers by itself. On top of that, the stick swings the heading directly (turn, in radians per
+  // second at full stick; see step), so the plane points where you push. (euler holds this frame's attitude: z is bank,
+  // left positive; x is the nose, up positive.)
+  const NOVICE = { bank: 1.05, up: 0.44, down: -0.35, turn: 0.3 };
   function noviceAssist(alpha, pitchCmd, rollCmd, dt) {
     const s = state, bank = euler.z, nose = euler.x;
     if (Math.abs(input.roll) < 0.05) rollCmd = -bank * 1.6;
