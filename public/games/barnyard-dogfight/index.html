@@ -93,6 +93,26 @@
     .kbd-only { display: none; }
     .touch-only { display: block; }
   }
+  /* Touch screens: thumb buttons in the corners, the two cards tucked into a settings sheet (the gear opens it). */
+  .touch-ui, .tclose, .rotate-hint { display: none; }
+  @media (hover: none) and (pointer: coarse) {
+    .touch-ui { display: block; position: absolute; inset: 0; pointer-events: none; z-index: 2; --tbot: 16px; }
+    .tbtn { pointer-events: auto; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; display: grid; place-items: center; width: 64px; height: 64px; padding: 0; font: 700 22px/1 var(--body); color: var(--ink); background: rgba(17, 21, 25, 0.55); border: 1px solid rgba(255, 255, 255, 0.28); border-radius: 50%; }
+    .tbtn.active { color: #1B1D20; background: rgba(242, 194, 48, 0.9); }
+    .tsmall { width: auto; height: 40px; padding: 0 14px; font-size: 13px; letter-spacing: 0.04em; border-radius: 999px; }
+    #tSettings { position: absolute; top: calc(10px + env(safe-area-inset-top, 0px)); left: calc(10px + env(safe-area-inset-left, 0px)); font-size: 20px; }
+    #tPause { position: absolute; top: calc(10px + env(safe-area-inset-top, 0px)); right: calc(10px + env(safe-area-inset-right, 0px)); }
+    .tcluster { position: absolute; bottom: calc(var(--tbot) + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    .tleft { left: calc(14px + env(safe-area-inset-left, 0px)); }
+    .tright { right: calc(14px + env(safe-area-inset-right, 0px)); }
+    .tfire { width: 84px; height: 84px; font-size: 15px; letter-spacing: 0.08em; background: rgba(217, 71, 47, 0.72); }
+    .intro, .crash { z-index: 4; }
+    body:not(.menu-open) .top { display: none; }
+    body.menu-open .top { position: fixed; inset: 0; z-index: 5; flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 12px; padding: calc(10px + env(safe-area-inset-top, 0px)) calc(12px + env(safe-area-inset-right, 0px)) 28px calc(12px + env(safe-area-inset-left, 0px)); overflow-y: auto; background: rgba(9, 12, 16, 0.72); pointer-events: auto; }
+    body.menu-open .top .plate, body.menu-open .top .keys { max-width: none; margin: 0; }
+    body.menu-open .tclose { display: block; align-self: flex-end; pointer-events: auto; padding: 10px 18px; font: 700 14px/1 var(--body); color: #1B1D20; background: var(--cub); border: 0; border-radius: 999px; }
+    body.menu-open .touch-ui { display: none; }
+  }
 
   .bottom { position: absolute; left: 16px; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; align-items: center; gap: 10px; pointer-events: none; }
   .stall { padding: 7px 14px 7px 17px; font: 700 13px/1 var(--body); letter-spacing: 0.22em; color: #fff; background: var(--warn); border-radius: 999px; animation: blink 0.6s steps(2, start) infinite; }
@@ -198,6 +218,23 @@
     .splat { animation: none; }
     .threat, .compass .hot { animation: none; }
   }
+  /* Touch layouts come last so they win over the gauge sizes above. */
+  /* Sideways phone: gauges and compass in one short row so the sky stays visible. */
+  @media (hover: none) and (pointer: coarse) and (max-height: 520px) {
+    .instruments { --cmp: 128px; --gap: 16px; }
+    .panel-wrap { flex: none; width: auto; flex-direction: row; align-items: flex-end; gap: 10px; transform: none; }
+    .compass { position: static; order: 1; }
+    .compass .legend { display: none; }
+    .panel.gauges { --gs: 64px; flex-wrap: nowrap; }
+    .bottom { gap: 6px; bottom: calc(8px + env(safe-area-inset-bottom, 0px)); }
+    .tsmall { height: 36px; padding: 0 12px; font-size: 12px; }
+  }
+  @media (hover: none) and (pointer: coarse) and (max-height: 520px) and (max-width: 760px) { .power { display: none; } }
+  /* Upright: the buttons sit above the stacked gauges, and small phones get a hint to turn sideways. */
+  @media (hover: none) and (pointer: coarse) and (orientation: portrait) { .touch-ui { --tbot: 404px; } }
+  @media (hover: none) and (pointer: coarse) and (orientation: portrait) and (max-width: 600px) {
+    .rotate-hint { display: block; position: absolute; top: calc(62px + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%); width: max-content; max-width: calc(100% - 32px); padding: 8px 14px; font-size: 13px; text-align: center; color: var(--ink); background: rgba(17, 21, 25, 0.7); border-radius: 999px; pointer-events: none; }
+  }
 </style>
 
 <div id="app">
@@ -207,6 +244,7 @@
   <ol id="feed" class="feed" hidden></ol>
 
   <div class="top">
+    <button type="button" class="tclose" id="tClose">Close settings ✕</button>
     <header class="plate glass" id="plate">
       <h1>Runway 27</h1>
       <p id="specs">Stall 40 kt · Best glide 62 kt · Glide 13:1</p>
@@ -352,9 +390,24 @@
         <dt><kbd>H</kbd></dt><dd>Hide this card</dd>
       </dl>
       <p class="kbd-only">Arrow keys work like the nose and bank keys. You can also drag with the mouse to fly. Idle power also brakes on the ground.</p>
-      <p class="touch-only">Drag on the screen to fly. Slide Power up to go faster. Tap Drop inside the barn.</p>
+      <p class="touch-only">Drag on the screen to fly. ▲ and ▼ change power, or go up and down in a hover. Hold FIRE to shoot; inside the barn it drops the supplies. Next ammo and Transform are above FIRE.</p>
       <p class="credit">Music made with Suno. Transformation sounds by Mekaal (CC0).</p>
     </aside>
+  </div>
+
+  <div class="touch-ui" id="touchUi">
+    <button type="button" class="tbtn" id="tSettings" aria-label="Settings">⚙</button>
+    <button type="button" class="tbtn tsmall" id="tPause" aria-label="Pause">❚❚ Pause</button>
+    <div class="tcluster tleft">
+      <button type="button" class="tbtn" id="tUp" aria-label="More power, or up">▲</button>
+      <button type="button" class="tbtn" id="tDown" aria-label="Less power, or down">▼</button>
+    </div>
+    <div class="tcluster tright">
+      <button type="button" class="tbtn tsmall" id="tAmmo" aria-label="Next ammo">Snowballs</button>
+      <button type="button" class="tbtn tsmall" id="tXform" hidden>Transform</button>
+      <button type="button" class="tbtn tfire" id="tFire">FIRE</button>
+    </div>
+    <div class="rotate-hint" id="rotateHint">Turn your phone sideways for the best view.</div>
   </div>
 
   <div class="bottom">
@@ -475,7 +528,7 @@
       <div class="crawl-window">
         <div class="crawl" id="crawl">
           <p>The farmer is snowed in and low on food and supplies. We need to fly supplies to him as soon as possible. He can't hold out much longer.</p>
-          <p>The farmer doesn't have anywhere to land, and wild animals will eat any food dropped outside the barn, so you have to fly through the barn and drop the boxes with your space bar. The farmer opened the barn doors for you.</p>
+          <p>The farmer doesn't have anywhere to land, and wild animals will eat any food dropped outside the barn, so you have to fly through the barn and drop the boxes <span id="dropHow">with your space bar</span>. The farmer opened the barn doors for you.</p>
           <p>After you deliver the supplies, land back here at home base before the storm!</p>
         </div>
       </div>
@@ -2595,7 +2648,7 @@
 
   function updateMissionText() {
     $('timerLine').hidden = choice.mode === 'fight';
-    if (choice.mode === 'fight') { missionEl.textContent = choice.drone === 'dogfight' ? `Dogfight: ${TOUCH ? 'tap the screen' : 'hold Space'} to throw. Shoot down every bandit.` : `Snowball fight: ${TOUCH ? 'tap the screen' : 'hold Space'} to throw. Every hit is a point.`; return; }
+    if (choice.mode === 'fight') { missionEl.textContent = choice.drone === 'dogfight' ? `Dogfight: ${TOUCH ? 'hold FIRE' : 'hold Space'} to throw. Shoot down every bandit.` : `Snowball fight: ${TOUCH ? 'hold FIRE' : 'hold Space'} to throw. Every hit is a point.`; return; }
     missionEl.textContent = mission.stage === 'outbound' ? (flyPlane() === 'ufo' ? "1. Return the farmer's cows. Beam them into his barn. Follow the red arrow." : flyPlane() === 'sleigh' ? `1. Fly the ${cargo()} to the farmer's house. Drop them in his barn. Follow the red arrow.` : "1. Drop the supplies in the farmer's barn. Follow the red arrow.")
       : mission.stage === 'return' ? '2. Fly back to town and land on the runway. Follow the green arrow.'
       : 'Mission complete.';
@@ -2737,7 +2790,7 @@
     trackBarn();
   }
   // Attack helicopter: always flies hover-style. Power keys climb or sink and letting go holds the height (on a touch
-  // screen, the Power slider above or below the middle does the same); the nose keys speed up or slow down and the
+  // screen, the ▲ and ▼ buttons press those keys); the nose keys speed up or slow down and the
   // speed holds; the bank keys turn. It tilts nose-down to speed up and leans into turns.
   const heli = { yaw: 0, vy: 0, speed: 0, pitch: 0, roll: 0 };
   function startHeli() {
@@ -2747,7 +2800,7 @@
   }
   function heliFly(dt) {
     const s = state, L = layout;
-    const keyUp = (has(L.more) ? 1 : 0) - (has(L.less) ? 1 : 0), up = TOUCH ? clamp((s.throttle - 0.5) * 2.5, -1, 1) : keyUp;
+    const keyUp = (has(L.more) ? 1 : 0) - (has(L.less) ? 1 : 0), up = keyUp;
     const turn = (has(L.left) || has('ArrowLeft') ? 1 : 0) - (has(L.right) || has('ArrowRight') ? 1 : 0) - clamp(stick.roll, -1, 1);
     const push = (has(noseDownKey()) || has(pilotStick() ? 'ArrowUp' : 'ArrowDown') ? 1 : 0) - (has(noseUpKey()) || has(pilotStick() ? 'ArrowDown' : 'ArrowUp') ? 1 : 0) - clamp(stick.pitch, -1, 1);
     const before = heli.speed, wasUp = !s.onGround;
@@ -2775,7 +2828,7 @@
     s.quat.setFromEuler(euler);
     s.omega.set(0, 0, 0);
     Object.assign(s, { airspeed: Math.abs(heli.speed), alpha: 0 });
-    if (!TOUCH) s.throttle = s.onGround && keyUp <= 0 ? 0 : clamp(0.45 + keyUp * 0.4 + Math.abs(heli.speed) / 200, 0, 1);
+    s.throttle = s.onGround && keyUp <= 0 ? 0 : clamp(0.45 + keyUp * 0.4 + Math.abs(heli.speed) / 200, 0, 1);
     const hit = checkObstacles();
     if (hit) return crash(hit, (CRASH_TIPS[hit] || (() => 'Watch the buildings while you hover.'))());
     if (balloonAt(s.pos, 3.5) >= 0) return crash('Hit a hot air balloon', CRASH_TIPS['Hit a hot air balloon']());
@@ -2830,13 +2883,13 @@
     const next = { jet: 'hover', hover: 'robot', robot: 'jet' }[shifter.mode];
     setShifterMode(next);
     sfxTransform(next);
-    toast(`${SHIFTER_NAMES[next]} mode.${next === 'robot' ? ` Hold ${keyName(layout.more)} for jump jets.` : ''}`, 2);
+    toast(`${SHIFTER_NAMES[next]} mode.${next === 'robot' ? ` Hold ${TOUCH ? '▲' : keyName(layout.more)} for jump jets.` : ''}`, 2);
   }
   function robotFly(dt) {
     const s = state, L = layout, wasUp = !s.onGround;
     const turn = (has(L.left) || has('ArrowLeft') ? 1 : 0) - (has(L.right) || has('ArrowRight') ? 1 : 0) - clamp(stick.roll, -1, 1);
     const push = (has(noseDownKey()) || has(pilotStick() ? 'ArrowUp' : 'ArrowDown') ? 1 : 0) - (has(noseUpKey()) || has(pilotStick() ? 'ArrowDown' : 'ArrowUp') ? 1 : 0) - clamp(stick.pitch, -1, 1);
-    const wantJets = TOUCH ? s.throttle > 0.6 : has(L.more), down = !TOUCH && has(L.less);
+    const wantJets = has(L.more), down = has(L.less);
     shifter.jets = wantJets;
     if (s.onGround) { const want = push > 0 ? 8 : push < 0 ? -4 : 0; robot.speed += clamp(want - robot.speed, -12 * dt, 12 * dt); }
     else robot.speed = clamp(robot.speed + push * 6 * dt, -6, 25);
@@ -2855,7 +2908,7 @@
     const floor = ground(s.pos.x, s.pos.z) + shifter.gear;
     if (s.pos.y <= floor) {
       s.pos.y = floor;
-      if (wasUp && robot.vy < -26) return crash('Hard landing', `The robot hit the ground at ${Math.round(-robot.vy * FPM).toLocaleString('en-US')} ft/min. Hold ${keyName(L.more)} on the way down to slow the fall.`);
+      if (wasUp && robot.vy < -26) return crash('Hard landing', `The robot hit the ground at ${Math.round(-robot.vy * FPM).toLocaleString('en-US')} ft/min. Hold ${TOUCH ? '▲' : keyName(L.more)} on the way down to slow the fall.`);
       if (robot.vy <= 0) { robot.vy = 0; s.onGround = true; }
     } else s.onGround = false;
     if (s.onGround && overWater(s.pos.x, s.pos.z)) return crash(choice.season === 'winter' ? 'Broke through the ice' : 'Walked into the river', 'Robots sink. Jump over the river, or fly across it.');
@@ -2872,7 +2925,7 @@
     s.quat.setFromEuler(euler);
     s.omega.set(0, 0, 0);
     Object.assign(s, { airspeed: Math.abs(robot.speed), alpha: 0 });
-    if (!TOUCH) s.throttle = shifter.jets ? 1 : s.onGround && Math.abs(robot.speed) > 1 ? 0.3 : 0.1;
+    s.throttle = shifter.jets ? 1 : s.onGround && Math.abs(robot.speed) > 1 ? 0.3 : 0.1;
     const hit = checkObstacles();
     if (hit) return crash(hit, (CRASH_TIPS[hit] || (() => 'Watch where the robot walks.'))());
     if (balloonAt(s.pos, 3.5) >= 0) return crash('Hit a hot air balloon', CRASH_TIPS['Hit a hot air balloon']());
@@ -3316,7 +3369,7 @@
     mission.running = false;
     showCard(title, why);
   }
-  const tipStart = () => `Mission: ${flyPlane() === 'ufo' ? "return the farmer's cows to his barn" : `fly the ${flyPlane() === 'sleigh' ? `${cargo()} to the farmer's house` : "supplies to the farmer's barn"}`}. ${choice.season === 'winter' ? 'Watch the wind and the icy runway. ' : ''}${flyPlane() === 'heli' ? (TOUCH ? 'Slide Power above the middle to lift off.' : `Hold ${keyName(layout.more)} to lift off.`) : TOUCH ? 'Slide Power to 100.' : `Hold ${keyName(layout.more)} for full power.`}${flyPlane() === 'shifter' ? ' Press T to transform.' : ''}`;
+  const tipStart = () => `Mission: ${flyPlane() === 'ufo' ? "return the farmer's cows to his barn" : `fly the ${flyPlane() === 'sleigh' ? `${cargo()} to the farmer's house` : "supplies to the farmer's barn"}`}. ${choice.season === 'winter' ? 'Watch the wind and the icy runway. ' : ''}${flyPlane() === 'heli' ? (TOUCH ? 'Hold ▲ to lift off.' : `Hold ${keyName(layout.more)} to lift off.`) : TOUCH ? 'Hold ▲ or slide Power to 100.' : `Hold ${keyName(layout.more)} for full power.`}${flyPlane() === 'shifter' ? ' Press T to transform.' : ''}`;
   const tipRotate = () => `At 50 kt, ${TOUCH ? (pilotStick() ? 'drag down' : 'drag up') : `hold ${keyName(noseUpKey())}`} until the wheels lift, then let go.`;
   const TIP_ROUTE = "Follow the red arrow on the compass. The farmer's barn is over the hills.";
   const tipBarn = () => `Line up with the barn doors and stay under ${barnSize.ceilingFt} ft. ${TOUCH ? 'Tap Drop' : 'Press Space'} just as you enter.`;
@@ -3397,7 +3450,7 @@
       $('ammoSelect').title = value === 'ufo' ? 'The UFO always fires lasers' : '';
       applyAirframe();
     }
-    else if (kind === 'ammo' && AMMO[value]) { choice.ammo = value; restart = false; $('ammoSelect').value = value; }
+    else if (kind === 'ammo' && AMMO[value]) { choice.ammo = value; restart = false; $('ammoSelect').value = value; syncTouchUi(); }
     else if (kind === 'team' && ['free', 'red', 'blue'].includes(value)) { choice.team = value; restart = false; applyAirframe(); setTimeout(renderScores); }
     else if (kind === 'music' && (value === 'on' || value === 'off')) { choice.music = value; restart = false; }
     else if (MIX.some(([k]) => k === kind) && Number.isFinite(+value)) {
@@ -3453,7 +3506,14 @@
     $('specs').textContent = `Stall ${Math.round(stall * KT)} kt · Best glide ${Math.round(bestGlide * KT)} kt · Glide ${Math.round(ratio)}:1`;
     drawAsiArcs();
   }
+  function syncTouchUi() {
+    const ufo = flyPlane() === 'ufo';
+    $('tAmmo').textContent = ufo ? 'Lasers' : (AMMO[choice.ammo] || AMMO.snow).name;
+    $('tAmmo').disabled = ufo;
+    $('tXform').hidden = flyPlane() !== 'shifter';
+  }
   function renderKeys() {
+    syncTouchUi();
     const L = layout, rows = [
       ...(flyPlane() === 'heli' || (flyPlane() === 'shifter' && shifter.mode === 'hover') ? [[[noseDownKey(), noseUpKey()], 'Faster, slower (it keeps its speed)'], [[L.left, L.right], 'Turn left, turn right'], [[L.more, L.less], 'Up, down (let go to hold your height)']]
         : flyPlane() === 'shifter' && shifter.mode === 'robot' ? [[[noseDownKey(), noseUpKey()], 'Walk forward, walk back'], [[L.left, L.right], 'Turn left, turn right'], [[L.more], 'Jump jets: climb (3 s), or slow a fall'], [[L.less], 'Fall faster']]
@@ -3505,7 +3565,7 @@
       saveMission();
       applyChoice('mode', 'fight', false);
       reset();
-      if (missionSave) toast(`Mission on hold. Snowball fight! ${TOUCH ? 'Tap the screen' : 'Hold Space'} to throw. Click Leave to go back.`, 6);
+      if (missionSave) toast(`Mission on hold. Snowball fight! ${TOUCH ? 'Hold FIRE' : 'Hold Space'} to throw. Click Leave to go back.`, 6);
     }
     e.currentTarget.blur();
   });
@@ -3550,6 +3610,7 @@
     toastEl.hidden = true;
     keysEl.hidden = true;
     $('introHint').textContent = TOUCH ? '(tap to dismiss)' : '(spacebar to dismiss)';
+    if (TOUCH) $('dropHow').textContent = 'with the FIRE button';
     $('introCard').focus({ preventScroll: true });
   }
   function closeIntro() {
@@ -3644,6 +3705,36 @@
     input.pitch = input.roll = 0;
   }
   window.addEventListener('blur', clearInputs);
+
+  // ---------- touch controls (phones and tablets; hidden when there's a mouse) ----------
+  // FIRE: hold to keep firing; inside the barn it drops the supplies. ▲ and ▼ press the power keys, so they add or cut
+  // power in an airplane and climb or sink in a hover or robot jump. The gear opens both cards as a settings sheet and
+  // holds the game still until it closes.
+  let touchFire = false, menuOpen = false;
+  function holdButton(el, down, up) {
+    el.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      try { el.setPointerCapture(e.pointerId); } catch (err) { /* keep going: the press still counts without capture */ }
+      el.classList.add('active');
+      startEngine();
+      down();
+    });
+    const end = () => { if (!el.classList.contains('active')) return; el.classList.remove('active'); up(); };
+    for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) el.addEventListener(ev, end);
+  }
+  holdButton($('tFire'), () => { touchFire = true; if (!introOpen && !paused && !menuOpen) spaceAction(); }, () => { touchFire = false; });
+  holdButton($('tUp'), () => keys.add(layout.more), () => keys.delete(layout.more));
+  holdButton($('tDown'), () => keys.add(layout.less), () => keys.delete(layout.less));
+  function setMenu(open) {
+    menuOpen = open;
+    document.body.classList.toggle('menu-open', open);
+    clearInputs();
+    touchFire = false;
+  }
+  for (const [id, fn] of [['tPause', () => togglePause()], ['tXform', () => nextShifterMode()], ['tSettings', () => setMenu(true)], ['tClose', () => setMenu(false)],
+    ['tAmmo', () => pickAmmo((AMMO_KEYS.indexOf(choice.ammo) + 1) % AMMO_KEYS.length)]]) {
+    $(id).addEventListener('click', () => { startEngine(); fn(); $(id).blur(); });
+  }
   document.addEventListener('visibilitychange', () => { if (document.hidden) clearInputs(); });
   againBtn.addEventListener('click', reset);
   barnBtn.addEventListener('click', barnApproach);
@@ -4400,7 +4491,7 @@
     snapCam = true;
     updateMissionText();
     renderScores();
-    toast(`Snowball fight! ${TOUCH ? 'Tap the screen' : 'Hold Space'} to throw. Get close behind a plane and let them fly.`, 6);
+    toast(`Snowball fight! ${TOUCH ? 'Hold FIRE' : 'Hold Space'} to throw. Get close behind a plane and let them fly.`, 6);
     if (dog.on && dogActive()) dogStartWave(dog.wave || 1);
   }
   // The Red Baron, a practice drone in a red triplane, circles the fight area so a lone player has something to chase.
@@ -5718,7 +5809,7 @@
     const dt = Math.min(0.1, Math.max(0, (now - last) / 1000));
     last = now;
     const s = state;
-    if (!s.frozen && !paused && !introOpen && !watch.on) {
+    if (!s.frozen && !paused && !introOpen && !menuOpen && !watch.on) {
       acc += dt;
       let n = 0;
       while (acc >= STEP && n < 12) { updateInputs(STEP); step(STEP); acc -= STEP; n++; if (s.frozen) break; }
@@ -5726,7 +5817,7 @@
       if (choice.mode === 'mission' && !mission.running && mission.stage === 'outbound' && mission.t === 0 && s.vel.length() > 1) mission.running = true;
       if (mission.running) mission.t += dt;
     }
-    if (!s.frozen && !paused && !introOpen) updateCrates(Math.min(dt, 0.05));
+    if (!s.frozen && !paused && !introOpen && !menuOpen) updateCrates(Math.min(dt, 0.05));
 
     const gh = ground(s.pos.x, s.pos.z), agl = s.pos.y - GEAR - gh, kts = s.vel.length() * KT;
     if (s.tipStage === 0 && s.onGround && kts > 20) { s.tipStage = 1; toast(tipRotate(), 0); }
@@ -5779,14 +5870,14 @@
     ufoLights(plane, performance.now() / 1000);
     updateRain(dt);
     if (!paused) updateStorm(dt);
-    if (has('Space') && !introOpen && !paused && !nearBarnDrop()) throwSnowball();
+    if ((has('Space') || touchFire) && !introOpen && !paused && !menuOpen && !nearBarnDrop()) throwSnowball();
     updateEngine();
     updateMusic(dt);
     updateStallHorn();
-    if (!paused && !introOpen) updateDrone(dt);
-    if (!paused && !introOpen) updateDogfight(dt);
+    if (!paused && !introOpen && !menuOpen) updateDrone(dt);
+    if (!paused && !introOpen && !menuOpen) updateDogfight(dt);
     updateGhosts(dt);
-    if (!paused && !introOpen) updateSnowballs(dt);
+    if (!paused && !introOpen && !menuOpen) updateSnowballs(dt);
     updateBalloons(dt);
     sendPresence(dt);
     updateThreat(dt);
