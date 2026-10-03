@@ -1,0 +1,8 @@
+Transformation sound effects: "Robotic Transformations" by Mekaal
+Source: https://opengameart.org/content/robotic-transformations
+License: CC0 (public domain dedication), https://creativecommons.org/publicdomain/zero/1.0/
+Converted from WAV to mono 96 kbps MP3. File names changed:
+  transform-servo-1.mp3  <- ROBOTIC_Transformation_Insect_01_Servos_Clicks_Digital_stereo.wav
+  transform-servo-2.mp3  <- ROBOTIC_Transformation_Insect_02_Servos_Clicks_Digital_stereo.wav
+  transform-clicks.mp3   <- ROBOTIC_Transformation_Insect_03_Clicks_Digital_stereo.wav
+  transform-sweep.mp3    <- ROBOTIC_Transformation_Sweep_03_Up_stereo.wav
