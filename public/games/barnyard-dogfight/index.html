@@ -2698,6 +2698,7 @@
     sheep: { name: 'Sheep', speed: 42, g: 8, wait: 0.6, hit: 1.7, dmg: 2, life: 4, ahead: 6, verb: ' sheep-bonked ', tip: 'Fluffy and heavy. 2 hits each.', one: 'a sheep', cry: 'Baa!' }
   };
   const AMMO_KEYS = Object.keys(AMMO);
+  const isAmmo = (k) => typeof k === 'string' && Object.prototype.hasOwnProperty.call(AMMO, k);
   // Music: one looping song per mode, from a music/ folder next to this page (no folder, no music).
   const MUSIC = { sky: 'music/skyward-dash.mp3', riff: 'music/full-band-riff.mp3', riff2: 'music/full-band-riff-v2.mp3' };
   const music = { unlocked: false, tracks: {}, duck: 0, cur: null, mode: null };
@@ -3552,7 +3553,7 @@
       $('ammoSelect').title = value === 'ufo' ? 'The UFO always fires lasers' : '';
       applyAirframe();
     }
-    else if (kind === 'ammo' && AMMO[value]) { choice.ammo = value; restart = false; $('ammoSelect').value = value; syncTouchUi(); }
+    else if (kind === 'ammo' && isAmmo(value)) { choice.ammo = value; restart = false; $('ammoSelect').value = value; syncTouchUi(); }
     else if (kind === 'team' && ['free', 'red', 'blue'].includes(value)) { choice.team = value; restart = false; applyAirframe(); setTimeout(renderScores); }
     else if (kind === 'music' && (value === 'on' || value === 'off')) { choice.music = value; restart = false; }
     else if (MIX.some(([k]) => k === kind) && Number.isFinite(+value)) {
@@ -3701,7 +3702,7 @@
   }
   applyChoice('drone', ['off', 'dogfight'].includes(saved.drone) ? saved.drone : 'on', false);
   applyChoice('foe', FOES[saved.foe] ? saved.foe : 'medium', false);
-  applyChoice('ammo', AMMO[saved.ammo] ? saved.ammo : 'snow', false);
+  applyChoice('ammo', isAmmo(saved.ammo) ? saved.ammo : 'snow', false);
   applyChoice('mode', saved.mode === 'fight' ? 'fight' : 'mission', false);
 
   // ---------- the story, in a centered card that scrolls slowly; shown once when the page loads ----------
@@ -4738,6 +4739,8 @@
     const x = state.pos.x - Math.sin(yaw0) * d, z = state.pos.z - Math.cos(yaw0) * d;
     const pos = new THREE.Vector3(x, Math.max(state.pos.y + (Math.random() - 0.3) * 80, ground(x, z) + 160), z);
     dogTo.subVectors(state.pos, pos);
+    gh.pos.copy(pos);
+    gh.targetP.copy(pos);
     dog.foes.push({
       gh, pos, vel: new THREE.Vector3(), yaw: Math.atan2(-dogTo.x, -dogTo.z), pitch: 0, roll: 0, mul: F.speed * (0.96 + Math.random() * 0.08),
       mode: 'chase', modeT: 0, breakCool: 3, side: 1, vert: 0, shotWait: 1.5 + Math.random() * 1.5, downT: 0
