@@ -1,26 +1,26 @@
 ---
 title: "Barnyard Dogfight: one small ask at a time"
-description: "A tiny browser flight game grew into flying pigs, jet fighters, and a transforming robot. The most useful part was how it got tested."
+description: "A co-worker's browser flight game, remixed one request at a time into flying pigs, jet fighters, and a transforming robot. The most useful part was how it got tested."
 date: 2026-10-03
 pillar: projects
 draft: false
 ---
 
-It started as one HTML file: a small flight game built as a Claude artifact. You fly a yellow plane over farmland, drop supplies through a barn, and land back on the runway. My first question was simple. How does this work?
+It started with a co-worker's game. They built a small flight game as a Claude artifact: you fly a yellow plane over farmland, drop supplies through a barn, and land back on the runway. The idea and the game are theirs. When they shared it, my first question was simple. How does this work?
 
-The answer surprised me. There are no image files and no 3D models in it. A 3D library draws simple shapes, a bit of math noise builds the hills, and the browser makes every sound on the fly. The whole game, graphics and all, is a few hundred kilobytes of code.
+The answer surprised me. There are no image files and no 3D models in it. A 3D library draws simple shapes, a bit of math noise builds the hills, and the browser makes every sound on the fly. The whole game, graphics and all, is a few hundred kilobytes of code. That design is my co-worker's, and it's what made everything below easy to build on.
 
-One afternoon later, it's a different game. It's called Barnyard Dogfight, and you can [play it here](/games/barnyard-dogfight/).
+This post is about my remix. One afternoon of requests later, it had turned into a different game. I call it Barnyard Dogfight, and with the creator's OK, you can [play it here](/games/barnyard-dogfight/).
 
 ## Making it stand on its own
 
-The original was made for a work setting. It had a company logo on the hangar, real grocery store names in town, and a multiplayer mode that only works inside Claude's artifact viewer. Before I could share it, it had to stand on its own.
+The original was built for our team at work. It had a company logo on the hangar, real grocery store names in town, and a multiplayer mode that only works inside Claude's artifact viewer. Before I could share a remix in public, it had to stand on its own.
 
 So the first changes were removals. The logo became a plain "VALLEY FIELD" sign on the hangar. The stores got made-up names. The multiplayer went away, and the game became a single page that runs in any browser.
 
 ## One ask at a time
 
-Everything after that came from small requests. Computer-flown enemies for a dogfight. A difficulty setting. Ammo options, because snowballs were fun but bullets felt right too, and then pigs, roosters, cows, sheep, and eggs, because why not. A jet fighter, with enemy jets to match. An attack helicopter. Background music. A volume mixer.
+Everything after that came from small requests I made to Claude, which wrote the code. Computer-flown enemies for a dogfight. A difficulty setting. Ammo options, because snowballs were fun but bullets felt right too, and then pigs, roosters, cows, sheep, and eggs, because why not. A jet fighter, with enemy jets to match. An attack helicopter. Background music. A volume mixer.
 
 Each ask got a short design before any code. That step paid off more than I expected. When I asked for a jet that transforms like the Robotech Veritech, the design came back with a note: that look belongs to its owners, and a public site is the wrong place to borrow it. We built our own instead. The Shifter flies as a jet, hovers with its legs down, and stands up as a robot that walks, jumps, and aims its own gun.
 
@@ -57,4 +57,6 @@ Scripted tests are good at the questions you think to ask. A person playing the 
 - Pick **Shifter** under Plane and press **T** to transform.
 - For a fight, click **Start** next to Snowball fight, then pick **Dogfight**.
 
-Built with Claude and three.js. Music made with Suno. Transformation sounds by Mekaal (CC0).
+The original game, its flight model, and its farm world are my co-worker's work, shared here with their OK. My remix was built with Claude and three.js. Music made with Suno. Transformation sounds by Mekaal (CC0).
+
+*Updated October 5: The first version of this post didn't make clear that the original game and the idea came from a co-worker. A reader pointed that out, and they were right. That miss was mine, and I've fixed it.*
