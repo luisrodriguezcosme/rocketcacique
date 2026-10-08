@@ -2825,8 +2825,8 @@
   };
   const AMMO_KEYS = Object.keys(AMMO);
   const isAmmo = (k) => typeof k === 'string' && Object.prototype.hasOwnProperty.call(AMMO, k);
-  // Music: one looping song per mode, from a music/ folder next to this page (no folder, no music).
-  const MUSIC = { sky: 'music/skyward-dash.mp3', riff: 'music/full-band-riff.mp3', riff2: 'music/full-band-riff-v2.mp3' };
+  // Music: one looping song per mode (the Barn Owl has its own), from a music/ folder next to this page (no folder, no music).
+  const MUSIC = { sky: 'music/skyward-dash.mp3', riff: 'music/full-band-riff.mp3', riff2: 'music/full-band-riff-v2.mp3', owl: 'music/barn-owl-theme.mp3' };
   const music = { unlocked: false, tracks: {}, duck: 0, cur: null, mode: null };
   // Mixer: one volume per group, 100 = the game's normal level. Built-in sounds go through a gain node per group
   // (engine, effects, and the radio's static) before the speakers; music, sound clips, and the spoken tower calls
@@ -5827,8 +5827,9 @@
   // from a.volume; without the sound engine and without a working volume, songs switch at once, so an old song can't keep
   // playing under the new one. At 100 on the Music slider a song plays at 25% (ducked to 9% while the tower talks).
   const musicFades = (() => { try { const t = new Audio(); t.volume = 0.5; return Math.abs(t.volume - 0.5) < 0.01; } catch (err) { return false; } })();
-  const SONGS = Object.keys(MUSIC), SONG_NAMES = { sky: 'Skyward Dash', riff: 'Full-Band Riff', riff2: 'Full-Band Riff v2' };
-  function modeSong() { return choice.mode !== 'fight' ? 'sky' : choice.drone === 'dogfight' ? 'riff2' : 'riff'; }
+  const SONGS = Object.keys(MUSIC), SONG_NAMES = { sky: 'Skyward Dash', riff: 'Full-Band Riff', riff2: 'Full-Band Riff v2', owl: 'Barn Owl Theme' };
+  // The Barn Owl has its own theme in every mode; everything else gets the mode's song.
+  function modeSong() { return flyPlane() === 'owl' ? 'owl' : choice.mode !== 'fight' ? 'sky' : choice.drone === 'dogfight' ? 'riff2' : 'riff'; }
   function playSong(id) {
     music.cur = id;
     $('songName').textContent = SONG_NAMES[id];

@@ -2,3 +2,4 @@ Background music made with Suno (free plan, non-commercial use).
   skyward-dash.mp3        "Skyward Dash"
   full-band-riff.mp3      "Full-Band Riff"
   full-band-riff-v2.mp3   "Full-Band Riff" (second version)
+  barn-owl-theme.mp3      "Barn Owl Theme" (plays with the Barn Owl)
