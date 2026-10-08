@@ -111,6 +111,9 @@
     .tknob { position: absolute; left: 50%; top: 50%; width: 54px; height: 54px; margin: -27px 0 0 -27px; border-radius: 50%; background: rgba(242, 194, 48, 0.8); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35); pointer-events: none; transition: transform 0.12s ease-out; }
     .tpad.active .tknob { transition: none; background: rgba(242, 194, 48, 0.95); }
     body.pad-right .tpad { left: auto; right: calc(14px + env(safe-area-inset-right, 0px)); }
+    /* Helicopter pedals (Medium and Hard): a pair above the joystick. */
+    .tpedals { position: absolute; left: calc(14px + env(safe-area-inset-left, 0px)); bottom: calc(var(--tbot) + var(--pad) + 12px + env(safe-area-inset-bottom, 0px)); display: flex; gap: 8px; }
+    body.pad-right .tpedals { left: auto; right: calc(14px + env(safe-area-inset-right, 0px)); }
     body.pad-right .tact { right: auto; left: calc(14px + env(safe-area-inset-left, 0px)); flex-direction: row-reverse; }
     .tfire { width: 84px; height: 84px; font-size: 15px; letter-spacing: 0.08em; background: rgba(217, 71, 47, 0.72); }
     .intro, .crash { z-index: 4; }
@@ -258,6 +261,20 @@
   @media (hover: none) and (pointer: coarse) and (orientation: portrait) { .touch-ui { --tbot: 404px; } }
   @media (hover: none) and (pointer: coarse) and (orientation: portrait) and (max-width: 600px) {
     .rotate-hint { display: block; position: absolute; top: calc(62px + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%); width: max-content; max-width: calc(100% - 32px); padding: 8px 14px; font-size: 13px; text-align: center; color: var(--ink); background: rgba(17, 21, 25, 0.7); border-radius: 999px; pointer-events: none; }
+  }
+  /* Phones and tablets: messages and tower calls sit in a slim strip at the top, between the gear and Pause, not over the view. */
+  @media (hover: none) and (pointer: coarse) {
+    .toast, .radio { position: fixed; top: calc(12px + env(safe-area-inset-top, 0px)); left: calc(84px + env(safe-area-inset-left, 0px)); right: calc(var(--topr, 116px) + env(safe-area-inset-right, 0px)); z-index: 3; max-width: 560px; margin: 0 auto; padding: 6px 12px; font-size: 12.5px; line-height: 1.3; pointer-events: none; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .radio:not([hidden]) { display: -webkit-box; }
+    .radio b { margin-right: 6px; }
+    .radio { top: calc(64px + env(safe-area-inset-top, 0px)); }
+    .feed { top: calc(108px + env(safe-area-inset-top, 0px)); }
+    .feed li:nth-last-child(n+3) { display: none; }
+  }
+  @media (hover: none) and (pointer: coarse) and (orientation: portrait) {
+    .toast { top: calc(106px + env(safe-area-inset-top, 0px)); left: calc(16px + env(safe-area-inset-left, 0px)); right: calc(16px + env(safe-area-inset-right, 0px)); }
+    .radio { top: calc(158px + env(safe-area-inset-top, 0px)); left: calc(16px + env(safe-area-inset-left, 0px)); right: calc(16px + env(safe-area-inset-right, 0px)); }
+    .feed { top: calc(202px + env(safe-area-inset-top, 0px)); }
   }
 </style>
 
@@ -435,6 +452,10 @@
       <button type="button" class="tbtn tsmall" id="tPause" aria-label="Pause">❚❚ Pause</button>
     </div>
     <div class="tpad" id="tPad" role="img" aria-label="Joystick: push the knob to fly"><div class="tknob" id="tKnob"></div></div>
+    <div class="tpedals" id="tPedals" hidden>
+      <button type="button" class="tbtn tsmall" id="tYawL" aria-label="Pedal: nose left">⟲ Nose left</button>
+      <button type="button" class="tbtn tsmall" id="tYawR" aria-label="Pedal: nose right">Nose right ⟳</button>
+    </div>
     <div class="tcluster tact">
       <div class="tcol">
         <button type="button" class="tbtn" id="tUp" aria-label="More power, or up">▲</button>
@@ -2459,7 +2480,7 @@
     autoPilot.cool = Math.max(0, autoPilot.cool - dt);
     if (flyPlane() === 'shifter' && shifter.mode === 'hover') { heliFly(dt); return; }
     if (flyPlane() === 'shifter' && shifter.mode === 'robot') { robotFly(dt); return; }
-    if (flyPlane() === 'heli') { heliFly(dt); return; }
+    if (flyPlane() === 'heli') { if (heliReal() || choice.flying === 'easy') heliSim(dt); else heliFly(dt); return; }
     if (hover.on) { hoverFly(dt); return; }
     if (autoPilot.on) { autoPilot.grace = Math.max(0, autoPilot.grace - dt); autoFly(dt); trackBarn(); trackStunts(); return; }
     ilsCheck();
@@ -2709,8 +2730,8 @@
   const mixer = { engine: null, fx: null, voice: null, out: null };
   const dog = { on: false, restart: false, wave: 0, total: 0, foes: [], nextWave: 0, hp: 0, hpMax: 0, kills: 0, ref: 35, seq: 0 };
   const LAYOUTS = {
-    right: { top: 'KeyI', bottom: 'KeyK', left: 'KeyJ', right: 'KeyL', more: 'KeyR', less: 'KeyF' },
-    left: { top: 'KeyE', bottom: 'KeyD', left: 'KeyS', right: 'KeyF', more: 'KeyU', less: 'KeyJ' }
+    right: { top: 'KeyI', bottom: 'KeyK', left: 'KeyJ', right: 'KeyL', more: 'KeyR', less: 'KeyF', yawL: 'KeyQ', yawR: 'KeyE' },
+    left: { top: 'KeyE', bottom: 'KeyD', left: 'KeyS', right: 'KeyF', more: 'KeyU', less: 'KeyJ', yawL: 'KeyY', yawR: 'KeyI' }
   };
   let layout = LAYOUTS.right;
   const keyName = (code) => (code === 'Escape' ? 'Esc' : code.replace('Key', '').replace('Digit', ''));
@@ -2871,11 +2892,11 @@
   // Attack helicopter: always flies hover-style. Power keys climb or sink and letting go holds the height (on a touch
   // screen, the ▲ and ▼ buttons press those keys); the nose keys speed up or slow down and the
   // speed holds; the bank keys turn. It tilts nose-down to speed up and leans into turns.
-  const heli = { yaw: 0, vy: 0, speed: 0, pitch: 0, roll: 0 };
+  const heli = { yaw: 0, vy: 0, speed: 0, pitch: 0, roll: 0, c: 0 };
   function startHeli() {
     euler.setFromQuaternion(state.quat, 'YXZ');
     const fx = -Math.sin(euler.y), fz = -Math.cos(euler.y);
-    Object.assign(heli, { yaw: euler.y, vy: 0, speed: state.onGround ? 0 : clamp(state.vel.x * fx + state.vel.z * fz, -10, flyPlane() === 'shifter' ? 92 : 75), pitch: 0, roll: 0 });
+    Object.assign(heli, { yaw: euler.y, vy: 0, speed: state.onGround ? 0 : clamp(state.vel.x * fx + state.vel.z * fz, -10, flyPlane() === 'shifter' ? 92 : 75), pitch: 0, roll: 0, c: state.onGround ? 0 : HOVER_C });
   }
   function heliFly(dt) {
     const s = state, L = layout;
@@ -2908,6 +2929,88 @@
     s.omega.set(0, 0, 0);
     Object.assign(s, { airspeed: Math.abs(heli.speed), alpha: 0 });
     s.throttle = s.onGround && keyUp <= 0 ? 0 : clamp(0.45 + keyUp * 0.4 + Math.abs(heli.speed) / 200, 0, 1);
+    const hit = checkObstacles();
+    if (hit) return crash(hit, (CRASH_TIPS[hit] || (() => 'Watch the buildings while you hover.'))());
+    if (balloonAt(s.pos, 3.5) >= 0) return crash('Hit a hot air balloon', CRASH_TIPS['Hit a hot air balloon']());
+    if (s.onGround && wasUp) heliTouchdown();
+    if (!s.frozen) { trackBarn(); trackStunts(); }
+  }
+  // A real helicopter (Easy, Medium, Hard). The cyclic (stick) tilts the rotor, and the helicopter goes where the rotor
+  // leans: it sets acceleration, not speed, so it keeps moving after you let go. The collective (power keys) sets lift.
+  // The pedals turn the nose. Past about 20 kt the tail acts like a weathervane, so banking turns it the way a plane turns,
+  // and the rotor gets a little extra lift (translational lift); near the ground it gets some back (ground effect).
+  // Easy adds helpers: let go and it tilts back to slow to a hover, the power keys hold your height, sideways turns the
+  // nose in a hover and banks at speed (with a turn helper on top), and it can't tip far. Medium and Hard have none of them: it drifts until you stop
+  // it, the collective stays where you set it, and the pedals turn the nose. Hard also twists the nose right when you
+  // add power (torque), reacts a little slower, and tips farther. Landing too fast or tilted is a crash on both.
+  const HOVER_C = 0.55, HELI_TUNE = {
+    easy: { tilt: 0.4, lag: 0.35, torque: 0 },
+    medium: { tilt: 0.6, lag: 0.45, torque: 0 },
+    hard: { tilt: 0.75, lag: 0.6, torque: 1.2 }
+  };
+  const heliReal = () => choice.flying === 'medium' || choice.flying === 'hard';
+  const hq = new THREE.Quaternion(), hUp = new THREE.Vector3(), hFwd = new THREE.Vector3(), hRight = new THREE.Vector3();
+  const smooth = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+  function heliSim(dt) {
+    const s = state, L = layout, T = HELI_TUNE[choice.flying] || HELI_TUNE.easy, easy = !heliReal(), wasUp = !s.onGround;
+    // Stick and keys: forward (nose down) and right are positive; the pedals turn the nose left when positive.
+    const cp = clamp((has(noseDownKey()) || has(pilotStick() ? 'ArrowUp' : 'ArrowDown') ? 1 : 0) - (has(noseUpKey()) || has(pilotStick() ? 'ArrowDown' : 'ArrowUp') ? 1 : 0) - stick.pitch, -1, 1);
+    const cr = clamp((has(L.right) || has('ArrowRight') ? 1 : 0) - (has(L.left) || has('ArrowLeft') ? 1 : 0) + stick.roll, -1, 1);
+    const up = (has(L.more) ? 1 : 0) - (has(L.less) ? 1 : 0), ped = (has(L.yawL) ? 1 : 0) - (has(L.yawR) ? 1 : 0);
+    hFwd.set(-Math.sin(heli.yaw), 0, -Math.cos(heli.yaw));
+    hRight.set(Math.cos(heli.yaw), 0, -Math.sin(heli.yaw));
+    const vFwd = s.vel.dot(hFwd), vRight = s.vel.dot(hRight), spd = Math.hypot(s.vel.x, s.vel.z);
+    const agl = s.pos.y - GEAR - ground(s.pos.x, s.pos.z), fast = smooth(6, 15, spd);
+    // Where the rotor should lean. On Easy, a stick at rest tilts against the drift to slow to a hover.
+    let pitchT = -cp * T.tilt, rollT = -cr * T.tilt * (easy ? fast : 1);
+    if (easy && Math.abs(cp) < 0.08) pitchT = clamp(vFwd * 0.03, -T.tilt, T.tilt);
+    if (easy && Math.abs(cr) < 0.08) rollT = clamp(vRight * 0.03, -T.tilt, T.tilt);
+    if (s.onGround) { pitchT = 0; rollT = 0; }
+    const k = Math.min(1, dt / T.lag);
+    heli.pitch += (pitchT - heli.pitch) * k;
+    heli.roll += (rollT - heli.roll) * k;
+    // The nose: pedals (on Easy, sideways in a hover), the tail weathervaning into the airflow, and Hard's torque.
+    let yawRate = easy ? -cr * 0.6 * (1 - fast) : ped * 0.9;
+    if (vFwd > 0 && spd > 1) yawRate += Math.atan2(Math.sin(Math.atan2(-s.vel.x, -s.vel.z) - heli.yaw), Math.cos(Math.atan2(-s.vel.x, -s.vel.z) - heli.yaw)) * 1.5 * fast;
+    if (!s.onGround) yawRate -= (heli.c - HOVER_C) * T.torque;
+    heli.yaw += yawRate * dt;
+    // Easy's turn helper at speed: the heading and the flight path swing around together, on top of the banked turn.
+    if (easy && !s.onGround) {
+      const assist = -cr * 0.35 * fast * dt;
+      heli.yaw += assist;
+      s.vel.applyAxisAngle(Y_AXIS, assist);
+    }
+    // Lift: translational lift above about 20 kt, ground effect within a rotor's width of the ground.
+    const lf = 1 + 0.12 * smooth(5, 12, spd) + 0.1 * clamp(1 - agl / 12, 0, 1);
+    hq.setFromEuler(euler.set(heli.pitch, heli.yaw, heli.roll, 'YXZ'));
+    hUp.set(0, 1, 0).applyQuaternion(hq);
+    if (easy) {
+      // Collective that holds height: climb or sink while a power key is down, hold the height when it's let go.
+      let vyT = up * (up > 0 ? 8 : 6);
+      if (vyT < 0 && agl < 9) vyT = Math.max(vyT, -(0.5 + agl * 0.9));
+      const need = G + (vyT - s.vel.y) * 2.5 + 0.6 * s.vel.y;
+      heli.c = s.onGround && up <= 0 ? 0 : clamp(HOVER_C * need / (G * lf * Math.max(0.5, hUp.y)), 0, 1);
+    } else heli.c = clamp(heli.c + up * 0.45 * dt, 0, 1);
+    const lift = G * (heli.c / HOVER_C) * lf, drag = 0.02 + 0.00074 * spd;
+    s.vel.x += (hUp.x * lift - s.vel.x * drag) * dt;
+    s.vel.z += (hUp.z * lift - s.vel.z * drag) * dt;
+    s.vel.y += (hUp.y * lift - G - 0.6 * s.vel.y) * dt;
+    s.pos.addScaledVector(s.vel, dt);
+    const floor = ground(s.pos.x, s.pos.z) + GEAR;
+    if (s.pos.y <= floor) {
+      const hitV = s.vel.y, tilt = Math.max(Math.abs(heli.pitch), Math.abs(heli.roll));
+      s.pos.y = floor;
+      if (wasUp && hitV < (easy ? -12 : -5.5)) return crash('Hard landing', `The helicopter hit the ground at ${Math.round(-hitV * FPM).toLocaleString('en-US')} ft/min. Lower the collective slowly as you near the ground.`);
+      if (wasUp && !easy && (tilt > 0.4 || spd > 15)) return crash('Rolled over on landing', 'Land level, slowed to a hover, with no sideways drift.');
+      s.vel.y = Math.max(0, s.vel.y);
+      s.vel.x *= Math.exp(-dt * 6);
+      s.vel.z *= Math.exp(-dt * 6);
+      s.onGround = s.vel.y <= 0.01;
+    } else s.onGround = false;
+    if (!s.onGround && agl > 1) s.airTime += dt;
+    s.quat.setFromEuler(euler.set(s.onGround ? 0 : heli.pitch, heli.yaw, s.onGround ? 0 : heli.roll, 'YXZ'));
+    s.omega.set(0, 0, 0);
+    Object.assign(s, { airspeed: spd, alpha: 0, throttle: heli.c });
     const hit = checkObstacles();
     if (hit) return crash(hit, (CRASH_TIPS[hit] || (() => 'Watch the buildings while you hover.'))());
     if (balloonAt(s.pos, 3.5) >= 0) return crash('Hit a hot air balloon', CRASH_TIPS['Hit a hot air balloon']());
@@ -3377,7 +3480,7 @@
     radioEl.hidden = false;
     radioEl.style.opacity = '1';
     if (choice.voice === 'on') music.duck = 4;
-    radioLeft = 6;
+    radioLeft = 4;
     if (choice.voice !== 'on' || choice.sound !== 'on' || choice.mixVoice <= 0 || !window.speechSynthesis) return;
     try {
       if (speechSynthesis.pending) speechSynthesis.cancel();
@@ -3447,8 +3550,8 @@
     toastEl.classList.toggle('good', !!good);
     toastEl.hidden = false;
     toastEl.style.opacity = '1';
-    // At most 4 seconds; tips that used to wait for the next message get 6.
-    toastLeft = secs ? Math.min(secs, 4) : 6;
+    // Every message fades within 2.5 seconds, so none sits over the view.
+    toastLeft = secs ? Math.min(secs, 2.5) : 2.5;
   }
   function showCard(title, why) {
     state.frozen = true;
@@ -3525,7 +3628,7 @@
   // ---------- barn size and flying choices ----------
   function applyChoice(kind, value, restart) {
     if (kind === 'barn' && BARNS[value]) { choice.barn = value; barnSize = BARNS[value]; buildBarn(barnSize); }
-    else if (kind === 'flying' && FLYING[value]) { choice.flying = value; flying = FLYING[value]; updatePerf(); }
+    else if (kind === 'flying' && FLYING[value]) { choice.flying = value; flying = FLYING[value]; updatePerf(); renderKeys(); }
     else if (kind === 'hands' && LAYOUTS[value]) { choice.hands = value; layout = LAYOUTS[value]; renderKeys(); restart = false; }
     else if (kind === 'stick' && (value === 'pilot' || value === 'game')) { choice.stick = value; renderKeys(); restart = false; }
     else if (kind === 'pad' && (value === 'left' || value === 'right')) { choice.pad = value; document.body.classList.toggle('pad-right', value === 'right'); restart = false; }
@@ -3614,11 +3717,14 @@
     $('tAmmo').textContent = ufo ? 'Lasers' : (AMMO[choice.ammo] || AMMO.snow).name;
     $('tAmmo').disabled = ufo;
     $('tXform').hidden = flyPlane() !== 'shifter';
+    $('tPedals').hidden = !(flyPlane() === 'heli' && heliReal());
   }
   function renderKeys() {
     syncTouchUi();
     const L = layout, rows = [
-      ...(flyPlane() === 'heli' || (flyPlane() === 'shifter' && shifter.mode === 'hover') ? [[[noseDownKey(), noseUpKey()], 'Faster, slower (it keeps its speed)'], [[L.left, L.right], 'Turn left, turn right'], [[L.more, L.less], 'Up, down (let go to hold your height)']]
+      ...(flyPlane() === 'heli' && heliReal() ? [[[noseDownKey(), noseUpKey()], 'Cyclic: tilt forward, back'], [[L.left, L.right], 'Cyclic: tilt left, right (slide sideways, or bank at speed)'], [[L.more, L.less], 'Collective: more lift, less lift (stays where you set it)'], [[L.yawL, L.yawR], choice.flying === 'hard' ? 'Pedals: nose left, right (adding power twists the nose right)' : 'Pedals: nose left, right']]
+        : flyPlane() === 'heli' && choice.flying === 'easy' ? [[[noseDownKey(), noseUpKey()], 'Tilt forward, back (it keeps moving, then slows to a hover)'], [[L.left, L.right], 'Turn in a hover; bank into turns at speed'], [[L.more, L.less], 'Up, down (holds height when you let go)']]
+        : flyPlane() === 'heli' || (flyPlane() === 'shifter' && shifter.mode === 'hover') ? [[[noseDownKey(), noseUpKey()], 'Faster, slower (it keeps its speed)'], [[L.left, L.right], 'Turn left, turn right'], [[L.more, L.less], 'Up, down (let go to hold your height)']]
         : flyPlane() === 'shifter' && shifter.mode === 'robot' ? [[[noseDownKey(), noseUpKey()], 'Walk forward, walk back'], [[L.left, L.right], 'Turn left, turn right'], [[L.more], 'Jump jets: climb (3 s), or slow a fall'], [[L.less], 'Fall faster']]
         : [[[noseUpKey(), noseDownKey()], 'Nose up, nose down'], [[L.left, L.right], 'Bank left, bank right'], [[L.more, L.less], 'More power, less power']]),
       ...(flyPlane() === 'shifter' ? [[['KeyT'], 'Transform: jet, hover, robot']] : []), ...(flyPlane() === 'sleigh' ? [[['KeyQ'], 'Presents or coal']] : flyPlane() === 'ufo' ? [[['KeyQ'], 'Stamp a crop circle'], [['KeyM'], 'Beam a cow down, or back up if one is below you (Shift+M drops a herd)'], [['KeyV'], 'Hover and stop (V again to fly normally). Shift+V: flat or airplane mode at your speed']] : []), [['Space'], choice.mode === 'fight' ? 'Hold to fire your ammo, brake on the ground' : `Fire your ammo (hold for more); drops ${cargo()} at the barn; brakes on the ground`], [['KeyB'], choice.mode === 'fight' ? 'Leave the fight and practice at the barn' : 'Practice: jump to the barn'],
@@ -3792,7 +3898,7 @@
       else exitHover();
     }
     else if (e.code === 'KeyQ' && flyPlane() === 'sleigh') { naughty = !naughty; applyAirframe(); updateMissionText(); toast(naughty ? 'Naughty list: Santa drops coal.' : 'Nice list: Santa drops presents.', 3); }
-    else if (e.code === 'KeyP' && flyPlane() === 'heli') toast('The helicopter hovers on its own. It does not need the barn autopilot.', 3);
+    else if (e.code === 'KeyP' && flyPlane() === 'heli') toast('The barn autopilot is for airplanes.', 2.5);
     else if (e.code === 'KeyP' && flyPlane() === 'shifter' && shifter.mode !== 'jet') toast('The barn autopilot only works in jet mode.', 3);
     else if (e.code === 'KeyP') {
       ilsMine = !ilsMine;
@@ -3831,6 +3937,8 @@
   holdButton($('tFire'), () => { touchFire = true; if (!introOpen && !paused && !menuOpen) spaceAction(); }, () => { touchFire = false; });
   holdButton($('tUp'), () => keys.add(layout.more), () => keys.delete(layout.more));
   holdButton($('tDown'), () => keys.add(layout.less), () => keys.delete(layout.less));
+  holdButton($('tYawL'), () => keys.add(layout.yawL), () => keys.delete(layout.yawL));
+  holdButton($('tYawR'), () => keys.add(layout.yawR), () => keys.delete(layout.yawR));
   // Joystick: the knob follows the thumb inside the pad and sets the same stick a drag on the screen does, so the Stick
   // setting (Pilot or Game) works the same way. A small dead zone keeps a resting thumb from steering, and a soft curve
   // makes small pushes gentle (half way gives about a third) while a full push is still full. Letting go centers it.
@@ -3876,6 +3984,10 @@
     if (go) Promise.resolve(go.call(el)).catch(() => toast('This browser would not go full screen.', 3));
   }
   $('tFull').hidden = !(TOUCH && fullOk && !appMode);
+  const fitTopStrip = () => { const r = document.querySelector('.ttopr').getBoundingClientRect(); if (r.width) document.body.style.setProperty('--topr', `${Math.round(r.width + 20)}px`); };
+  fitTopStrip();
+  window.addEventListener('resize', fitTopStrip);
+  document.addEventListener('fullscreenchange', fitTopStrip);
   const homeTipOn = TOUCH && !fullOk && !appMode;
   for (const tip of document.querySelectorAll('.home-tip')) tip.hidden = !homeTipOn;
   // Turning the phone sideways in iPhone Safari: once per visit, a tip that the bars stay and the Home Screen icon is the
@@ -3905,7 +4017,7 @@
   againBtn.addEventListener('click', reset);
   barnBtn.addEventListener('click', barnApproach);
   dropBtn.addEventListener('click', () => { dropCrate(); dropBtn.blur(); });
-  thrInput.addEventListener('input', () => { if (autoPilot.on) { handBack('You have the airplane.'); autoPilot.declined = true; } state.throttle = thrInput.value / 100; });
+  thrInput.addEventListener('input', () => { if (autoPilot.on) { handBack('You have the airplane.'); autoPilot.declined = true; } state.throttle = thrInput.value / 100; heli.c = state.throttle; });
   thrInput.addEventListener('change', () => thrInput.blur());
 
   let drag = null;
