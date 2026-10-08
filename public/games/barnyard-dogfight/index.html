@@ -2947,8 +2947,10 @@
   }
   // A real helicopter (Easy, Medium, Hard). The cyclic (stick) tilts the rotor, and the helicopter goes where the rotor
   // leans: it sets acceleration, not speed, so it keeps moving after you let go. The collective (power keys) sets lift.
-  // The pedals turn the nose. Past about 20 kt the tail acts like a weathervane, so banking turns it the way a plane turns,
-  // and the rotor gets a little extra lift (translational lift); near the ground it gets some back (ground effect).
+  // The pedals turn the nose. Past about 20 kt the tail acts like a weathervane, so banking turns it the way a plane turns.
+  // Pushing the pedals beats the tail fin at low speed: up to about 40 kt they can swing the nose any way (a pedal turn to
+  // face a plane behind you), and by about 80 kt the fin holds the nose within about 35 degrees of where you are going.
+  // The rotor gets a little extra lift past about 20 kt (translational lift); near the ground it gets some back (ground effect).
   // Easy adds helpers: let go and it tilts back to slow to a hover, the power keys hold your height, sideways turns the
   // nose in a hover and banks at speed (with a turn helper on top), and it can't tip far. Medium and Hard have none of them: it drifts until you stop
   // it, the collective stays where you set it, and the pedals turn the nose. Hard also twists the nose right when you
@@ -2983,7 +2985,8 @@
     heli.roll += (rollT - heli.roll) * k;
     // The nose: pedals (on Easy, sideways in a hover), the tail weathervaning into the airflow, and Hard's torque.
     let yawRate = easy ? -cr * 0.6 * (1 - fast) : heli.ped * 0.9;
-    if (vFwd > 0 && spd > 1) yawRate += Math.atan2(Math.sin(Math.atan2(-s.vel.x, -s.vel.z) - heli.yaw), Math.cos(Math.atan2(-s.vel.x, -s.vel.z) - heli.yaw)) * 1.5 * fast;
+    const vane = 1.5 * fast * (1 - (easy ? 0 : Math.min(1, Math.abs(heli.ped) * 2)) * (1 - smooth(20, 40, spd)));
+    if (vFwd > 0 && spd > 1) yawRate += Math.atan2(Math.sin(Math.atan2(-s.vel.x, -s.vel.z) - heli.yaw), Math.cos(Math.atan2(-s.vel.x, -s.vel.z) - heli.yaw)) * vane;
     if (!s.onGround) yawRate -= (heli.c - HOVER_C) * T.torque;
     heli.yaw += yawRate * dt;
     // Easy's turn helper at speed: the heading and the flight path swing around together, on top of the banked turn.
