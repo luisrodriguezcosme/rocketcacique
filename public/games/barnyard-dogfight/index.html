@@ -317,7 +317,7 @@
   <div class="top">
     <button type="button" class="tclose" id="tClose">Close settings ✕</button>
     <header class="plate glass" id="plate">
-      <h1>Runway 27</h1>
+      <h1>Barnyard Dogfight</h1>
       <p id="specs">Stall 40 kt · Best glide 62 kt · Glide 13:1</p>
       <p id="wind" hidden>Wind 290° at 7 kt, gusts 12 · Icy runway</p>
       <p id="flyingCount" hidden>1 pilot flying (you)</p>
@@ -2673,8 +2673,8 @@
         const word = fpm < 300 ? 'Smooth' : fpm < 600 ? 'Good' : 'Firm';
         const landed = headingDeg() > 180 ? '27' : '09';
         if (mission.stage === 'return' && onRunway && (mission.runway === 'any' || mission.runway === landed)) finished = true;
-        else if (mission.stage === 'return' && onRunway) radio(`Mercy Flight, that was runway ${landed}. We said runway ${mission.runway}. Take off and come around again.`,
-          `Mercy Flight, that was runway ${runwayWords(landed)}. We said runway ${runwayWords(mission.runway)}. Take off and come around again.`);
+        else if (mission.stage === 'return' && onRunway) radio(`Cub Flight, that was runway ${landed}. We said runway ${mission.runway}. Take off and come around again.`,
+          `Cub Flight, that was runway ${runwayWords(landed)}. We said runway ${runwayWords(mission.runway)}. Take off and come around again.`);
         else if (mission.stage === 'return') toast(`${word} landing, but land on the runway to finish the mission.`, 6);
         else if (!(santa && rough)) toast(`${word} landing, ${fpm} ft/min${onRunway ? ` on runway ${headingDeg() > 180 ? '27' : '09'}` : ' on the grass'}.`, 6, true);
       }
@@ -2801,9 +2801,9 @@
   }
   function stuntCall(kind) {
     bump(kind === 'silos' ? 'silos' : 'bridge');
-    if (kind === 'under') { toast('You flew under the bridge!', 4, true); radio('Mercy Flight, Valley Tower. We did not see that.'); }
-    else if (kind === 'arch') { toast('You threaded the bridge arch!', 4, true); radio('Mercy Flight, Valley Tower. We definitely did not see that.'); }
-    else { toast('Knife edge between the silos!', 4, true); radio('Mercy Flight, Valley Tower. Nice knife edge.'); }
+    if (kind === 'under') { toast('You flew under the bridge!', 4, true); radio('Cub Flight, Valley Tower. We did not see that.'); }
+    else if (kind === 'arch') { toast('You threaded the bridge arch!', 4, true); radio('Cub Flight, Valley Tower. We definitely did not see that.'); }
+    else { toast('Knife edge between the silos!', 4, true); radio('Cub Flight, Valley Tower. Nice knife edge.'); }
   }
 
   // Barn autopilot, flown like a coupled ILS or LPV approach: 0.15 to 0.75 mile out, headed at either door, it captures,
@@ -2841,7 +2841,7 @@
       return;
     }
     Object.assign(autoPilot, { on: true, side, capY: s.pos.y, capDist: dist, yawPrev: Math.atan2(-s.vel.x, -s.vel.z), bank: 0, grace: 1.5, prompted: false });
-    radio('Mercy Flight, ILS captured. Autopilot has the airplane. Touch the controls to take over.');
+    radio('Cub Flight, ILS captured. Autopilot has the airplane. Touch the controls to take over.');
   }
   function autoFly(dt) {
     const s = state, A = autoPilot, doorY = ground(BARN_X, BARN_Z) + GEAR + (DOOR_H - 2.8) / 2;
@@ -3462,7 +3462,7 @@
     voicePick = e.target.value;
     try { localStorage.setItem(STORE_VOICE, voicePick); } catch (err) { /* optional */ }
     e.target.blur();
-    radio('Mercy Flight, Valley Tower. Radio check, loud and clear.');
+    radio('Cub Flight, Valley Tower. Radio check, loud and clear.');
   });
   let audioCtx = null;
   // Every bus, and the music, ends in one soft limiter ('out'): sound passes through unchanged up to about -3 dB and
@@ -3509,9 +3509,9 @@
     } catch (err) { /* sound is optional */ }
   }
   function radio(text, spoken) {
-    // Tower's callsign matches the airframe: Mercy Flight, Camel Flight, Red Baron Flight, or Santa Flight.
+    // Tower's callsign matches the airframe: Cub Flight (the messages are written for the Cub), Camel Flight, Red Baron Flight, and so on.
     const call = { camel: 'Camel Flight', triplane: 'Red Baron Flight', sleigh: 'Santa Flight', ufo: 'UFO Flight', jet: 'Jet Flight', heli: 'Chopper Flight', shifter: 'Shifter Flight' }[flyPlane()];
-    if (call) { text = text.replace(/Mercy Flight/g, call); if (spoken) spoken = spoken.replace(/Mercy Flight/g, call); }
+    if (call) { text = text.replace(/Cub Flight/g, call); if (spoken) spoken = spoken.replace(/Cub Flight/g, call); }
     radioText.textContent = text;
     radioEl.hidden = false;
     radioEl.style.opacity = '1';
@@ -3540,22 +3540,22 @@
       updateWindText();
       const [w, ws] = windCall();
       const thanks = flyPlane() === 'ufo' ? 'The farmer says thanks for bringing his cows back. ' : '';
-      radio(`Mercy Flight, Valley Tower. ${thanks}Winds are now out of the east. ${w} Land runway 09 (zero niner).`,
-        `Mercy Flight, Valley Tower. ${thanks}Winds are now out of the east. ${ws} Land runway zero niner.`);
+      radio(`Cub Flight, Valley Tower. ${thanks}Winds are now out of the east. ${w} Land runway 09 (zero niner).`,
+        `Cub Flight, Valley Tower. ${thanks}Winds are now out of the east. ${ws} Land runway zero niner.`);
     } else {
       mission.runway = 'any';
-      radio(flyPlane() === 'ufo' ? 'Mercy Flight, Valley Tower. The farmer says thanks for bringing his cows back. Wind calm. Land either runway.' : 'Mercy Flight, Valley Tower. Nice drop. Wind calm. Land either runway.');
+      radio(flyPlane() === 'ufo' ? 'Cub Flight, Valley Tower. The farmer says thanks for bringing his cows back. Wind calm. Land either runway.' : 'Cub Flight, Valley Tower. Nice drop. Wind calm. Land either runway.');
     }
   }
   function towerFinal() {
     const [w, ws] = windCall(), r = mission.runway;
-    if (r === 'any') radio(`Mercy Flight, Valley Tower. ${w} Cleared to land, either runway.`, `Mercy Flight, Valley Tower. ${ws} Cleared to land, either runway.`);
-    else radio(`Mercy Flight, Valley Tower. ${w} Runway ${r}, cleared to land.`, `Mercy Flight, Valley Tower. ${ws} Runway ${runwayWords(r)}, cleared to land.`);
+    if (r === 'any') radio(`Cub Flight, Valley Tower. ${w} Cleared to land, either runway.`, `Cub Flight, Valley Tower. ${ws} Cleared to land, either runway.`);
+    else radio(`Cub Flight, Valley Tower. ${w} Runway ${r}, cleared to land.`, `Cub Flight, Valley Tower. ${ws} Runway ${runwayWords(r)}, cleared to land.`);
   }
   function towerTakeoff() {
     const [w, ws] = windCall();
-    radio(`Mercy Flight, Valley Tower. ${w} Runway 27 (two seven), cleared for takeoff. Climb and turn out heading 290 (two niner zero).`,
-      `Mercy Flight, Valley Tower. ${ws} Runway two seven, cleared for takeoff. Climb and turn out heading two niner zero.`);
+    radio(`Cub Flight, Valley Tower. ${w} Runway 27 (two seven), cleared for takeoff. Climb and turn out heading 290 (two niner zero).`,
+      `Cub Flight, Valley Tower. ${ws} Runway two seven, cleared for takeoff. Climb and turn out heading two niner zero.`);
   }
   function finishMission() {
     mission.running = false;
@@ -3575,7 +3575,7 @@
         : `Time ${fmt(t)}. Your best is ${fmt(prev)}.`;
     }
     updateMissionText();
-    radio('Mercy Flight, Valley Tower. Nice landing. Welcome back.');
+    radio('Cub Flight, Valley Tower. Nice landing. Welcome back.');
     showCard('Mission complete', `The farmer got his ${cargo()}, and you landed back in town. ${line}`);
   }
 
@@ -5002,7 +5002,7 @@
     for (let i = 0; i < n; i++) spawnBandit(i, n);
     const what = `${n} ${n === 1 ? 'bandit' : 'bandits'}`;
     toast(`Wave ${w}: ${what} inbound. Follow the orange marks on the compass.`, 5);
-    radio(`Mercy Flight, Valley Tower. Wave ${w}, ${what} inbound. Good hunting.`);
+    radio(`Cub Flight, Valley Tower. Wave ${w}, ${what} inbound. Good hunting.`);
     renderScores();
   }
   // A hit on a bandit; at zero it goes down in smoke. The wave is clear when every bandit is down.
@@ -5020,7 +5020,7 @@
     toast(`${gh.name} is going down!`, 3, true);
     if (!dogAlive()) {
       dog.nextWave = 6;
-      radio(`Mercy Flight, Valley Tower. Wave ${dog.wave} clear. Nice shooting. More bandits in a few seconds.`);
+      radio(`Cub Flight, Valley Tower. Wave ${dog.wave} clear. Nice shooting. More bandits in a few seconds.`);
     }
     renderScores();
   }
@@ -5032,7 +5032,7 @@
     if (dog.hp <= 0) return crash('Shot down', `${gh.name} got you on wave ${dog.wave}. Fly again starts the wave over.`);
     if (!dog.lowTip && dog.hp * 3 <= dog.hpMax) {
       dog.lowTip = true;
-      radio("Mercy Flight, Valley Tower. You're hit hard. Pop a balloon for a patch, or fly through the barn (red arrow) to repair.");
+      radio("Cub Flight, Valley Tower. You're hit hard. Pop a balloon for a patch, or fly through the barn (red arrow) to repair.");
     }
   }
   // Repairs: a balloon you pop gives back 1 health, and flying through the barn (in one door and out the other) gives it
@@ -5049,7 +5049,7 @@
     if (!dogRepair(dog.hpMax)) return;
     dog.barnWait = 30;
     toast('Repaired at the barn. Health full.', 3, true);
-    radio('Mercy Flight, Valley Tower. Repairs done. Back in the fight.');
+    radio('Cub Flight, Valley Tower. Repairs done. Back in the fight.');
   }
   // Computer planes fire whatever ammo you have picked, with its speed, drop, hit size, and hit count.
   // Returns how their reload compares to a snowball's, kept between half and three times as long.
@@ -5634,8 +5634,8 @@
     atc.bug = t.hdg;
     atc.lastCall = performance.now();
     atc.offTime = 0;
-    radio(`Mercy Flight, ${how} ${pad3(t.hdg)}${safeText}, cross waypoint ${atc.idx + 1} at ${t.cross.toLocaleString('en-US')} ft.`,
-      `Mercy Flight, ${how} ${say(pad3(t.hdg))}${safeSaid}, cross waypoint ${say(atc.idx + 1)} at ${sayAlt(t.cross)}.`);
+    radio(`Cub Flight, ${how} ${pad3(t.hdg)}${safeText}, cross waypoint ${atc.idx + 1} at ${t.cross.toLocaleString('en-US')} ft.`,
+      `Cub Flight, ${how} ${say(pad3(t.hdg))}${safeSaid}, cross waypoint ${say(atc.idx + 1)} at ${sayAlt(t.cross)}.`);
   }
   function updateAtc(dt) {
     atc.wait -= dt;
@@ -5657,7 +5657,7 @@
     if (Math.hypot(w.x - s.pos.x, w.z - s.pos.z) < 250) {
       atc.idx++;
       if (atc.idx < pts.length) atcCall(true);
-      else { atc.bug = null; radio('Mercy Flight, that was the last waypoint. You are cleared VFR direct to Valley Field.', 'Mercy Flight, that was the last waypoint. You are cleared V F R direct to Valley Field.'); }
+      else { atc.bug = null; radio('Cub Flight, that was the last waypoint. You are cleared VFR direct to Valley Field.', 'Cub Flight, that was the last waypoint. You are cleared V F R direct to Valley Field.'); }
       return;
     }
     if (Math.abs(turnBy(headingDeg(), t.hdg)) > 20) {
