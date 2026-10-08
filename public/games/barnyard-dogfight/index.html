@@ -111,9 +111,13 @@
     .tknob { position: absolute; left: 50%; top: 50%; width: 54px; height: 54px; margin: -27px 0 0 -27px; border-radius: 50%; background: rgba(242, 194, 48, 0.8); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35); pointer-events: none; transition: transform 0.12s ease-out; }
     .tpad.active .tknob { transition: none; background: rgba(242, 194, 48, 0.95); }
     body.pad-right .tpad { left: auto; right: calc(14px + env(safe-area-inset-right, 0px)); }
-    /* Helicopter pedals (Medium and Hard): a pair above the joystick. */
-    .tpedals { position: absolute; left: calc(14px + env(safe-area-inset-left, 0px)); bottom: calc(var(--tbot) + var(--pad) + 12px + env(safe-area-inset-bottom, 0px)); display: flex; gap: 8px; }
-    body.pad-right .tpedals { left: auto; right: calc(14px + env(safe-area-inset-right, 0px)); }
+    /* Helicopter on Medium and Hard: a second stick on the other side, like a model-helicopter remote. Up and down is the
+       lever (it stays where you leave it), left and right the pedals; ammo and FIRE sit above it. */
+    .tpad2 { left: auto; right: calc(14px + env(safe-area-inset-right, 0px)); }
+    body.pad-right .tpad2 { right: auto; left: calc(14px + env(safe-area-inset-left, 0px)); }
+    .tpad-label { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); font: 700 9.5px/1 var(--body); letter-spacing: 0.08em; white-space: nowrap; color: var(--ink); text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7); pointer-events: none; }
+    body.heli-sticks #tUp, body.heli-sticks #tDown { display: none; }
+    body.heli-sticks .tact { bottom: calc(var(--tbot) + var(--pad) + 22px + env(safe-area-inset-bottom, 0px)); }
     body.pad-right .tact { right: auto; left: calc(14px + env(safe-area-inset-left, 0px)); flex-direction: row-reverse; }
     .tfire { width: 84px; height: 84px; font-size: 15px; letter-spacing: 0.08em; background: rgba(217, 71, 47, 0.72); }
     .intro, .crash { z-index: 4; }
@@ -250,6 +254,14 @@
     #tUp { order: 3; width: 52px; height: 52px; }
     #tDown { order: 4; width: 52px; height: 52px; }
     #tFire { order: 5; }
+  }
+  /* Sideways phone, helicopter with two sticks: ammo sits beside FIRE (on the inner side) so the pair stays low and clear of the tower line. */
+  @media (hover: none) and (pointer: coarse) and (max-height: 520px) {
+    body.heli-sticks .tact { grid-template-columns: auto auto; }
+    body.heli-sticks #tAmmo { grid-column: auto; order: 1; }
+    body.heli-sticks #tFire { grid-column: auto; order: 2; }
+    body.heli-sticks.pad-right #tAmmo { order: 2; }
+    body.heli-sticks.pad-right #tFire { order: 1; }
   }
   @media (hover: none) and (pointer: coarse) and (max-height: 520px) and (max-width: 700px) {
     .instruments { --cmp: 112px; }
@@ -439,6 +451,7 @@
         <dt><kbd>H</kbd></dt><dd>Hide this card</dd>
       </dl>
       <p class="kbd-only">Arrow keys work like the nose and bank keys. You can also drag with the mouse to fly. Idle power also brakes on the ground.</p>
+      <p class="touch-only">Helicopter on Medium or Hard: the joystick is the cyclic (tilt), and the second stick is the lever (up and down, it stays where you leave it) and the pedals (left and right).</p>
       <p class="touch-only">Push the joystick to fly. With Stick on Pilot, pull it down to climb; with Game, push it up. You can also drag on the screen. ▲ and ▼ change power, or go up and down in a hover. Hold FIRE to shoot; inside the barn it drops the supplies. Next ammo and Transform are above FIRE. To move the joystick to the other side, pick Left or Right under Joystick.</p>
       <p class="home-tip" hidden>Full screen on iPhone: tap Share (or ⋯, then Share), then Add to Home Screen. Then play from the new icon.</p>
       <p class="credit">Music made with Suno. Transformation sounds by Mekaal (CC0).</p>
@@ -452,10 +465,7 @@
       <button type="button" class="tbtn tsmall" id="tPause" aria-label="Pause">❚❚ Pause</button>
     </div>
     <div class="tpad" id="tPad" role="img" aria-label="Joystick: push the knob to fly"><div class="tknob" id="tKnob"></div></div>
-    <div class="tpedals" id="tPedals" hidden>
-      <button type="button" class="tbtn tsmall" id="tYawL" aria-label="Pedal: nose left">⟲ Nose left</button>
-      <button type="button" class="tbtn tsmall" id="tYawR" aria-label="Pedal: nose right">Nose right ⟳</button>
-    </div>
+    <div class="tpad tpad2" id="tPad2" role="img" aria-label="Lever and pedals: up and down for lift, left and right to turn the nose" hidden><span class="tpad-label">LIFT ↕ · NOSE ↔</span><div class="tknob" id="tKnob2"></div></div>
     <div class="tcluster tact">
       <div class="tcol">
         <button type="button" class="tbtn" id="tUp" aria-label="More power, or up">▲</button>
@@ -2892,11 +2902,11 @@
   // Attack helicopter: always flies hover-style. Power keys climb or sink and letting go holds the height (on a touch
   // screen, the ▲ and ▼ buttons press those keys); the nose keys speed up or slow down and the
   // speed holds; the bank keys turn. It tilts nose-down to speed up and leans into turns.
-  const heli = { yaw: 0, vy: 0, speed: 0, pitch: 0, roll: 0, c: 0 };
+  const heli = { yaw: 0, vy: 0, speed: 0, pitch: 0, roll: 0, c: 0, ped: 0 };
   function startHeli() {
     euler.setFromQuaternion(state.quat, 'YXZ');
     const fx = -Math.sin(euler.y), fz = -Math.cos(euler.y);
-    Object.assign(heli, { yaw: euler.y, vy: 0, speed: state.onGround ? 0 : clamp(state.vel.x * fx + state.vel.z * fz, -10, flyPlane() === 'shifter' ? 92 : 75), pitch: 0, roll: 0, c: state.onGround ? 0 : HOVER_C });
+    Object.assign(heli, { yaw: euler.y, vy: 0, speed: state.onGround ? 0 : clamp(state.vel.x * fx + state.vel.z * fz, -10, flyPlane() === 'shifter' ? 92 : 75), pitch: 0, roll: 0, ped: 0, c: state.onGround ? 0 : HOVER_C });
   }
   function heliFly(dt) {
     const s = state, L = layout;
@@ -2942,11 +2952,12 @@
   // Easy adds helpers: let go and it tilts back to slow to a hover, the power keys hold your height, sideways turns the
   // nose in a hover and banks at speed (with a turn helper on top), and it can't tip far. Medium and Hard have none of them: it drifts until you stop
   // it, the collective stays where you set it, and the pedals turn the nose. Hard also twists the nose right when you
-  // add power (torque), reacts a little slower, and tips farther. Landing too fast or tilted is a crash on both.
+  // add power (torque), reacts a little slower, and tips farther. Both bank farther than they tilt forward, so a turn at
+  // speed comes around quickly. Landing too fast or tilted is a crash on both.
   const HOVER_C = 0.55, HELI_TUNE = {
     easy: { tilt: 0.4, lag: 0.35, torque: 0 },
-    medium: { tilt: 0.6, lag: 0.45, torque: 0 },
-    hard: { tilt: 0.75, lag: 0.6, torque: 1.2 }
+    medium: { tilt: 0.6, bank: 0.8, lag: 0.3, torque: 0 },
+    hard: { tilt: 0.75, bank: 0.87, lag: 0.45, torque: 1.2 }
   };
   const heliReal = () => choice.flying === 'medium' || choice.flying === 'hard';
   const hq = new THREE.Quaternion(), hUp = new THREE.Vector3(), hFwd = new THREE.Vector3(), hRight = new THREE.Vector3();
@@ -2956,13 +2967,14 @@
     // Stick and keys: forward (nose down) and right are positive; the pedals turn the nose left when positive.
     const cp = clamp((has(noseDownKey()) || has(pilotStick() ? 'ArrowUp' : 'ArrowDown') ? 1 : 0) - (has(noseUpKey()) || has(pilotStick() ? 'ArrowDown' : 'ArrowUp') ? 1 : 0) - stick.pitch, -1, 1);
     const cr = clamp((has(L.right) || has('ArrowRight') ? 1 : 0) - (has(L.left) || has('ArrowLeft') ? 1 : 0) + stick.roll, -1, 1);
-    const up = (has(L.more) ? 1 : 0) - (has(L.less) ? 1 : 0), ped = (has(L.yawL) ? 1 : 0) - (has(L.yawR) ? 1 : 0);
+    const up = (has(L.more) ? 1 : 0) - (has(L.less) ? 1 : 0), ped = clamp((has(L.yawL) ? 1 : 0) - (has(L.yawR) ? 1 : 0) - lever.yaw, -1, 1);
+    heli.ped += (ped - heli.ped) * Math.min(1, dt / 0.2);
     hFwd.set(-Math.sin(heli.yaw), 0, -Math.cos(heli.yaw));
     hRight.set(Math.cos(heli.yaw), 0, -Math.sin(heli.yaw));
     const vFwd = s.vel.dot(hFwd), vRight = s.vel.dot(hRight), spd = Math.hypot(s.vel.x, s.vel.z);
     const agl = s.pos.y - GEAR - ground(s.pos.x, s.pos.z), fast = smooth(6, 15, spd);
     // Where the rotor should lean. On Easy, a stick at rest tilts against the drift to slow to a hover.
-    let pitchT = -cp * T.tilt, rollT = -cr * T.tilt * (easy ? fast : 1);
+    let pitchT = -cp * T.tilt, rollT = -cr * (T.bank || T.tilt) * (easy ? fast : 1);
     if (easy && Math.abs(cp) < 0.08) pitchT = clamp(vFwd * 0.03, -T.tilt, T.tilt);
     if (easy && Math.abs(cr) < 0.08) rollT = clamp(vRight * 0.03, -T.tilt, T.tilt);
     if (s.onGround) { pitchT = 0; rollT = 0; }
@@ -2970,7 +2982,7 @@
     heli.pitch += (pitchT - heli.pitch) * k;
     heli.roll += (rollT - heli.roll) * k;
     // The nose: pedals (on Easy, sideways in a hover), the tail weathervaning into the airflow, and Hard's torque.
-    let yawRate = easy ? -cr * 0.6 * (1 - fast) : ped * 0.9;
+    let yawRate = easy ? -cr * 0.6 * (1 - fast) : heli.ped * 0.9;
     if (vFwd > 0 && spd > 1) yawRate += Math.atan2(Math.sin(Math.atan2(-s.vel.x, -s.vel.z) - heli.yaw), Math.cos(Math.atan2(-s.vel.x, -s.vel.z) - heli.yaw)) * 1.5 * fast;
     if (!s.onGround) yawRate -= (heli.c - HOVER_C) * T.torque;
     heli.yaw += yawRate * dt;
@@ -3011,6 +3023,7 @@
     s.quat.setFromEuler(euler.set(s.onGround ? 0 : heli.pitch, heli.yaw, s.onGround ? 0 : heli.roll, 'YXZ'));
     s.omega.set(0, 0, 0);
     Object.assign(s, { airspeed: spd, alpha: 0, throttle: heli.c });
+    if (TOUCH && lever.id === null && !easy) syncLeverKnob();
     const hit = checkObstacles();
     if (hit) return crash(hit, (CRASH_TIPS[hit] || (() => 'Watch the buildings while you hover.'))());
     if (balloonAt(s.pos, 3.5) >= 0) return crash('Hit a hot air balloon', CRASH_TIPS['Hit a hot air balloon']());
@@ -3574,7 +3587,7 @@
     mission.running = false;
     showCard(title, why);
   }
-  const tipStart = () => `Mission: ${flyPlane() === 'ufo' ? "return the farmer's cows to his barn" : `fly the ${flyPlane() === 'sleigh' ? `${cargo()} to the farmer's house` : "supplies to the farmer's barn"}`}. ${choice.season === 'winter' ? 'Watch the wind and the icy runway. ' : ''}${flyPlane() === 'heli' ? (TOUCH ? 'Hold ▲ to lift off.' : `Hold ${keyName(layout.more)} to lift off.`) : TOUCH ? 'Hold ▲ or slide Power to 100.' : `Hold ${keyName(layout.more)} for full power.`}${flyPlane() === 'shifter' ? ' Press T to transform.' : ''}`;
+  const tipStart = () => `Mission: ${flyPlane() === 'ufo' ? "return the farmer's cows to his barn" : `fly the ${flyPlane() === 'sleigh' ? `${cargo()} to the farmer's house` : "supplies to the farmer's barn"}`}. ${choice.season === 'winter' ? 'Watch the wind and the icy runway. ' : ''}${flyPlane() === 'heli' ? (TOUCH && heliReal() ? `Push the ${choice.pad === 'right' ? 'left' : 'right'} stick up to lift off.` : TOUCH ? 'Hold ▲ to lift off.' : `Hold ${keyName(layout.more)} to lift off.`) : TOUCH ? 'Hold ▲ or slide Power to 100.' : `Hold ${keyName(layout.more)} for full power.`}${flyPlane() === 'shifter' ? ' Press T to transform.' : ''}`;
   const tipRotate = () => `At 50 kt, ${TOUCH ? (pilotStick() ? 'drag down' : 'drag up') : `hold ${keyName(noseUpKey())}`} until the wheels lift, then let go.`;
   const TIP_ROUTE = "Follow the red arrow on the compass. The farmer's barn is over the hills.";
   const tipBarn = () => `Line up with the barn doors and stay under ${barnSize.ceilingFt} ft. ${TOUCH ? 'Tap Drop' : 'Press Space'} just as you enter.`;
@@ -3717,7 +3730,9 @@
     $('tAmmo').textContent = ufo ? 'Lasers' : (AMMO[choice.ammo] || AMMO.snow).name;
     $('tAmmo').disabled = ufo;
     $('tXform').hidden = flyPlane() !== 'shifter';
-    $('tPedals').hidden = !(flyPlane() === 'heli' && heliReal());
+    const sticks = TOUCH && flyPlane() === 'heli' && heliReal();
+    document.body.classList.toggle('heli-sticks', sticks);
+    $('tPad2').hidden = !sticks;
   }
   function renderKeys() {
     syncTouchUi();
@@ -3913,6 +3928,7 @@
     keys.clear();
     drag = null;
     padEnd();
+    pad2End();
     stick.pitch = stick.roll = 0;
     input.pitch = input.roll = 0;
   }
@@ -3937,8 +3953,6 @@
   holdButton($('tFire'), () => { touchFire = true; if (!introOpen && !paused && !menuOpen) spaceAction(); }, () => { touchFire = false; });
   holdButton($('tUp'), () => keys.add(layout.more), () => keys.delete(layout.more));
   holdButton($('tDown'), () => keys.add(layout.less), () => keys.delete(layout.less));
-  holdButton($('tYawL'), () => keys.add(layout.yawL), () => keys.delete(layout.yawL));
-  holdButton($('tYawR'), () => keys.add(layout.yawR), () => keys.delete(layout.yawR));
   // Joystick: the knob follows the thumb inside the pad and sets the same stick a drag on the screen does, so the Stick
   // setting (Pilot or Game) works the same way. A small dead zone keeps a resting thumb from steering, and a soft curve
   // makes small pushes gentle (half way gives about a third) while a full push is still full. Letting go centers it.
@@ -3971,6 +3985,38 @@
   });
   pad.addEventListener('pointermove', (e) => { if (e.pointerId === padId) padMove(e); });
   for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) pad.addEventListener(ev, (e) => { if (e.pointerId === padId) padEnd(); });
+  // Second stick (helicopter on Medium and Hard): up and down moves the lever from where it is, and it stays there when
+  // you let go, so the knob's height shows the lift you have set; left and right is the pedals, gentle near the middle,
+  // and they spring back to center.
+  const pad2 = $('tPad2'), knob2 = $('tKnob2'), lever = { id: null, y0: 0, c0: 0, yaw: 0 };
+  function syncLeverKnob(dx = 0) {
+    const reach = pad2.getBoundingClientRect().width * 0.34;
+    knob2.style.transform = `translate(${dx.toFixed(1)}px, ${((0.5 - heli.c) * 2 * reach).toFixed(1)}px)`;
+  }
+  function pad2Move(e) {
+    const r = pad2.getBoundingClientRect(), reach = r.width * 0.34, dead = 0.1;
+    heli.c = clamp(lever.c0 - (e.clientY - lever.y0) / (2 * reach), 0, 1);
+    const dx = clamp(e.clientX - (r.left + r.width / 2), -reach, reach), v = dx / reach;
+    lever.yaw = Math.abs(v) < dead ? 0 : (v - Math.sign(v) * dead) / (1 - dead);
+    syncLeverKnob(dx);
+  }
+  function pad2End() {
+    if (lever.id === null) return;
+    lever.id = null;
+    lever.yaw = 0;
+    pad2.classList.remove('active');
+    syncLeverKnob();
+  }
+  pad2.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    Object.assign(lever, { id: e.pointerId, y0: e.clientY, c0: heli.c });
+    try { pad2.setPointerCapture(e.pointerId); } catch (err) { /* keep going: moves over the pad still count */ }
+    pad2.classList.add('active');
+    startEngine();
+    pad2Move(e);
+  });
+  pad2.addEventListener('pointermove', (e) => { if (e.pointerId === lever.id) pad2Move(e); });
+  for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) pad2.addEventListener(ev, (e) => { if (e.pointerId === lever.id) pad2End(); });
   // Full screen: iPad and Android browsers can fill the screen from a button. iPhone Safari can't, so iPhone players get a
   // tip instead: add the game to the Home Screen and play from that icon, which opens it without the Safari bars.
   const fullOk = !!(document.fullscreenEnabled || document.webkitFullscreenEnabled);
