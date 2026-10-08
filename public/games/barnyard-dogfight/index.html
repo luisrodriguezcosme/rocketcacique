@@ -71,6 +71,12 @@
   .hpbar { display: block; height: 7px; background: rgba(255, 255, 255, 0.12); border-radius: 4px; overflow: hidden; }
   .hpbar i { display: block; height: 100%; background: var(--good); }
   .hpbar i.low { background: var(--warn); }
+  /* Afterburner fuel under the Power gauge (Jet fighter and Barn Swallow). */
+  .ab { grid-column: 1 / -1; display: block; height: 5px; margin-top: 5px; background: rgba(255, 255, 255, 0.12); border-radius: 3px; overflow: hidden; }
+  .ab i { display: block; height: 100%; background: #C98A4A; }
+  .ab i.lit { background: #FF9A3C; }
+  /* The Barn Swallow's head-up display, drawn over the view. */
+  .hud { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
   .splat { position: absolute; inset: 0; pointer-events: none; animation: splat 2.6s ease-out forwards;
     background: radial-gradient(circle at 38% 42%, rgba(255,255,255,0.96) 0 11%, transparent 12%), radial-gradient(circle at 55% 50%, rgba(255,255,255,0.94) 0 15%, transparent 16%),
       radial-gradient(circle at 47% 63%, rgba(255,255,255,0.9) 0 9%, transparent 10%), radial-gradient(circle at 64% 36%, rgba(255,255,255,0.9) 0 6%, transparent 7%),
@@ -266,9 +272,9 @@
     /* One column on the action side, so the power buttons stay clear of the compass: ammo, transform, power, FIRE. */
     .tact { display: grid; grid-template-columns: repeat(2, 52px); gap: 8px; justify-items: center; align-items: end; }
     .tact .tcol { display: contents; }
-    #tAmmo, #tXform, #tFire { grid-column: span 2; }
+    #tAmmo, #tXform, #tMissile, #tFlares, #tFire { grid-column: span 2; }
     #tAmmo { order: 1; }
-    #tXform { order: 2; }
+    #tXform, #tMissile, #tFlares { order: 2; }
     #tUp { order: 3; width: 52px; height: 52px; }
     #tDown { order: 4; width: 52px; height: 52px; }
     #tFire { order: 5; }
@@ -282,6 +288,17 @@
     body.heli-sticks #tFire { grid-column: 2; grid-row: 1 / span 2; }
     body.heli-sticks.pad-right #tXform, body.heli-sticks.pad-right #tAmmo { grid-column: 2; }
     body.heli-sticks.pad-right #tFire { grid-column: 1; }
+    /* Barn Swallow: Ammo, Burner, Missile, and Flares stack on the inner side; power and FIRE stay on the outer side. */
+    body.jet-combat .tact { grid-template-columns: auto auto; }
+    body.jet-combat #tAmmo { grid-column: 1; grid-row: 1; }
+    body.jet-combat #tXform { grid-column: 1; grid-row: 2; }
+    body.jet-combat #tMissile { grid-column: 1; grid-row: 3; }
+    body.jet-combat #tFlares { grid-column: 1; grid-row: 4; }
+    body.jet-combat #tUp { grid-column: 2; grid-row: 1; }
+    body.jet-combat #tDown { grid-column: 2; grid-row: 2; }
+    body.jet-combat #tFire { grid-column: 2; grid-row: 3 / span 2; }
+    body.jet-combat.pad-right #tAmmo, body.jet-combat.pad-right #tXform, body.jet-combat.pad-right #tMissile, body.jet-combat.pad-right #tFlares { grid-column: 2; }
+    body.jet-combat.pad-right #tUp, body.jet-combat.pad-right #tDown, body.jet-combat.pad-right #tFire { grid-column: 1; }
   }
   @media (hover: none) and (pointer: coarse) and (max-height: 520px) and (max-width: 700px) {
     .instruments { --cmp: 112px; }
@@ -312,6 +329,7 @@
 
 <div id="app">
   <canvas id="view" aria-label="View from the plane"></canvas>
+  <canvas id="hud" class="hud" hidden aria-hidden="true"></canvas>
   <div id="flash" class="flash"></div>
   <div id="aim" class="aim" hidden></div>
   <ol id="feed" class="feed" hidden></ol>
@@ -332,6 +350,7 @@
           <option value="sleigh">Santa's sleigh</option>
           <option value="ufo">UFO</option>
           <option value="jet">Jet fighter</option>
+          <option value="swallow">Barn Swallow (twin-tail fighter)</option>
           <option value="heli">Attack helicopter</option>
           <option value="owl">Barn Owl (fast helicopter)</option>
           <option value="shifter">Shifter (transforming jet)</option>
@@ -495,6 +514,8 @@
       <div class="tcol">
         <button type="button" class="tbtn tsmall" id="tAmmo" aria-label="Next ammo">Snowballs</button>
         <button type="button" class="tbtn tsmall" id="tXform" hidden>Transform</button>
+        <button type="button" class="tbtn tsmall" id="tMissile" hidden>Missile</button>
+        <button type="button" class="tbtn tsmall" id="tFlares" hidden>Flares</button>
         <button type="button" class="tbtn tfire" id="tFire">FIRE</button>
       </div>
     </div>
@@ -555,7 +576,7 @@
         <g id="vsiNeedle"><path class="needle" d="M-2.2 7 L0 -47 L2.2 7 Z"></path></g>
         <circle class="hub" r="4"></circle>
       </svg>
-      <div class="g thr power"><label class="l" for="throttle">Power</label><span class="v" id="thrv">0</span><span class="u">%</span><input type="range" id="throttle" min="0" max="100" value="0"></div>
+      <div class="g thr power"><label class="l" for="throttle">Power</label><span class="v" id="thrv">0</span><span class="u">%</span><input type="range" id="throttle" min="0" max="100" value="0"><span class="ab" id="abGauge" hidden aria-label="Afterburner left"><i id="abFill"></i></span></div>
     </footer>
     <div class="compass" aria-label="Compass">
       <div id="ilsTag" class="ils-tag" hidden>ILS ARMED</div>
@@ -1238,7 +1259,7 @@
     medium: { selfLevel: true, pitch: 0.65, roll: 1.25 },
     hard: {}
   };
-  let perf = { ...FLYING.easy, vProp: 80, aStall: 0.26 };
+  let perf = { ...FLYING.easy, vProp: 80, aStall: 0.26, cl0: 0.25, cla: 5.6 };
   let barnSize = BARNS.big, flying = FLYING.easy, BARN_HALF = 0, BARN_W = 0, DOOR_W = 0, DOOR_H = 0, EAVE = 0, RIDGE = 0, LEAF = 0;
   const barnRoof = (lz) => EAVE + (RIDGE - EAVE) * (1 - Math.abs(lz) / BARN_W);
   const barnRed = lambert('#9E2F24'), trim = lambert('#EDE8DC'), roofMat = lambert('#5B605B'), wood = lambert('#4A3526'), hayMat = lambert('#D5B45E');
@@ -1963,6 +1984,7 @@
   function sameTeam(gh) { return !!myTeam() && gh.team === myTeam(); }
   function applyAirframe() {
     showModel(plane, flyPlane());
+    resetBurner();
     if (isHeli()) startHeli();
     if (flyPlane() === 'shifter') { setShifterMode('jet', true); loadXformClips(); }
     M.yellow.color.set(myTeam() ? TEAM_COLORS[myTeam()] : '#F2C230');
@@ -2180,6 +2202,86 @@
   jetModel.name = 'jet';
   jetModel.visible = false;
   plane.add(jetModel);
+  // Barn Swallow: my co-worker's twin-tail fighter, its own airframe ('swallow') next to the Jet fighter. Two-tone gray,
+  // a long nose with strakes, twin canted tails, twin engines with afterburners, wingtip missile rails, and wheels that
+  // fold away after takeoff.
+  const swallowModel = new THREE.Group();
+  swallowModel.name = 'swallow';
+  swallowModel.visible = false;
+  plane.add(swallowModel);
+  const diamondGeo = new THREE.SphereGeometry(0.11, 8, 6).scale(1, 1, 0.6);
+  const diamondMat = new THREE.MeshBasicMaterial({ color: '#CFE8FF', transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false });
+  // Twin afterburners in one group, so the burner code moves both flames; the shock diamonds show on full burner.
+  const swallowBurner = new THREE.Group();
+  for (const sx of [-1, 1]) {
+    const flame = new THREE.Mesh(burnerGeo, burnerMat);
+    flame.position.x = sx * 0.42;
+    swallowBurner.add(flame);
+    for (const dz of [-0.75, -0.3, 0.15]) {
+      const diamond = new THREE.Mesh(diamondGeo, diamondMat);
+      diamond.position.set(sx * 0.42, 0, dz);
+      diamond.userData.diamond = true;
+      swallowBurner.add(diamond);
+    }
+  }
+  const swallowGear = new THREE.Group(), swallowGlow = new THREE.Group();
+  const glowMat = new THREE.MeshBasicMaterial({ color: '#FF7A2E', transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
+  // Gear folds up (k = 1) or down (k = 0): it slides into the belly and shrinks out of sight.
+  function setGear(group, k) {
+    group.position.y = 0.7 * k;
+    group.scale.y = Math.max(0.02, 1 - k);
+    group.visible = k < 0.98;
+  }
+  // Flame length follows the throttle; the burner (thr above 1) makes it long and adds the shock diamonds.
+  function setExhaust(burnerGroup, glowGroup, thr, on) {
+    const dry = Math.min(thr, 1), wet = Math.max(0, thr - 1) * 2;
+    glowGroup.visible = on && dry > 0.15;
+    burnerGroup.visible = on && (dry > 0.3 || wet > 0.05);
+    if (!burnerGroup.visible) return;
+    burnerGroup.scale.set(1, 1, 0.15 + 0.35 * dry + 0.9 * wet + Math.random() * 0.12);
+    for (const c of burnerGroup.children) if (c.userData.diamond) c.visible = wet > 0.5;
+  }
+  {
+    const J = swallowModel, gray = lambert('#9AA2A9', { emissive: '#23282C' }), belly = lambert('#B7BDC2', { emissive: '#2A2E31' });
+    const dark = lambert('#3E454B'), metal = lambert('#5A5F64', { side: THREE.DoubleSide }), white = lambert('#E8E8E6', { emissive: '#303030' });
+    jetBody(J, [[0, -4.4], [0.1, -4.15], [0.22, -3.7], [0.34, -3.1], [0.42, -2.4], [0.47, -1.6], [0.5, -0.8], [0.5, 0.2], [0.44, 1.2], [0, 1.4]], gray);
+    box(1.3, 0.58, 3.4, gray, 0, -0.08, 2.0, 0, 0, 0, J);
+    box(1.2, 0.2, 3.2, belly, 0, -0.42, 2.0, 0, 0, 0, J);
+    for (const sx of [-1, 1]) {
+      jetTube(J, 0.3, 0.3, 1.0, gray, sx * 0.42, -0.08, 3.9);
+      jetTube(J, 0.3, 0.34, 0.6, metal, sx * 0.42, -0.08, 4.55, true);
+      const throat = new THREE.Mesh(new THREE.CircleGeometry(0.3, 18), lambert('#121417', { side: THREE.DoubleSide }));
+      throat.position.set(sx * 0.42, -0.08, 4.42);
+      J.add(throat);
+      const glow = new THREE.Mesh(new THREE.CircleGeometry(0.24, 18), glowMat);
+      glow.position.set(sx * 0.42, -0.08, 4.44);
+      swallowGlow.add(glow);
+      box(0.42, 0.42, 1.1, dark, sx * 0.62, -0.42, -0.4, 0, 0, 0, J);
+      box(0.4, 0.4, 0.05, lambert('#111417'), sx * 0.62, -0.42, -0.96, 0, 0, 0, J);
+      jetFlat(J, [[0.9, 0], [-0.25, 1.85], [-0.85, 1.85], [-1.15, 0]], 0.07, gray, sx * 0.7, 0.2, 2.35, true, -sx * 0.36);
+      jetTube(J, 0.07, 0.07, 1.9, white, sx * 4.42, -0.12, -0.75).name = sx < 0 ? 'mslL' : 'mslR';
+      box(0.05, 0.7, 0.08, dark, sx * 0.75, -0.66, 0.9, 0, 0, 0, swallowGear);
+    }
+    jetFlat(J, [[-0.2, 2.6], [0.2, 2.6], [1.0, 0.4], [1.0, -0.2], [-1.0, -0.2], [-1.0, 0.4]], 0.05, gray, 0, -0.02, 0);
+    jetFlat(J, [[-0.6, 0.7], [0.6, 0.7], [4.4, -1.15], [4.4, -1.6], [0.6, -1.95], [-0.6, -1.95], [-4.4, -1.6], [-4.4, -1.15]], 0.08, gray, 0, -0.1, 0.4);
+    jetFlat(J, [[-0.5, 0.5], [0.5, 0.5], [2.3, -0.5], [2.3, -1.05], [0.5, -1.1], [-0.5, -1.1], [-2.3, -1.05], [-2.3, -0.5]], 0.05, gray, 0, -0.18, 3.6);
+    const canopy = new THREE.Mesh(new THREE.SphereGeometry(0.42, 14, 10), lambert('#2E4558', { emissive: '#0E1820' }));
+    canopy.scale.set(0.72, 0.68, 2.1);
+    canopy.position.set(0, 0.42, -2.35);
+    J.add(canopy);
+    box(0.5, 0.04, 0.9, dark, 0, 0.47, -3.4, -0.12, 0, 0, J);
+    swallowBurner.position.set(0, -0.08, 5.95);
+    swallowBurner.visible = false;
+    J.add(swallowBurner);
+    box(0.05, 0.6, 0.08, dark, 0, -0.72, -2.6, 0, 0, 0, swallowGear);
+    for (const [r, w, x, y, z] of [[0.24, 0.14, 0.75, -1.01, 0.9], [0.24, 0.14, -0.75, -1.01, 0.9], [0.2, 0.12, 0, -1.05, -2.6]]) {
+      const wheel = new THREE.Mesh(new THREE.CylinderGeometry(r, r, w, 14), M.tire);
+      wheel.rotation.z = Math.PI / 2;
+      wheel.position.set(x, y, z);
+      swallowGear.add(wheel);
+    }
+    J.add(swallowGear, swallowGlow);
+  }
   const jetBurner = new THREE.Mesh(burnerGeo, burnerMat);
   {
     const J = jetModel, gray = lambert('#8E979E', { emissive: '#22272B' }), dark = lambert('#3E454B'), metal = lambert('#5A5F64', { side: THREE.DoubleSide });
@@ -2569,15 +2671,15 @@
       shifterParts.gun.quaternion.setFromEuler(shE.set(rx - PI2, 0, 0));
     }
   }
-  // Show one airframe inside a plane group: 'cub', 'camel', 'triplane', 'sleigh', 'ufo', 'jet', 'redjet', 'heli', 'owl', or 'shifter' (only the first three have a propeller).
+  // Show one airframe inside a plane group: 'cub', 'camel', 'triplane', 'sleigh', 'ufo', 'jet', 'swallow', 'redjet', 'heli', 'owl', or 'shifter' (only the first three have a propeller).
   function showModel(group, type) {
-    for (const name of ['cub', 'camel', 'triplane', 'sleigh', 'ufo', 'jet', 'redjet', 'heli', 'owl', 'shifter']) { const m = group.getObjectByName(name); if (m) m.visible = name === type; }
+    for (const name of ['cub', 'camel', 'triplane', 'sleigh', 'ufo', 'jet', 'swallow', 'redjet', 'heli', 'owl', 'shifter']) { const m = group.getObjectByName(name); if (m) m.visible = name === type; }
     for (const name of ['prop', 'disc']) { const m = group.getObjectByName(name); if (m) m.visible = ['cub', 'camel', 'triplane'].includes(type); }
   }
   // Wingtip navigation lights (red left, green right) on the airplanes.
   {
     const red = new THREE.MeshBasicMaterial({ color: '#FF3B30' }), green = new THREE.MeshBasicMaterial({ color: '#34E86B' }), bulb = new THREE.SphereGeometry(0.12, 8, 6);
-    for (const [model, x, y, z] of [[cubModel, 5.4, 0.73, -0.9], [camelModel, 4.65, 1.36, -1.25], [triplaneModel, 3.65, 1.41, -1.1], [jetModel, 4.62, 0, 1.2]]) {
+    for (const [model, x, y, z] of [[cubModel, 5.4, 0.73, -0.9], [camelModel, 4.65, 1.36, -1.25], [triplaneModel, 3.65, 1.41, -1.1], [jetModel, 4.62, 0, 1.2], [swallowModel, 4.4, -0.1, -0.4]]) {
       for (const [side, mat] of [[-1, red], [1, green]]) { const b = new THREE.Mesh(bulb, mat); b.position.set(side * x, y, z); model.add(b); }
     }
   }
@@ -2621,12 +2723,19 @@
   const MASS = 700, G = 9.81, RHO = 1.2, WING = 16, V_PROP = 80, GEAR = 1.25;
   const CL0 = 0.25, CLA = 5.6, A_STALL = 0.26, K_IND = 1 / (Math.PI * 0.8 * 7.2);
   const TRIM_A = 0.09;  // hands-off angle of attack: settles near 60 kt
+  // Lift at an angle of attack, from the airframe's own lift numbers (the Barn Swallow's fighter wing has its own).
   function liftCoef(a) {
     // The UFO never stalls: lift levels off at its peak instead of dropping away.
-    if (flyPlane() === 'ufo') return Math.max(-0.9, Math.min(CL0 + CLA * a, CL0 + CLA * perf.aStall));
-    if (a > perf.aStall) return Math.max(0.6, CL0 + CLA * perf.aStall - (a - perf.aStall) * 4.5);
-    return Math.max(-0.9, CL0 + CLA * a);
+    if (flyPlane() === 'ufo') return Math.max(-0.9, Math.min(perf.cl0 + perf.cla * a, perf.cl0 + perf.cla * perf.aStall));
+    if (a > perf.aStall) return Math.max(0.6, perf.cl0 + perf.cla * perf.aStall - (a - perf.aStall) * 4.5);
+    return Math.max(-0.9, perf.cl0 + perf.cla * a);
   }
+  // Afterburner (Jet fighter and Barn Swallow): T, or holding more power at full, lights it for about 10 seconds; it
+  // refills while off. The Barn Swallow's gear folds up after takeoff (gearK goes from 0, down, to 1, up).
+  const AB_SECONDS = 10, AB_REFILL = 20;
+  const ab = { on: false, level: 0, fuel: 1, hold: 0, told: false };
+  let gearUp = false, gearK = 0;
+  const hasBurner = () => flyPlane() === 'jet' || flyPlane() === 'swallow';
 
   const state = { pos: new THREE.Vector3(), vel: new THREE.Vector3(), quat: new THREE.Quaternion(), omega: new THREE.Vector3(), throttle: 0, onGround: true, airTime: 0, crashed: false, frozen: false, alpha: 0, tipStage: 0, airspeed: 0, trimA: 0.09 };
   const mission = { stage: 'outbound', t: 0, running: false, practice: false };
@@ -2681,7 +2790,8 @@
     }
     // A jet gets less push on its wheels, so its takeoff roll is a few hundred meters, not a few dozen.
     const groundPush = s.onGround && (flyPlane() === 'jet' || flyPlane() === 'shifter') ? 0.4 : 1;
-    force.addScaledVector(fwd, perf.thrust * groundPush * s.throttle * Math.max(0, 1 - Math.max(0, fwdSpeed) / perf.vProp));
+    const burner = hasBurner() ? 1 + 0.5 * ab.level : 1;
+    force.addScaledVector(fwd, perf.thrust * burner * groundPush * s.throttle * Math.max(0, 1 - Math.max(0, fwdSpeed) / perf.vProp));
 
     // Body rates: stick input, the nose weathervaning into the airflow, and wings self-leveling when you let go.
     const eff = Math.min(1.25, speed / 32);
@@ -2689,12 +2799,23 @@
     euler.setFromQuaternion(q, 'YXZ');
     // Auto-trim: while you hold pitch, trim follows; let go and the plane holds that attitude and speed.
     if (Math.abs(input.pitch) > 0.08 && !s.onGround) s.trimA = clamp(alpha, -0.03, 0.14);
+    // Barn Swallow fly-by-wire: gear up and hands off, it trims itself for 1 g, so the flight path holds instead of the
+    // nose climbing as speed builds. Gear down, it flies on the manual trim, like a real fighter's landing mode.
+    const sw = flyPlane() === 'swallow';
+    if (sw && !s.onGround && gearK > 0.5 && Math.abs(input.pitch) <= 0.08 && speed > 20) {
+      const qS1 = 0.5 * RHO * speed * speed * WING, gamma = Math.asin(clamp(s.vel.y / speed, -1, 1));
+      const need = (MASS * G * Math.cos(gamma) / qS1 - perf.cl0) / perf.cla;
+      s.trimA += (clamp(need, -0.1, perf.aStall - 0.08) - s.trimA) * Math.min(1, dt * 2);
+    }
     const autoLevel = perf.selfLevel && Math.abs(input.roll) < 0.05 && Math.abs(euler.z) < 1.4 ? -euler.z * 0.9 : 0;
-    let pitchCmd = input.pitch * perf.pitch - (alpha - s.trimA) * 3.0, rollCmd = -input.roll * perf.roll + autoLevel;
+    // Barn Swallow roll gets weaker past about 20 degrees angle of attack, down to a third at the stall.
+    const rollFade = sw ? clamp(1 - (alpha - 0.35) / 0.2, 0.33, 1) : 1;
+    let pitchCmd = input.pitch * perf.pitch - (alpha - s.trimA) * 3.0, rollCmd = -input.roll * perf.roll * rollFade + autoLevel;
     if (perf.novice && !s.onGround) [pitchCmd, rollCmd] = noviceAssist(alpha, pitchCmd, rollCmd, dt);
     s.omega.x += (pitchCmd * eff - s.omega.x) * k;
     s.omega.y += (-beta * 2.5 * eff - s.omega.y) * k;
-    s.omega.z += (rollCmd * eff - s.omega.z) * k;
+    // The Barn Swallow's roll follows the stick with no lag, so the wings stop right where you let go.
+    s.omega.z += (rollCmd * eff - s.omega.z) * (sw ? 1 : k);
     const w = s.omega.length();
     if (w > 1e-6) { dq.setFromAxisAngle(axis.copy(s.omega).divideScalar(w), w * dt); q.multiply(dq).normalize(); }
     // Novice turn assist: the plane and its motion swing around together, so it turns without skidding.
@@ -2870,12 +2991,13 @@
   const planeOptions = [...$('planeSelect').options];
   const choice = { mode: 'mission', barn: 'big', flying: 'easy', hands: 'right', stick: 'pilot', pad: 'left', season: 'summer', wx: 'light', time: 'day', plane: 'cub', team: 'free', voice: 'on', sound: 'on', drone: 'on', foe: 'medium', ammo: 'snow', music: 'on', mixMusic: 100, mixFx: 100, mixEngine: 100, mixVoice: 100 };
   // Dogfight difficulty: bandits in wave 1 and at most, hits to down one, hits you can take, speed next to yours,
-  // turn rate (rad/s), seconds between shots, aim wobble, how wide a nose cone they shoot in, and whether they break off.
+  // turn rate (rad/s), seconds between shots, aim wobble, how wide a nose cone they shoot in, whether they break off, and
+  // (Hard and Ace) seconds between missiles from enemy jets when you fly the Barn Swallow.
   const FOES = {
     easy: { start: 1, max: 3, hp: 2, myHp: 8, speed: 0.8, turn: 0.45, fire: 1.8, spread: 0.12, cone: 0.18, brk: false, reverse: false },
     medium: { start: 2, max: 4, hp: 3, myHp: 5, speed: 0.92, turn: 0.6, fire: 1.0, spread: 0.06, cone: 0.22, brk: true, reverse: false },
-    hard: { start: 2, max: 5, hp: 4, myHp: 4, speed: 1.0, turn: 0.8, fire: 0.6, spread: 0.03, cone: 0.26, brk: true, reverse: false },
-    ace: { start: 3, max: 6, hp: 5, myHp: 3, speed: 1.12, turn: 1.0, fire: 0.38, spread: 0.015, cone: 0.3, brk: true, reverse: true }
+    hard: { start: 2, max: 5, hp: 4, myHp: 4, speed: 1.0, turn: 0.8, fire: 0.6, spread: 0.03, cone: 0.26, brk: true, reverse: false, missile: 20 },
+    ace: { start: 3, max: 6, hp: 5, myHp: 3, speed: 1.12, turn: 1.0, fire: 0.38, spread: 0.015, cone: 0.3, brk: true, reverse: true, missile: 12 }
   };
   // Ammo: speed (m/s on top of yours), drop (m/s²), seconds between shots, hit size next to a snowball, hits it counts as,
   // seconds before it fades, meters ahead of the nose it starts, and the hit-feed verb.
@@ -2890,6 +3012,54 @@
   };
   const AMMO_KEYS = Object.keys(AMMO);
   const isAmmo = (k) => typeof k === 'string' && Object.prototype.hasOwnProperty.call(AMMO, k);
+  // Barn Swallow missiles (in a fight): the seeker locks within 25 degrees of the nose and 3 km; a growl means it sees a
+  // target, a steady high tone means it is in range. After launch the missile steers itself, leading the target and
+  // turning at up to 35 g. Two on the wingtips, reloaded 30 seconds after the last one goes.
+  const MSL = { cone: Math.cos(25 * Math.PI / 180), range: 3000, good: 2200, top: 380, slow: 150, burn: 2.6, accel: 170, turn: 35 * 9.81, gimbal: Math.cos(70 * Math.PI / 180), life: 12, fuse: 9, reload: 30, points: 3 };
+  // Enemy missiles (Hard and Ace, against the Barn Swallow) are a little slower and turn less than yours, but turning
+  // hard won't shake one: flares are the way out. They launch from at least 900 m, so the warning gives you about 3
+  // seconds or more, and a hit costs 2 health.
+  const ENEMY_MSL = { ...MSL, top: 330, turn: 22 * 9.81, fuse: 7, min: 900, range: 2500, dmg: 2 };
+  const msl = { left: 2, side: 1, reload: 0, lock: null, lockD: Infinity, tone: 0, warnWait: 0 };
+  const missiles = [], booms = [];
+  let seeker = null;
+  const msDir = new THREE.Vector3(), msWant = new THREE.Vector3(), msLos = new THREE.Vector3(), msAim = new THREE.Vector3(), msPrev = new THREE.Vector3();
+  const msTmp = new THREE.Vector3(), msNose = new THREE.Vector3(), msAxis = new THREE.Vector3(), boomTmp = new THREE.Vector3();
+  const boomGeo = new THREE.SphereGeometry(1, 16, 12);
+  // Flares (X, or the Flares button): one bright flare per tap, left and right in turn, so a few taps lay a string.
+  // Each one may pull a missile chasing you away, best when the missile is 0.3 to 1.2 km out. 30 flares; they come
+  // back 30 seconds after the last tap.
+  const FLARES = { max: 30, wait: 0.2, reload: 30, life: 4.5 };
+  const FLARE_DECOY = [[300, 0.1], [1200, 0.25], [1800, 0.1], [Infinity, 0.03]];
+  const flare = { left: FLARES.max, wait: 0, reload: 0, side: 1 };
+  const flares = [];
+  const flareGeo = new THREE.SphereGeometry(0.45, 8, 6), flareMat = new THREE.MeshBasicMaterial({ color: '#FFFBEA' });
+  const flareGlow = new THREE.SpriteMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, map: (() => {
+    const c = document.createElement('canvas');
+    c.width = c.height = 64;
+    const g = c.getContext('2d'), grad = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+    grad.addColorStop(0, 'rgba(255, 255, 240, 1)');
+    grad.addColorStop(0.25, 'rgba(255, 236, 190, 0.85)');
+    grad.addColorStop(1, 'rgba(255, 210, 150, 0)');
+    g.fillStyle = grad;
+    g.fillRect(0, 0, 64, 64);
+    return new THREE.CanvasTexture(c);
+  })() });
+  const missileProto = (() => {
+    const g = new THREE.Group(), dark = lambert('#3E454B');
+    jetTube(g, 0.07, 0.07, 1.9, lambert('#E8E8E6', { emissive: '#303030' }), 0, 0, 0);
+    const nose = new THREE.Mesh(new THREE.ConeGeometry(0.07, 0.22, 10), dark);
+    nose.rotation.x = -Math.PI / 2;
+    nose.position.z = -1.06;
+    g.add(nose);
+    for (const a of [Math.PI / 4, -Math.PI / 4]) { const fin = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.02, 0.26), dark); fin.position.z = 0.8; fin.rotation.z = a; g.add(fin); }
+    const flame = new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.9, 8, 1, true), new THREE.MeshBasicMaterial({ color: '#FFC46B', transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false }));
+    flame.rotation.x = Math.PI / 2;
+    flame.position.z = 1.4;
+    flame.name = 'flame';
+    g.add(flame);
+    return g;
+  })();
   // Music: one looping song per mode (the Barn Owl has its own), from a music/ folder next to this page (no folder, no music).
   const MUSIC = { sky: 'music/skyward-dash.mp3', riff: 'music/full-band-riff.mp3', riff2: 'music/full-band-riff-v2.mp3', owl: 'music/barn-owl-theme.mp3' };
   const music = { unlocked: false, tracks: {}, duck: 0, cur: null, mode: null };
@@ -2987,20 +3157,20 @@
   }
   function autoFly(dt) {
     const s = state, A = autoPilot, doorY = ground(BARN_X, BARN_Z) + GEAR + (DOOR_H - 2.8) / 2;
-    const along = A.side * (s.pos.x - BARN_X), aim = along - 90;
+    const along = A.side * (s.pos.x - BARN_X), aim = along - 90, apV = flyPlane() === 'swallow' ? 45 : 31;
     const k = clamp((aim - BARN_HALF - 80) / Math.max(1, A.capDist - 80), 0, 1);
     apAim.set(BARN_X + A.side * aim, doorY + (A.capY - doorY) * k, BARN_Z);
-    apVel.subVectors(apAim, s.pos).normalize().multiplyScalar(31);
+    apVel.subVectors(apAim, s.pos).normalize().multiplyScalar(apV);
     s.vel.lerp(apVel, 1 - Math.exp(-dt * 2.5));
     s.pos.addScaledVector(s.vel, dt);
     s.pos.y = Math.max(s.pos.y, ground(s.pos.x, s.pos.z) + GEAR + 1);
     const yaw = Math.atan2(-s.vel.x, -s.vel.z), dYaw = Math.atan2(Math.sin(yaw - A.yawPrev), Math.cos(yaw - A.yawPrev));
     A.yawPrev = yaw;
-    A.bank += (clamp(Math.atan(31 * (dYaw / dt) / G), -0.6, 0.6) - A.bank) * (1 - Math.exp(-dt * 4));
+    A.bank += (clamp(Math.atan(apV * (dYaw / dt) / G), -0.6, 0.6) - A.bank) * (1 - Math.exp(-dt * 4));
     euler.set(Math.atan2(s.vel.y, Math.hypot(s.vel.x, s.vel.z)) + TRIM_A, yaw, A.bank, 'YXZ');
     s.quat.setFromEuler(euler);
     s.omega.set(0, 0, 0);
-    Object.assign(s, { airspeed: 31, alpha: TRIM_A, trimA: TRIM_A, throttle: levelThrottle(31), onGround: false });
+    Object.assign(s, { airspeed: apV, alpha: TRIM_A, trimA: TRIM_A, throttle: levelThrottle(apV), onGround: false });
     if (along < -BARN_HALF - 25) handBack('Autopilot off. You have the airplane.');
   }
   // Hands on any flight control: stick keys, arrows, power keys, or the mouse stick.
@@ -3669,7 +3839,7 @@
   }
   function radio(text, spoken) {
     // Tower's callsign matches the airframe: Cub Flight (the messages are written for the Cub), Camel Flight, Red Baron Flight, and so on.
-    const call = { camel: 'Camel Flight', triplane: 'Red Baron Flight', sleigh: 'Santa Flight', ufo: 'UFO Flight', jet: 'Jet Flight', heli: 'Chopper Flight', owl: 'Owl Flight', shifter: 'Shifter Flight' }[flyPlane()];
+    const call = { camel: 'Camel Flight', triplane: 'Red Baron Flight', sleigh: 'Santa Flight', ufo: 'UFO Flight', jet: 'Jet Flight', swallow: 'Swallow Flight', heli: 'Chopper Flight', owl: 'Owl Flight', shifter: 'Shifter Flight' }[flyPlane()];
     if (call) { text = text.replace(/Cub Flight/g, call); if (spoken) spoken = spoken.replace(/Cub Flight/g, call); }
     radioText.textContent = text;
     radioEl.hidden = false;
@@ -3759,6 +3929,8 @@
     againBtn.focus({ preventScroll: true });
   }
   function crash(title, why) {
+    resetBurner();
+    seekerTone(0);
     autoPilot.on = false;
     hover.on = false;
     if (choice.mode === 'fight') { myCrashes++; net.sendWait = 0; addFeed('You', '#F2C230', ' crashed', '', ''); }
@@ -3769,7 +3941,7 @@
     mission.running = false;
     showCard(title, why);
   }
-  const tipStart = () => `Mission: ${flyPlane() === 'ufo' ? "return the farmer's cows to his barn" : `fly the ${flyPlane() === 'sleigh' ? `${cargo()} to the farmer's house` : "supplies to the farmer's barn"}`}. ${choice.season === 'winter' ? 'Watch the wind and the icy runway. ' : ''}${isHeli() ? (TOUCH && heliReal() ? `Push the ${choice.pad === 'right' ? 'left' : 'right'} stick up to lift off.` : TOUCH ? 'Hold ▲ to lift off.' : `Hold ${keyName(layout.more)} to lift off.`) : TOUCH ? 'Hold ▲ or slide Power to 100.' : `Hold ${keyName(layout.more)} for full power.`}${flyPlane() === 'shifter' ? ' Press T to transform.' : flyPlane() === 'owl' ? (TOUCH ? ' Tap Turbo for a dash.' : ' Press T for turbo.') : ''}`;
+  const tipStart = () => `Mission: ${flyPlane() === 'ufo' ? "return the farmer's cows to his barn" : `fly the ${flyPlane() === 'sleigh' ? `${cargo()} to the farmer's house` : "supplies to the farmer's barn"}`}. ${choice.season === 'winter' ? 'Watch the wind and the icy runway. ' : ''}${isHeli() ? (TOUCH && heliReal() ? `Push the ${choice.pad === 'right' ? 'left' : 'right'} stick up to lift off.` : TOUCH ? 'Hold ▲ to lift off.' : `Hold ${keyName(layout.more)} to lift off.`) : TOUCH ? 'Hold ▲ or slide Power to 100.' : `Hold ${keyName(layout.more)} for full power.`}${flyPlane() === 'shifter' ? ' Press T to transform.' : flyPlane() === 'owl' ? (TOUCH ? ' Tap Turbo for a dash.' : ' Press T for turbo.') : hasBurner() ? (TOUCH ? ' Tap Burner for the afterburner.' : ' T lights the afterburner.') : ''}${flyPlane() === 'swallow' && choice.mode === 'fight' ? (TOUCH ? ' Tap Missile to fire; Flares when one chases you.' : ' V fires a missile; X drops flares.') : ''}`;
   const tipRotate = () => `At 50 kt, ${TOUCH ? (pilotStick() ? 'drag down' : 'drag up') : `hold ${keyName(noseUpKey())}`} until the wheels lift, then let go.`;
   const TIP_ROUTE = "Follow the red arrow on the compass. The farmer's barn is over the hills.";
   const tipBarn = () => `Line up with the barn doors and stay under ${barnSize.ceilingFt} ft. ${TOUCH ? 'Tap Drop' : 'Press Space'} just as you enter.`;
@@ -3778,6 +3950,9 @@
   function reset() {
     if (watch.on) { watch.on = false; $('watchBtn').textContent = 'Start watching'; document.body.classList.remove('watching'); renderWatchCount(); }
     clearInputs();
+    resetBurner();
+    resetMissiles();
+    resetFlares();
     hover.on = false;
     autoPilot.on = false;
     autoPilot.cool = 0;
@@ -3812,8 +3987,9 @@
     state.pos.set(BARN_X + BARN_HALF + 350, GEAR + (DOOR_H - 2.8) / 2, BARN_Z);
     euler.set(TRIM_A, Math.PI / 2, 0, 'YXZ');
     state.quat.setFromEuler(euler);
-    state.vel.set(-31, 0, 0);
-    Object.assign(state, { throttle: levelThrottle(31), onGround: false, tipStage: 3 });
+    const v0 = flyPlane() === 'swallow' ? 45 : 31;
+    state.vel.set(-v0, 0, 0);
+    Object.assign(state, { throttle: levelThrottle(v0), onGround: false, tipStage: 3 });
     Object.assign(mission, { practice: true, running: true, calledTakeoff: true });
     updateMissionText();
     if (isHeli()) startHeli();
@@ -3842,7 +4018,7 @@
     else if (kind === 'season' && SEASONS[value]) { choice.season = value; applySeason(SEASONS[value]); }
     else if (kind === 'wx' && WX[value]) { choice.wx = value; restart = false; applyWeather(); }
     else if (kind === 'time' && Object.prototype.hasOwnProperty.call(TIMES, value)) { choice.time = value; restart = false; applyWeather(); }
-    else if (kind === 'plane' && ['cub', 'camel', 'triplane', 'sleigh', 'ufo', 'jet', 'heli', 'owl', 'shifter'].includes(value)) {
+    else if (kind === 'plane' && ['cub', 'camel', 'triplane', 'sleigh', 'ufo', 'jet', 'swallow', 'heli', 'owl', 'shifter'].includes(value)) {
       if (!planeShown(value)) value = 'cub';
       choice.plane = value;
       restart = false;
@@ -3892,17 +4068,20 @@
     return clamp(drag / (perf.thrust * (1 - v / perf.vProp)), 0, 1);
   }
   function updatePerf() {
-    perf = choice.mode === 'fight' ? { ...FIGHT_PERF, ...FIGHT_HANDLING[choice.flying], hardFpm: flying.hardFpm } : { ...flying, vProp: 80, aStall: 0.26 };
+    perf = choice.mode === 'fight' ? { ...FIGHT_PERF, ...FIGHT_HANDLING[choice.flying], hardFpm: flying.hardFpm, cl0: CL0, cla: CLA } : { ...flying, vProp: 80, aStall: 0.26, cl0: CL0, cla: CLA };
     if (['triplane', 'sleigh'].includes(flyPlane())) Object.assign(perf, { roll: perf.roll * 1.35, pitch: perf.pitch * 1.3, thrust: perf.thrust * 1.3, vProp: perf.vProp * 1.15 });
     if (flyPlane() === 'jet' || flyPlane() === 'shifter') Object.assign(perf, { roll: perf.roll * 2, pitch: perf.pitch * 1.5, thrust: perf.thrust * 3, vProp: 230, cd0: perf.cd0 * 0.55, aStall: 0.11 });
     if (flyPlane() === 'ufo') Object.assign(perf, { roll: perf.roll * 2.2, pitch: perf.pitch * 1.8, thrust: perf.thrust * 3, vProp: perf.vProp * 2.5, cd0: perf.cd0 * 0.7 });
+    // Barn Swallow: dry thrust about 0.7 of its weight, controllable to a high angle of attack, and a nearly flat fighter
+    // wing (little lift at zero angle) so it can hold level at jet speeds.
+    if (flyPlane() === 'swallow') Object.assign(perf, { selfLevel: false, roll: Math.max(perf.roll * 2, 2.8), pitch: perf.pitch * 1.5, thrust: 0.7 * MASS * G, vProp: 500, cd0: perf.cd0 * 0.55, aStall: 0.48, cla: 2.6, cl0: 0.05 });
     updateSpecs();
   }
   function updateSpecs() {
     if (flyPlane() === 'heli') { $('specs').textContent = 'Top speed 145 kt · Climbs 2,000 ft/min · Hovers'; drawAsiArcs(); return; }
     if (flyPlane() === 'owl') { $('specs').textContent = 'Top speed 180 kt · Turbo 260 kt · Hovers'; drawAsiArcs(); return; }
     if (flyPlane() === 'shifter' && shifter.mode !== 'jet') { $('specs').textContent = shifter.mode === 'hover' ? 'Hover mode · Top speed 180 kt · T to transform' : 'Robot mode · Walks and jumps · T to transform'; drawAsiArcs(); return; }
-    const stall = Math.sqrt(2 * MASS * G / (RHO * WING * (CL0 + CLA * perf.aStall)));
+    const stall = Math.sqrt(2 * MASS * G / (RHO * WING * (perf.cl0 + perf.cla * perf.aStall)));
     const bestGlide = Math.sqrt(2 * MASS * G / (RHO * WING * Math.sqrt(perf.cd0 / K_IND)));
     const ratio = 1 / (2 * Math.sqrt(perf.cd0 * K_IND));
     $('specs').textContent = `Stall ${Math.round(stall * KT)} kt · Best glide ${Math.round(bestGlide * KT)} kt · Glide ${Math.round(ratio)}:1`;
@@ -3912,8 +4091,10 @@
     const ufo = flyPlane() === 'ufo';
     $('tAmmo').textContent = ufo ? 'Lasers' : (AMMO[choice.ammo] || AMMO.snow).name;
     $('tAmmo').disabled = ufo;
-    $('tXform').hidden = flyPlane() !== 'shifter' && flyPlane() !== 'owl';
-    $('tXform').textContent = flyPlane() === 'owl' ? 'Turbo' : 'Transform';
+    $('tXform').hidden = flyPlane() !== 'shifter' && flyPlane() !== 'owl' && !hasBurner();
+    $('tXform').textContent = flyPlane() === 'owl' ? 'Turbo' : hasBurner() ? 'Burner' : 'Transform';
+    $('tMissile').hidden = $('tFlares').hidden = flyPlane() !== 'swallow';
+    document.body.classList.toggle('jet-combat', TOUCH && flyPlane() === 'swallow');
     const sticks = TOUCH && isHeli() && heliReal();
     document.body.classList.toggle('heli-sticks', sticks);
     $('tPad2').hidden = !sticks;
@@ -3926,8 +4107,10 @@
         : isHeli() || (flyPlane() === 'shifter' && shifter.mode === 'hover') ? [[[noseDownKey(), noseUpKey()], 'Faster, slower (it keeps its speed)'], [[L.left, L.right], 'Turn left, turn right'], [[L.more, L.less], 'Up, down (let go to hold your height)']]
         : flyPlane() === 'shifter' && shifter.mode === 'robot' ? [[[noseDownKey(), noseUpKey()], 'Walk forward, walk back'], [[L.left, L.right], 'Turn left, turn right'], [[L.more], 'Jump jets: climb (3 s), or slow a fall'], [[L.less], 'Fall faster']]
         : [[[noseUpKey(), noseDownKey()], 'Nose up, nose down'], [[L.left, L.right], 'Bank left, bank right'], [[L.more, L.less], 'More power, less power']]),
-      ...(flyPlane() === 'shifter' ? [[['KeyT'], 'Transform: jet, hover, robot']] : flyPlane() === 'owl' ? [[['KeyT'], 'Turbo: a 5-second dash, then 12 seconds to recharge']] : []), ...(flyPlane() === 'sleigh' ? [[['KeyQ'], 'Presents or coal']] : flyPlane() === 'ufo' ? [[['KeyQ'], 'Stamp a crop circle'], [['KeyM'], 'Beam a cow down, or back up if one is below you (Shift+M drops a herd)'], [['KeyV'], 'Hover and stop (V again to fly normally). Shift+V: flat or airplane mode at your speed']] : []), [['Space'], choice.mode === 'fight' ? 'Hold to fire your ammo, brake on the ground' : `Fire your ammo (hold for more); drops ${cargo()} at the barn; brakes on the ground`], [['KeyB'], choice.mode === 'fight' ? 'Leave the fight and practice at the barn' : 'Practice: jump to the barn'],
-      [['Digit1', 'Digit7'], 'Pick ammo, 1 to 7'], [['KeyC'], 'Change view'], [['KeyZ'], 'Smoke on or off'], [['KeyA'], 'Rapid fire on or off'], [['KeyP'], 'Barn autopilot on or off'], [['KeyO'], 'Your stats'], [['Escape'], 'Pause'], [['KeyX'], 'Mark a waypoint'], [['KeyG'], 'Hide the left card'], [['KeyH'], 'Hide this card']
+      ...(flyPlane() === 'shifter' ? [[['KeyT'], 'Transform: jet, hover, robot']] : flyPlane() === 'owl' ? [[['KeyT'], 'Turbo: a 5-second dash, then 12 seconds to recharge']]
+        : hasBurner() ? [[['KeyT'], 'Afterburner: about 10 s, refills in 20 s (or hold full power)']] : []),
+      ...(flyPlane() === 'swallow' ? [[['KeyV'], 'Fire a missile (in a fight)'], [['KeyY'], 'Next missile target'], [['KeyX'], 'Flares'], [['Shift', 'KeyX'], 'Mark a waypoint']] : []), ...(flyPlane() === 'sleigh' ? [[['KeyQ'], 'Presents or coal']] : flyPlane() === 'ufo' ? [[['KeyQ'], 'Stamp a crop circle'], [['KeyM'], 'Beam a cow down, or back up if one is below you (Shift+M drops a herd)'], [['KeyV'], 'Hover and stop (V again to fly normally). Shift+V: flat or airplane mode at your speed']] : []), [['Space'], choice.mode === 'fight' ? 'Hold to fire your ammo, brake on the ground' : `Fire your ammo (hold for more); drops ${cargo()} at the barn; brakes on the ground`], [['KeyB'], choice.mode === 'fight' ? 'Leave the fight and practice at the barn' : 'Practice: jump to the barn'],
+      [['Digit1', 'Digit7'], 'Pick ammo, 1 to 7'], [['KeyC'], 'Change view'], [['KeyZ'], 'Smoke on or off'], [['KeyA'], 'Rapid fire on or off'], [['KeyP'], 'Barn autopilot on or off'], [['KeyO'], 'Your stats'], [['Escape'], 'Pause'], ...(flyPlane() === 'swallow' ? [] : [[['KeyX'], 'Mark a waypoint']]), [['KeyG'], 'Hide the left card'], [['KeyH'], 'Hide this card']
     ];
     const list = $('keyList');
     list.replaceChildren();
@@ -3991,7 +4174,7 @@
   applyChoice('pad', saved.pad === 'right' ? 'right' : 'left', false);
   applyChoice('wx', WX[saved.wx] ? saved.wx : 'light', false);
   applyChoice('time', ['dusk', 'night'].includes(saved.time) ? saved.time : 'day', false);
-  applyChoice('plane', ['camel', 'triplane', 'sleigh', 'ufo', 'jet', 'heli', 'owl', 'shifter'].includes(saved.plane) ? saved.plane : 'cub', false);
+  applyChoice('plane', ['camel', 'triplane', 'sleigh', 'ufo', 'jet', 'swallow', 'heli', 'owl', 'shifter'].includes(saved.plane) ? saved.plane : 'cub', false);
   applyChoice('team', 'free', false);
   refreshPlaneLock();
   applyChoice('season', SEASONS[saved.season] ? saved.season : 'summer', false);
@@ -4080,10 +4263,13 @@
     else if (e.code === 'KeyC') { camMode = camMode === 'chase' ? 'cockpit' : 'chase'; snapCam = true; }
     else if (e.code === 'KeyH') keysEl.hidden = !keysEl.hidden;
     else if (e.code === 'KeyG') $('plate').hidden = !$('plate').hidden;
+    else if (e.code === 'KeyX' && flyPlane() === 'swallow' && !e.shiftKey) dropFlares();
     else if (e.code === 'KeyX') markWaypoint();
     else if (e.code === 'KeyB') barnApproach();
     else if (/^Digit[1-7]$/.test(e.code)) pickAmmo(Number(e.code.slice(5)) - 1);
-    else if (e.code === 'KeyT') { if (flyPlane() === 'owl') fireTurbo(); else nextShifterMode(); }
+    else if (e.code === 'KeyT') { if (flyPlane() === 'owl') fireTurbo(); else if (hasBurner()) toggleBurner(); else nextShifterMode(); }
+    else if (e.code === 'KeyV' && flyPlane() === 'swallow') fireMissile();
+    else if (e.code === 'KeyY' && flyPlane() === 'swallow') cycleTarget();
     else if (e.code === 'KeyA') { boostOn = !boostOn; toast(boostOn ? 'Rapid fire on.' : 'Rapid fire off.', 2); }
     else if (e.code === 'KeyO') toggleBoard();
     else if (e.code === 'KeyZ') { smokeOn = !smokeOn; net.sendWait = 0; toast(smokeOn ? 'Smoke on.' : 'Smoke off.', 2); }
@@ -4239,7 +4425,7 @@
     clearInputs();
     touchFire = false;
   }
-  for (const [id, fn] of [['tPause', () => togglePause()], ['tFull', toggleFull], ['tXform', () => (flyPlane() === 'owl' ? fireTurbo() : nextShifterMode())], ['tSettings', () => setMenu(true)], ['tClose', () => setMenu(false)],
+  for (const [id, fn] of [['tPause', () => togglePause()], ['tFull', toggleFull], ['tXform', () => (flyPlane() === 'owl' ? fireTurbo() : hasBurner() ? toggleBurner() : nextShifterMode())], ['tMissile', () => fireMissile()], ['tFlares', () => dropFlares()], ['tSettings', () => setMenu(true)], ['tClose', () => setMenu(false)],
     ['tAmmo', () => pickAmmo((AMMO_KEYS.indexOf(choice.ammo) + 1) % AMMO_KEYS.length)]]) {
     $(id).addEventListener('click', () => { startEngine(); fn(); $(id).blur(); });
   }
@@ -4276,13 +4462,15 @@
     const kp = (noseUp ? 1 : 0) - (noseDown ? 1 : 0);
     const kr = (has(L.right) || has('ArrowRight') ? 1 : 0) - (has(L.left) || has('ArrowLeft') ? 1 : 0);
     // Ease in when you press, settle fast when you let go, so the plane stops where you leave it.
-    const kIn = 1 - Math.exp(-dt * 4), kOut = 1 - Math.exp(-dt * 14);
+    const sw = flyPlane() === 'swallow';
+    const kIn = 1 - Math.exp(-dt * (sw ? 12 : 4)), kOut = sw ? 1 : 1 - Math.exp(-dt * 14);
     if (autoPilot.on && autoPilot.grace <= 0 && controlsHeld()) { handBack('You have the airplane.'); autoPilot.declined = true; }
     const tp = clamp(kp + stick.pitch, -1, 1), tr = clamp(kr + stick.roll, -1, 1);
     input.pitch += (tp - input.pitch) * (Math.abs(tp) < Math.abs(input.pitch) ? kOut : kIn);
     input.roll += (tr - input.roll) * (Math.abs(tr) < Math.abs(input.roll) ? kOut : kIn);
     if (has(L.more)) state.throttle = Math.min(1, state.throttle + dt * 0.7);
     if (has(L.less)) state.throttle = Math.max(0, state.throttle - dt * 0.7);
+    if (hasBurner()) updateBurner(dt, has(L.more), has(L.less));
   }
 
   // ---------- flying together: teammates' planes and the snowball fight ----------
@@ -5133,7 +5321,7 @@
   }
   // Bandits show up 750 to 950 m out (1600 to 1800 m against a jet), spread across the sky ahead of you, flying at you.
   function spawnBandit(i, n) {
-    const F = FOES[choice.foe], id = `bandit-${++dog.seq}`, kind = ['jet', 'shifter'].includes(flyPlane()) ? 'redjet' : Math.random() < 0.5 ? 'camel' : 'triplane';
+    const F = FOES[choice.foe], id = `bandit-${++dog.seq}`, kind = ['jet', 'swallow', 'shifter'].includes(flyPlane()) ? 'redjet' : Math.random() < 0.5 ? 'camel' : 'triplane';
     const gh = makeGhost({ peer: id, by: null });
     gh.paint.color.set(BANDIT_PAINT);
     gh.body.traverse((o) => { if (o.isMesh && o.material && o.material.color && o.material.color.getHexString() === 'b3261e') o.material = gh.paint; });
@@ -5143,7 +5331,7 @@
     showModel(gh.body, kind);
     net.ghosts.set(id, gh);
     fwd.set(0, 0, -1).applyQuaternion(state.quat);
-    const yaw0 = Math.atan2(-fwd.x, -fwd.z) + (i - (n - 1) / 2) * 0.4 + (Math.random() - 0.5) * 0.3, d = (['jet', 'shifter'].includes(flyPlane()) ? 1600 : 750) + Math.random() * 200;
+    const yaw0 = Math.atan2(-fwd.x, -fwd.z) + (i - (n - 1) / 2) * 0.4 + (Math.random() - 0.5) * 0.3, d = (['jet', 'swallow', 'shifter'].includes(flyPlane()) ? 1600 : 750) + Math.random() * 200;
     const x = state.pos.x - Math.sin(yaw0) * d, z = state.pos.z - Math.cos(yaw0) * d;
     const pos = new THREE.Vector3(x, Math.max(state.pos.y + (Math.random() - 0.3) * 80, ground(x, z) + 160), z);
     dogTo.subVectors(state.pos, pos);
@@ -5151,7 +5339,7 @@
     gh.targetP.copy(pos);
     dog.foes.push({
       gh, pos, vel: new THREE.Vector3(), yaw: Math.atan2(-dogTo.x, -dogTo.z), pitch: 0, roll: 0, mul: F.speed * (0.96 + Math.random() * 0.08),
-      mode: 'chase', modeT: 0, breakCool: 3, side: 1, vert: 0, shotWait: 1.5 + Math.random() * 1.5, downT: 0
+      mode: 'chase', modeT: 0, breakCool: 3, side: 1, vert: 0, shotWait: 1.5 + Math.random() * 1.5, downT: 0, mslWait: 6 + Math.random() * 6
     });
     drawTag(gh);
   }
@@ -5308,6 +5496,15 @@
       if (f.shotWait <= 0 && (!state.onGround || flyPlane() === 'shifter') && dist > 15 && dist < 260 && dogFwd.dot(dogTo) / dist > Math.cos(F.cone)) {
         f.shotWait = F.fire * (0.75 + Math.random() * 0.5) * enemyFire(gh, f.pos, dogFwd, f.vel, F.spread);
       }
+      // Hard and Ace: enemy jets carry missiles against the Barn Swallow. One shot when you are 0.6 to 2.5 km in front
+      // of its nose, then a wait before it can fire again.
+      if (F.missile && flyPlane() === 'swallow' && gh.plane === 'redjet' && !state.onGround) {
+        f.mslWait -= dt;
+        if (f.mslWait <= 0 && dist > ENEMY_MSL.min && dist < ENEMY_MSL.range && dogFwd.dot(dogTo) / dist > MSL.cone) {
+          f.mslWait = F.missile * (0.8 + Math.random() * 0.4);
+          fireEnemyMissile(f);
+        }
+      }
     }
     gh.targetP.copy(f.pos);
     gh.vel.copy(f.vel);
@@ -5325,12 +5522,301 @@
     if (state.frozen) return;
     if (dog.barnWait > 0) dog.barnWait = Math.max(0, dog.barnWait - dt);
     // Bandit speed follows yours, smoothed, so the difficulty's speed is always "next to you".
-    dog.ref += (clamp(state.vel.length(), 30, ['jet', 'shifter'].includes(flyPlane()) ? 170 : 75) - dog.ref) * Math.min(1, dt * 0.5);
+    dog.ref += (clamp(state.vel.length(), 30, ['jet', 'swallow', 'shifter'].includes(flyPlane()) ? 170 : 75) - dog.ref) * Math.min(1, dt * 0.5);
     const F = FOES[choice.foe];
     for (let i = dog.foes.length - 1; i >= 0; i--) {
       if (!flyBandit(dog.foes[i], dt, F)) { removeGhost(dog.foes[i].gh.peer); dog.foes.splice(i, 1); }
     }
     if (dog.nextWave > 0) { dog.nextWave -= dt; if (dog.nextWave <= 0) dogStartWave(dog.wave + 1); }
+  }
+
+  // ---------- Barn Swallow missiles and flares (ported from my co-worker's version) ----------
+  function showRails(on) { for (const n of ['mslL', 'mslR']) { const r = plane.getObjectByName(n); if (r) r.visible = on; } }
+  // Back to two missiles and full flares, with nothing left in the air.
+  function resetMissiles() {
+    Object.assign(msl, { left: 2, reload: 0, lock: null });
+    showRails(true);
+    for (const m of missiles) scene.remove(m.mesh);
+    missiles.length = 0;
+    for (const f of flares) scene.remove(f.mesh);
+    flares.length = 0;
+    seekerTone(0);
+  }
+  // A plane the seeker may lock: in the fight and flying. In a dogfight only the bandits count.
+  function mslOk(gh) {
+    if (dogActive() && !gh.npc) return false;
+    return gh.mode === 'fight' && !gh.paused && gh.body.visible && !sameTeam(gh);
+  }
+  function mslArmed() { return flyPlane() === 'swallow' && choice.mode === 'fight' && !state.frozen && !watch.on; }
+  // Lockable planes ahead, nearest the nose first.
+  function mslTargets() {
+    const out = [];
+    if (!mslArmed()) return out;
+    msNose.set(0, 0, -1).applyQuaternion(state.quat);
+    for (const gh of net.ghosts.values()) {
+      if (!mslOk(gh)) continue;
+      msLos.subVectors(gh.pos, state.pos);
+      const d = msLos.length();
+      if (d < 1 || d > MSL.range) continue;
+      const c = msLos.dot(msNose) / d;
+      if (c >= MSL.cone) out.push({ gh, d, c });
+    }
+    return out.sort((a, b) => b.c - a.c);
+  }
+  function cycleTarget() {
+    if (choice.mode !== 'fight') { toast('Missiles work in a fight. Start a snowball fight or a dogfight first.', 3); return; }
+    const list = mslTargets();
+    if (!list.length) { msl.lock = null; toast('No targets ahead. Put a HUD dot near your nose.', 2); return; }
+    const i = list.findIndex((t) => t.gh === msl.lock);
+    msl.lock = list[(i + 1) % list.length].gh;
+  }
+  function fireMissile() {
+    if (choice.mode !== 'fight') { toast('Missiles work in a fight. Start a snowball fight or a dogfight first.', 3); return; }
+    if (state.frozen || state.onGround || paused || watch.on) return;
+    if (msl.left <= 0) { toast(`Missiles reload in ${Math.ceil(msl.reload)} s.`, 2); return; }
+    msl.left--;
+    msl.reload = MSL.reload;
+    msl.side = -msl.side;
+    const rail = plane.getObjectByName(msl.side < 0 ? 'mslL' : 'mslR');
+    if (rail) rail.visible = false;
+    const p = new THREE.Vector3(msl.side * 4.42, -0.12, -0.75).applyQuaternion(state.quat).add(state.pos);
+    msNose.set(0, 0, -1).applyQuaternion(state.quat);
+    spawnMissile(p, state.vel.clone().addScaledVector(msNose, 15), true, msl.lock, null, MSL);
+    sfxLaunch(p);
+  }
+  // An enemy jet's missile, fired from under its nose at you.
+  function fireEnemyMissile(f) {
+    const nose = new THREE.Vector3(-Math.sin(f.yaw) * Math.cos(f.pitch), Math.sin(f.pitch), -Math.cos(f.yaw) * Math.cos(f.pitch));
+    const p = f.pos.clone().addScaledVector(nose, 6);
+    p.y -= 1;
+    spawnMissile(p, f.vel.clone().addScaledVector(nose, 15), false, 'me', f.gh, ENEMY_MSL);
+    sfxLaunch(p);
+  }
+  // target: a plane (yours), 'me' (an enemy's, coming at you), a flare it went for, or null (flies straight).
+  function spawnMissile(p, v, mine, target, by, spec) {
+    const mesh = missileProto.clone();
+    mesh.position.copy(p);
+    mesh.lookAt(msTmp.copy(p).sub(v));
+    scene.add(mesh);
+    missiles.push({ mesh, flame: mesh.getObjectByName('flame'), vel: v.clone(), t: 0, mine, target: target || null, by, spec, tPrev: new THREE.Vector3(), tVel: new THREE.Vector3(), seen: false, trail: 0 });
+    if (missiles.length > 12) dropAt(0, false);
+  }
+  function missileTarget(m) {
+    if (m.target === 'me') return state.frozen || paused || watch.on ? null : state.pos;
+    if (m.target.flare) return m.target.flare.life > 0 ? m.target.flare.mesh.position : null;
+    if (m.mine && choice.mode !== 'fight') return null;
+    const gh = m.target;
+    if (net.ghosts.get(gh.peer) !== gh || !mslOk(gh)) return null;
+    return gh.pos;
+  }
+  function dropAt(i, puff) {
+    const m = missiles[i];
+    if (puff) boom(m.mesh.position, false);
+    scene.remove(m.mesh);
+    missiles.splice(i, 1);
+  }
+  // Your missile reached its target: a bandit goes down; in the snowball fight it scores 3.
+  function missileKill(gh) {
+    boom(gh.pos, true);
+    if (gh.enemy) { gh.hp = 1; dogDamage(gh); return; }
+    myScore += MSL.points;
+    addFeed('You', '#F2C230', ' shot down ', gh.name, gh.color);
+    toast(`Splash one! Your missile got ${gh.name}. +${MSL.points}`, 3, true);
+    renderScores();
+  }
+  function boom(pos, big) {
+    const mesh = new THREE.Mesh(boomGeo, new THREE.MeshBasicMaterial({ color: big ? '#FFB347' : '#FFE0A0', transparent: true, opacity: 0.95, depthWrite: false, blending: THREE.AdditiveBlending }));
+    mesh.position.copy(pos);
+    scene.add(mesh);
+    booms.push({ mesh, life: 0.7, size: big ? 10 : 3 });
+    const spread = big ? 8 : 3;
+    for (let k = 0; k < (big ? 24 : 6); k++) puffAt(boomTmp.set(pos.x + (Math.random() - 0.5) * spread, pos.y + (Math.random() - 0.5) * spread, pos.z + (Math.random() - 0.5) * spread), '#3A3632', big ? 1.6 : 0.7, 1);
+    const near = pos.distanceTo(state.pos);
+    if (near < 2500 && choice.sound === 'on' && audio()) {
+      const t = audioCtx.currentTime, v = 1 - near / 2500;
+      burst(t, { len: big ? 1.1 : 0.5, from: 900, to: 60, type: 'lowpass', q: 0.6, gain: (big ? 0.4 : 0.15) * v });
+      thump(t, 70, 28, big ? 0.7 : 0.3, (big ? 0.45 : 0.15) * v);
+    }
+  }
+  function updateMissiles(dt) {
+    if (msl.left < 2) {
+      msl.reload -= dt;
+      if (msl.reload <= 0) { msl.left = 2; msl.reload = 0; showRails(true); if (mslArmed()) toast('Missiles reloaded.', 2, true); }
+    }
+    const list = mslTargets();
+    if (!msl.lock || !list.some((t) => t.gh === msl.lock)) msl.lock = list.length ? list[0].gh : null;
+    msl.lockD = msl.lock ? msl.lock.pos.distanceTo(state.pos) : Infinity;
+    seekerTone(!msl.lock || msl.left <= 0 ? 0 : msl.lockD <= MSL.good ? 2 : 1);
+    let incoming = Infinity;
+    for (let i = missiles.length - 1; i >= 0; i--) {
+      const m = missiles[i], P = m.mesh.position, S = m.spec;
+      m.t += dt;
+      let speed = m.vel.length();
+      msDir.copy(m.vel).divideScalar(Math.max(1e-6, speed));
+      speed = m.t < S.burn ? Math.min(S.top, speed + S.accel * dt) : Math.max(S.slow, speed * (1 - 0.08 * dt));
+      const tp = m.target ? missileTarget(m) : null;
+      if (m.target && !tp) m.target = null;
+      if (tp) {
+        if (m.seen) m.tVel.lerp(msTmp.subVectors(tp, m.tPrev).divideScalar(Math.max(dt, 1e-3)), 0.25);
+        m.tPrev.copy(tp);
+        m.seen = true;
+        msLos.subVectors(tp, P);
+        const r = msLos.length();
+        msLos.divideScalar(Math.max(r, 1e-6));
+        // Past 70 degrees off its nose the seeker loses the target, and the missile flies on straight.
+        if (msLos.dot(msDir) < S.gimbal) m.target = null;
+        else {
+          // Lead the target: steer for where it will be when the missile gets there.
+          const closing = Math.max(80, speed - m.tVel.dot(msLos));
+          msAim.copy(tp).addScaledVector(m.tVel, clamp(r / closing, 0, 4));
+          msWant.subVectors(msAim, P).normalize();
+          const ang = Math.acos(clamp(msDir.dot(msWant), -1, 1));
+          if (ang > 1e-4) msDir.applyAxisAngle(msAxis.crossVectors(msDir, msWant).normalize(), Math.min(ang, S.turn / speed * dt));
+          if (m.target === 'me') incoming = Math.min(incoming, r);
+        }
+      }
+      if (tp && m.target && m.target.flare && P.distanceTo(tp) < 12) { dropAt(i, true); continue; }
+      m.vel.copy(msDir).multiplyScalar(speed);
+      if (!m.target && m.t > S.burn) m.vel.y -= G * 0.5 * dt;
+      msPrev.copy(P);
+      P.addScaledVector(m.vel, dt);
+      m.mesh.lookAt(msTmp.copy(P).sub(m.vel));
+      if (m.flame) m.flame.visible = m.t < S.burn;
+      // A thin smoke trail while the motor burns (about 6 s), a puff every 4 m along the path.
+      if (m.t < 6) for (m.trail += speed * dt; m.trail >= 4; m.trail -= 4) puffAt(msTmp.copy(P).addScaledVector(msDir, -m.trail), '#E2E0DA', 0.8, 0.2);
+      if (m.mine && m.t > 0.25 && choice.mode === 'fight') {
+        let hit = null;
+        for (const gh of net.ghosts.values()) if (mslOk(gh) && segDist(gh.pos, msPrev, P) < S.fuse) { hit = gh; break; }
+        if (hit) {
+          if (hit.plane === 'ufo') fieldFlash(hit.pos, P); else missileKill(hit);
+          dropAt(i, false);
+          continue;
+        }
+      }
+      // An enemy missile that reaches you: 2 health.
+      if (m.target === 'me' && m.t > 0.25 && !state.frozen && segDist(state.pos, msPrev, P) < S.fuse) {
+        boom(P, false);
+        dropAt(i, false);
+        toast(`Missile hit! ${m.by ? m.by.name : 'A bandit'} got you.`, 2.5);
+        if (m.by) dogHurt(m.by, S.dmg);
+        continue;
+      }
+      if (m.t > S.life || P.y < ground(P.x, P.z) || (P.y < 60 && obstacleAt(P.x, P.y, P.z))) dropAt(i, true);
+    }
+    msl.warnWait -= dt;
+    if (incoming < Infinity && !state.frozen) {
+      threatEl.textContent = `MISSILE ${(incoming / 1000).toFixed(1)} km! ${TOUCH ? 'Tap Flares!' : 'Flares (X)!'}`;
+      threatEl.hidden = false;
+      threatWait = 0.3;
+      if (msl.warnWait <= 0) { sfxMissileWarn(); msl.warnWait = 0.5; }
+    }
+    for (let i = booms.length - 1; i >= 0; i--) {
+      const b = booms[i];
+      b.life -= dt;
+      b.mesh.scale.setScalar(1 + b.size * (1 - Math.max(0, b.life) / 0.7));
+      b.mesh.material.opacity = Math.max(0, b.life / 0.7) * 0.95;
+      if (b.life <= 0) { scene.remove(b.mesh); b.mesh.material.dispose(); booms.splice(i, 1); }
+    }
+  }
+  // Seeker sound: 0 quiet, 1 growl (sees a target), 2 steady high tone (in range).
+  function seekerTone(kind) {
+    if (choice.sound !== 'on') kind = 0;
+    if (kind === msl.tone) return;
+    msl.tone = kind;
+    if ((!kind && !seeker) || !audio()) return;
+    const t = audioCtx.currentTime;
+    if (!seeker) {
+      const o = audioCtx.createOscillator(), lfo = audioCtx.createOscillator(), depth = audioCtx.createGain(), g = audioCtx.createGain();
+      o.type = 'triangle';
+      lfo.type = 'square';
+      lfo.frequency.value = 22;
+      depth.gain.value = 0;
+      g.gain.value = 0;
+      lfo.connect(depth).connect(o.frequency);
+      o.connect(g).connect(bus('fx'));
+      o.start();
+      lfo.start();
+      seeker = { o, depth, g };
+    }
+    seeker.o.frequency.setTargetAtTime(kind === 2 ? 1700 : 380, t, 0.02);
+    seeker.depth.gain.setTargetAtTime(kind === 1 ? 70 : 0, t, 0.02);
+    seeker.g.gain.setTargetAtTime(kind === 0 ? 0 : kind === 2 ? 0.02 : 0.03, t, 0.03);
+  }
+  function sfxLaunch(pos) {
+    const near = pos.distanceTo(state.pos);
+    if (near > 1500 || choice.sound !== 'on' || !audio()) return;
+    burst(audioCtx.currentTime, { len: 1.3, from: 2600, to: 380, q: 0.8, gain: 0.28 * (1 - near / 1500) });
+  }
+  function sfxMissileWarn() {
+    if (choice.sound !== 'on' || !audio()) return;
+    const t = audioCtx.currentTime;
+    for (const at of [0, 0.1, 0.2]) {
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = 'square';
+      o.frequency.value = 1250;
+      g.gain.setValueAtTime(0.0001, t + at);
+      g.gain.exponentialRampToValueAtTime(0.05, t + at + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + at + 0.07);
+      o.connect(g).connect(bus('fx'));
+      o.start(t + at);
+      o.stop(t + at + 0.08);
+    }
+  }
+  function resetFlares() { Object.assign(flare, { left: FLARES.max, wait: 0, reload: 0 }); }
+  // A flare kicks out sideways and down, slows in the air, and falls behind the jet.
+  function launchFlare(pos, vel, quat, side) {
+    const dir = new THREE.Vector3(side, -0.45, 0.35);
+    if (quat) dir.applyQuaternion(quat);
+    const mesh = new THREE.Mesh(flareGeo, flareMat), glow = new THREE.Sprite(flareGlow);
+    glow.scale.setScalar(7);
+    mesh.add(glow);
+    mesh.position.copy(pos).addScaledVector(dir, 3);
+    scene.add(mesh);
+    const f = { mesh, vel: vel.clone().addScaledVector(dir.normalize(), 34), life: FLARES.life, trail: 0 };
+    flares.push(f);
+    while (flares.length > 48) scene.remove(flares.shift().mesh);
+    return f;
+  }
+  // Missiles chasing you may switch to a fresh flare, most likely when they are 0.3 to 1.2 km from it.
+  function decoyMissiles(f) {
+    for (const m of missiles) {
+      if (m.target !== 'me') continue;
+      const d = m.mesh.position.distanceTo(f.mesh.position), chance = FLARE_DECOY.find(([max]) => d <= max)[1];
+      if (Math.random() < chance) { m.target = { flare: f }; m.seen = false; }
+    }
+  }
+  function dropFlares() {
+    if (state.frozen || state.onGround || paused || watch.on || flare.wait > 0) return;
+    if (flare.left <= 0) { toast(`Out of flares. More in ${Math.ceil(flare.reload)} s.`, 2); return; }
+    flare.left--;
+    flare.wait = FLARES.wait;
+    flare.reload = FLARES.reload;
+    flare.side = -flare.side;
+    decoyMissiles(launchFlare(state.pos, state.vel, state.quat, flare.side));
+    sfxFlare(state.pos);
+  }
+  function updateFlares(dt) {
+    flare.wait -= dt;
+    if (flare.left < FLARES.max) { flare.reload -= dt; if (flare.reload <= 0) resetFlares(); }
+    for (let i = flares.length - 1; i >= 0; i--) {
+      const f = flares[i], P = f.mesh.position;
+      f.life -= dt;
+      f.vel.multiplyScalar(1 - Math.min(1, 0.6 * dt));
+      f.vel.y -= 6 * dt;
+      P.addScaledVector(f.vel, dt);
+      f.mesh.scale.setScalar(0.85 + Math.random() * 0.3);
+      // A solid white trail: a puff every 2.5 m along the path.
+      const step = f.vel.length() * dt;
+      for (f.trail += step; f.trail >= 2.5; f.trail -= 2.5) puffAt(msTmp.copy(f.vel).setLength(-(f.trail - 2.5)).add(P), '#F4F2EC', 1.4, 0.2);
+      if (f.life <= 0) { scene.remove(f.mesh); flares.splice(i, 1); }
+    }
+  }
+  function sfxFlare(pos) {
+    const near = pos.distanceTo(state.pos);
+    if (near > 1200 || choice.sound !== 'on' || !audio()) return;
+    const t = audioCtx.currentTime, v = 1 - near / 1200;
+    burst(t, { len: 0.16, from: 3200, to: 900, q: 1.2, gain: 0.12 * v });
+    burst(t + 0.09, { len: 0.16, from: 3000, to: 800, q: 1.2, gain: 0.1 * v });
   }
 
   // Hot air balloons drift in slow circles on a shared clock, so every screen sees them in the same place.
@@ -5621,18 +6107,19 @@
   drawWaypoints();
 
   // Airshow smoke (Z): a trail of soft puffs from the tail that drifts with the wind and fades. Teammates' smoke shows too.
-  const SMOKE_N = 2400, SMOKE_LIFE = 12, smokeLife = new Float32Array(SMOKE_N);
-  const smokePos = new Float32Array(SMOKE_N * 3), smokeCol = new Float32Array(SMOKE_N * 3), smokeAge = new Float32Array(SMOKE_N).fill(99);
+  const SMOKE_N = 4000, SMOKE_LIFE = 12, smokeLife = new Float32Array(SMOKE_N);
+  const smokePos = new Float32Array(SMOKE_N * 3), smokeCol = new Float32Array(SMOKE_N * 3), smokeAge = new Float32Array(SMOKE_N).fill(99), smokeSize = new Float32Array(SMOKE_N).fill(1);
   const smokeGeo = new THREE.BufferGeometry();
   smokeGeo.setAttribute('position', new THREE.BufferAttribute(smokePos, 3));
   smokeGeo.setAttribute('aColor', new THREE.BufferAttribute(smokeCol, 3));
   smokeGeo.setAttribute('aAge', new THREE.BufferAttribute(smokeAge, 1));
+  smokeGeo.setAttribute('aSize', new THREE.BufferAttribute(smokeSize, 1));
   const smokeMat = new THREE.ShaderMaterial({
     transparent: true, depthWrite: false,
     uniforms: { uLife: { value: SMOKE_LIFE }, uScale: { value: 750 } },
-    vertexShader: '#include <common>\n#include <logdepthbuf_pars_vertex>\nattribute float aAge; attribute vec3 aColor; uniform float uLife; uniform float uScale; varying float vA; varying vec3 vC;' +
+    vertexShader: '#include <common>\n#include <logdepthbuf_pars_vertex>\nattribute float aAge; attribute float aSize; attribute vec3 aColor; uniform float uLife; uniform float uScale; varying float vA; varying vec3 vC;' +
       'void main() { vec4 mv = modelViewMatrix * vec4(position, 1.0); float t = clamp(aAge / uLife, 0.0, 1.0); vA = aAge < uLife ? (1.0 - t) * min(1.0, aAge * 6.0) : 0.0; vC = aColor;' +
-      'gl_PointSize = aAge < uLife ? uScale * (1.6 + 5.0 * t) / max(1.0, -mv.z) : 0.0; gl_Position = projectionMatrix * mv;\n#include <logdepthbuf_vertex>\n}',
+      'gl_PointSize = aAge < uLife ? aSize * uScale * (1.6 + 5.0 * t) / max(1.0, -mv.z) : 0.0; gl_Position = projectionMatrix * mv;\n#include <logdepthbuf_vertex>\n}',
     fragmentShader: '#include <common>\n#include <logdepthbuf_pars_fragment>\nvarying float vA; varying vec3 vC; void main() {\n#include <logdepthbuf_fragment>\nfloat d = length(gl_PointCoord - 0.5); float a = (1.0 - smoothstep(0.15, 0.5, d)) * vA * 0.7; if (a < 0.01) discard; gl_FragColor = vec4(vC, a); }'
   });
   const smoke = new THREE.Points(smokeGeo, smokeMat);
@@ -5643,14 +6130,19 @@
   const smokeEmitters = new Map();
   function emitSmoke(pos, quat, color) {
     smokeTail.set(0, 0.2, 3.4).applyQuaternion(quat).add(pos);
+    puffAt(smokeTail, color, 1, 0.4);
+  }
+  // One smoke puff at a point: its color, its size next to an airshow puff, and how far it may scatter.
+  function puffAt(p, color, size, jitter) {
     const i = smokeNext;
     smokeNext = (smokeNext + 1) % SMOKE_N;
-    smokePos[i * 3] = smokeTail.x + (Math.random() - 0.5) * 0.4;
-    smokePos[i * 3 + 1] = smokeTail.y + (Math.random() - 0.5) * 0.4;
-    smokePos[i * 3 + 2] = smokeTail.z + (Math.random() - 0.5) * 0.4;
+    smokePos[i * 3] = p.x + (Math.random() - 0.5) * jitter;
+    smokePos[i * 3 + 1] = p.y + (Math.random() - 0.5) * jitter;
+    smokePos[i * 3 + 2] = p.z + (Math.random() - 0.5) * jitter;
     smokeColor.set(color);
     smokeCol[i * 3] = smokeColor.r; smokeCol[i * 3 + 1] = smokeColor.g; smokeCol[i * 3 + 2] = smokeColor.b;
     smokeAge[i] = 0;
+    smokeSize[i] = size;
   }
   function updateSmoke(dt) {
     const sources = [];
@@ -5673,6 +6165,7 @@
     smokeGeo.attributes.position.needsUpdate = true;
     smokeGeo.attributes.aAge.needsUpdate = true;
     smokeGeo.attributes.aColor.needsUpdate = true;
+    smokeGeo.attributes.aSize.needsUpdate = true;
   }
 
   // ---------- team leaderboard: one db doc per pilot in "leaderboard"; names come from profiles when it's shown ----------
@@ -6039,6 +6532,45 @@
     }
     burst(t, { len: 0.04, from: 9000, to: 6000, q: 1.5, gain: gain * 0.8 });
   }
+  // Afterburner: lights after holding more power at full for a moment (or on T / the Burner button), burns about 10 s,
+  // and refills while off. Less power, T again, or an empty tank puts it out.
+  function updateBurner(dt, more, less) {
+    const s = state;
+    if (ab.on) {
+      ab.fuel = Math.max(0, ab.fuel - dt / AB_SECONDS);
+      if (less || ab.fuel <= 0 || s.throttle < 0.99 || s.frozen) burnerOut(ab.fuel <= 0);
+    } else {
+      ab.fuel = Math.min(1, ab.fuel + dt / AB_REFILL);
+      ab.hold = more && s.throttle >= 1 ? ab.hold + dt : 0;
+      if (ab.hold > 0.35 && ab.fuel > 0.25 && !s.frozen) burnerLight();
+    }
+    ab.level += ((ab.on ? 1 : 0) - ab.level) * Math.min(1, dt * (ab.on ? 1.6 : 4));
+  }
+  function burnerLight() {
+    ab.on = true;
+    ab.hold = 0;
+    sfxBurner();
+    if (!ab.told) { ab.told = true; toast(`Afterburner lit! About 10 seconds of burner. ${TOUCH ? 'Burner' : 'T'} or less power puts it out.`, 4); }
+  }
+  function burnerOut(empty) {
+    ab.on = false;
+    if (empty) ab.hold = -1e9;
+    if (empty) toast('Burner empty. It refills while it is off.', 3);
+  }
+  function toggleBurner() {
+    if (state.frozen) return;
+    if (ab.on) { burnerOut(false); return; }
+    if (ab.fuel <= 0.25) { toast('The burner is still refilling.', 2); return; }
+    state.throttle = 1;
+    burnerLight();
+  }
+  function resetBurner() { Object.assign(ab, { on: false, level: 0, fuel: 1, hold: 0 }); gearUp = false; gearK = 0; }
+  function sfxBurner() {
+    if (choice.sound !== 'on' || !audio()) return;
+    const t = audioCtx.currentTime;
+    thump(t, 95, 32, 0.45, 0.5);
+    burst(t, { len: 0.6, from: 900, to: 140, type: 'lowpass', q: 0.7, gain: 0.3 });
+  }
   function updateEngine() {
     if (!engine) return;
     if (watch.on) return watchSound();
@@ -6047,15 +6579,15 @@
     engine.o1.frequency.setTargetAtTime(78 * rpm, t, 0.12);
     engine.o2.frequency.setTargetAtTime(39.4 * rpm, t, 0.12);
     engine.lp.frequency.setTargetAtTime(260 + 520 * state.throttle, t, 0.2);
-    const santa = flyPlane() === 'sleigh', ufo = flyPlane() === 'ufo', jet = flyPlane() === 'jet' || flyPlane() === 'shifter' || (flyPlane() === 'owl' && turbo.left > 0), heliOn = isHeli();
+    const santa = flyPlane() === 'sleigh', ufo = flyPlane() === 'ufo', jet = hasBurner() || flyPlane() === 'shifter' || (flyPlane() === 'owl' && turbo.left > 0), heliOn = isHeli();
     engine.g.gain.setTargetAtTime(on && !santa && !ufo && !jet && !heliOn ? 0.025 + state.throttle * 0.035 : 0, t, 0.15);
     engine.rg.gain.setTargetAtTime(on && heliOn ? 0.05 + state.throttle * 0.05 : 0, t, 0.2);
     engine.rlg.gain.setTargetAtTime(on && heliOn ? 0.045 + state.throttle * 0.045 : 0, t, 0.2);
     engine.rl.frequency.setTargetAtTime(5 + state.throttle * 2, t, 0.3);
     engine.rwg.gain.setTargetAtTime(on && heliOn ? 0.003 + state.throttle * 0.005 : 0, t, 0.25);
     engine.rw.frequency.setTargetAtTime(1300 + state.throttle * 600, t, 0.3);
-    engine.jg.gain.setTargetAtTime(on && jet ? 0.04 + state.throttle * 0.08 : 0, t, 0.2);
-    engine.jf.frequency.setTargetAtTime(300 + state.throttle * 1400 + Math.min(600, state.airspeed * 3), t, 0.2);
+    engine.jg.gain.setTargetAtTime(on && jet ? 0.04 + state.throttle * 0.08 + ab.level * 0.09 : 0, t, 0.2);
+    engine.jf.frequency.setTargetAtTime(300 + state.throttle * 1400 + ab.level * 500 + Math.min(600, state.airspeed * 3), t, 0.2);
     engine.jwg.gain.setTargetAtTime(on && jet ? 0.004 + state.throttle * 0.008 : 0, t, 0.25);
     engine.jw.frequency.setTargetAtTime(900 + state.throttle * 1700, t, 0.3);
     engine.ug.gain.setTargetAtTime(on && ufo ? 0.018 + state.throttle * 0.02 : 0, t, 0.2);
@@ -6312,7 +6844,7 @@
     const g = $('asiArcs');
     if (!g || !drawAsiArcs.ready) return;
     g.replaceChildren();
-    const vs = Math.sqrt(2 * MASS * G / (RHO * WING * (CL0 + CLA * perf.aStall))) * KT;
+    const vs = Math.sqrt(2 * MASS * G / (RHO * WING * (perf.cl0 + perf.cla * perf.aStall))) * KT;
     const arc = (k1, k2, color) => {
       const a1 = asiAngle(k1), a2 = asiAngle(k2), [x1, y1] = polar(50, a1), [x2, y2] = polar(50, a2);
       svgEl('path', { d: `M${x1.toFixed(2)} ${y1.toFixed(2)} A50 50 0 ${a2 - a1 > 180 ? 1 : 0} 1 ${x2.toFixed(2)} ${y2.toFixed(2)}`, fill: 'none', stroke: color, 'stroke-width': 5 }, g);
@@ -6396,7 +6928,11 @@
     vsiEl.textContent = (vs > 0 ? '+' : '') + (vs === 0 ? 0 : vs).toLocaleString('en-US');
     const hdg = headingDeg();
     hdgEl.textContent = String(hdg).padStart(3, '0');
-    thrEl.textContent = Math.round(s.throttle * 100);
+    thrEl.textContent = hasBurner() && ab.on ? 'AB' : Math.round(s.throttle * 100);
+    thrEl.nextElementSibling.textContent = hasBurner() && ab.on ? '' : '%';
+    $('abGauge').hidden = !hasBurner();
+    $('abFill').style.width = `${Math.round(ab.fuel * 100)}%`;
+    $('abFill').classList.toggle('lit', ab.on);
     if (document.activeElement !== thrInput) thrInput.value = Math.round(s.throttle * 100);
     stallEl.hidden = s.frozen || s.onGround || speed < 5 || s.alpha < perf.aStall - 0.03 || flyPlane() === 'ufo' || isHeli() || (flyPlane() === 'shifter' && shifter.mode !== 'jet');
     timeEl.textContent = fmt(mission.t);
@@ -6446,6 +6982,161 @@
   }
 
   let viewW = 0, viewH = 0;
+  // ---------- Barn Swallow head-up display (ported from my co-worker's version) ----------
+  // Pitch ladder, horizon, flight path marker, waterline, and landing bracket are drawn where those directions really
+  // are in the view, so they line up with the world in both the chase view and the cockpit view. Airspeed, altitude,
+  // climb rate, missiles, flares, and the heading tape sit fixed on the glass.
+  const hudCanvas = $('hud'), hud = hudCanvas.getContext('2d'), HUD_GREEN = '#46FF7E';
+  const hudF = new THREE.Vector3(), hudU = new THREE.Vector3(), hudR = new THREE.Vector3(), hudD = new THREE.Vector3(), hudP = new THREE.Vector3();
+  let hudW = 0, hudH = 0;
+  function resizeHud() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    hudW = window.innerWidth; hudH = window.innerHeight;
+    hudCanvas.width = Math.round(hudW * dpr); hudCanvas.height = Math.round(hudH * dpr);
+    hud.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  const azEl = (az, el, out) => out.set(Math.sin(az) * Math.cos(el), Math.sin(el), -Math.cos(az) * Math.cos(el));
+  // Screen point of a direction seen from the camera (far away, so it matches the world), or null if behind.
+  function toScreen(dir) {
+    hudP.copy(camera.position).addScaledVector(dir, 5000).project(camera);
+    return hudP.z > 1 ? null : { x: (hudP.x + 1) / 2 * hudW, y: (1 - hudP.y) / 2 * hudH };
+  }
+  const unit = (a, b) => { const dx = b.x - a.x, dy = b.y - a.y, l = Math.hypot(dx, dy) || 1; return { x: dx / l, y: dy / l }; };
+  function seg(a, t, from, to) { hud.moveTo(a.x + t.x * from, a.y + t.y * from); hud.lineTo(a.x + t.x * to, a.y + t.y * to); }
+  // A screen-space direction for a small turn of `dir` toward `toward` (plane right or up), so symbols bank with the jet.
+  function screenAxis(at, dir, toward) {
+    const p = toScreen(hudD.copy(dir).addScaledVector(toward, 0.02).normalize());
+    return p ? unit(at, p) : { x: 1, y: 0 };
+  }
+  function drawHud() {
+    const s = state, on = flyPlane() === 'swallow' && !s.frozen && !paused && !introOpen && !menuOpen && !watch.on;
+    hudCanvas.hidden = !on;
+    if (!on) return;
+    camera.updateMatrixWorld();
+    hud.clearRect(0, 0, hudW, hudH);
+    // On a short screen the glass sits lower, below the message strip.
+    const bw = Math.min(560, hudW * 0.46), bh = Math.min(380, hudH * 0.44), cx = hudW / 2, cy = Math.max(hudH * 0.38, bh / 2 + 70);
+    const x0 = cx - bw / 2, y0 = cy - bh / 2;
+    // The glass: a tinted pane behind the symbols with cut top corners, straight sides, then narrowing toward the bottom.
+    const gx0 = x0 - 16, gx1 = x0 + bw + 16, gy0 = y0 - 12, gy1 = y0 + bh + 8, cut = Math.min(60, bw * 0.13), taper = bw * 0.13;
+    const waist = gy0 + (gy1 - gy0) * 0.4;
+    hud.save();
+    hud.beginPath();
+    hud.moveTo(gx0 + cut, gy0); hud.lineTo(gx1 - cut, gy0); hud.lineTo(gx1, gy0 + cut); hud.lineTo(gx1, waist);
+    hud.lineTo(gx1 - taper, gy1); hud.lineTo(gx0 + taper, gy1); hud.lineTo(gx0, waist); hud.lineTo(gx0, gy0 + cut); hud.closePath();
+    const tint = hud.createLinearGradient(0, gy0, 0, gy1);
+    tint.addColorStop(0, 'rgba(34, 66, 52, 0.34)');
+    tint.addColorStop(1, 'rgba(22, 44, 36, 0.26)');
+    hud.fillStyle = tint;
+    hud.fill();
+    hud.lineWidth = 1.2;
+    hud.strokeStyle = 'rgba(200, 235, 215, 0.35)';
+    hud.stroke();
+    hud.restore();
+    hudF.set(0, 0, -1).applyQuaternion(s.quat);
+    hudU.set(0, 1, 0).applyQuaternion(s.quat);
+    hudR.set(1, 0, 0).applyQuaternion(s.quat);
+    const speed = s.vel.length(), vDir = speed > 5 ? s.vel.clone().divideScalar(speed) : hudF.clone();
+    const az = Math.atan2(vDir.x, -vDir.z);
+    hud.save();
+    hud.strokeStyle = hud.fillStyle = HUD_GREEN;
+    hud.lineWidth = 1.6;
+    hud.font = '700 13px "B612 Mono", ui-monospace, Menlo, monospace';
+    hud.textAlign = 'center'; hud.textBaseline = 'middle';
+    hud.shadowColor = 'rgba(0, 25, 0, 0.6)'; hud.shadowBlur = 3;
+
+    // Symbols tied to the world, clipped to the glass.
+    hud.save();
+    hud.beginPath(); hud.rect(x0, y0 + 30, bw, bh - 84); hud.clip();
+    for (let deg = -85; deg <= 85; deg += 5) {
+      const el = deg * Math.PI / 180, p = toScreen(azEl(az, el, hudD));
+      if (!p || p.y < y0 - 60 || p.y > y0 + bh + 60) continue;
+      const q = toScreen(azEl(az + 0.02, el, hudD)), t = q ? unit(p, q) : { x: 1, y: 0 };
+      const half = deg === 0 ? bw * 0.42 : 62, gap = deg === 0 ? 30 : 24;
+      hud.setLineDash(deg < 0 ? [7, 5] : []);
+      hud.beginPath(); seg(p, t, gap, half); seg(p, t, -gap, -half); hud.stroke();
+      if (deg === 0) continue;
+      const toward = toScreen(azEl(az, el - Math.sign(deg) * 0.02, hudD)), n = toward ? unit(p, toward) : { x: 0, y: 1 };
+      hud.setLineDash([]);
+      hud.beginPath();
+      for (const sgn of [1, -1]) { const e = { x: p.x + t.x * half * sgn, y: p.y + t.y * half * sgn }; seg(e, n, 0, 8); }
+      hud.stroke();
+      for (const sgn of [1, -1]) hud.fillText(String(Math.abs(deg)), p.x + t.x * (half + 18) * sgn, p.y + t.y * (half + 18) * sgn);
+    }
+    hud.setLineDash([]);
+    // Flight path marker: where the jet is actually going. Wings and tail bank with the jet.
+    const fpm = toScreen(vDir);
+    if (fpm) {
+      const wr = screenAxis(fpm, vDir, hudR), wu = screenAxis(fpm, vDir, hudU);
+      hud.beginPath(); hud.arc(fpm.x, fpm.y, 7, 0, Math.PI * 2);
+      seg(fpm, wr, 7, 19); seg(fpm, wr, -7, -19); seg(fpm, wu, 7, 15);
+      hud.stroke();
+    }
+    // Gear down: the waterline W at the nose and the landing bracket (on speed at 8.1 degrees angle of attack).
+    if (gearK < 0.5) {
+      const nose = toScreen(hudF);
+      if (nose) {
+        const r = screenAxis(nose, hudF, hudR), u = { x: -r.y, y: r.x };
+        const pt = (a, b) => ({ x: nose.x + r.x * a - u.x * b, y: nose.y + r.y * a - u.y * b });
+        const w = [pt(-22, 0), pt(-11, 0), pt(-5.5, -8), pt(0, 0), pt(5.5, -8), pt(11, 0), pt(22, 0)];
+        hud.beginPath(); hud.moveTo(w[0].x, w[0].y); for (const v of w.slice(1)) hud.lineTo(v.x, v.y); hud.stroke();
+        const below = (deg) => toScreen(hudD.copy(hudF).multiplyScalar(Math.cos(deg * Math.PI / 180)).addScaledVector(hudU, -Math.sin(deg * Math.PI / 180)).normalize());
+        const ticks = [below(6.9), below(8.1), below(9.3)];
+        if (ticks.every(Boolean)) {
+          const off = (p) => ({ x: p.x - r.x * 24, y: p.y - r.y * 24 });
+          const [a, b, c] = ticks.map(off);
+          hud.beginPath(); hud.moveTo(a.x, a.y); hud.lineTo(c.x, c.y);
+          for (const k of [a, b, c]) seg(k, r, 0, k === b ? 9 : 6);
+          hud.stroke();
+        }
+      }
+    }
+    hud.restore();
+
+    // Other planes show as dots; the missile's target gets a box with its range in nautical miles. A target off the
+    // glass keeps its box on the nearest edge, crossed out.
+    const lx0 = x0 + 14, lx1 = x0 + bw - 14, ly0 = y0 + 14, ly1 = y0 + bh - 30;
+    hud.save();
+    hud.beginPath(); hud.rect(x0, y0, bw, bh); hud.clip();
+    for (const gh of net.ghosts.values()) {
+      if (!gh.body.visible || gh.mode === 'down') continue;
+      const d = gh.pos.distanceTo(camera.position), p = d > 5 ? toScreen(hudD.subVectors(gh.pos, camera.position).divideScalar(d)) : null;
+      if (p) { hud.beginPath(); hud.arc(p.x, p.y, 3, 0, Math.PI * 2); hud.fill(); }
+      if (gh !== msl.lock) continue;
+      const inside = !!p && p.x >= lx0 && p.x <= lx1 && p.y >= ly0 && p.y <= ly1;
+      const b = inside ? p : { x: clamp(p ? p.x : cx, lx0, lx1), y: clamp(p ? p.y : cy, ly0, ly1) };
+      hud.beginPath();
+      hud.rect(b.x - 13, b.y - 13, 26, 26);
+      if (!inside) { hud.moveTo(b.x - 13, b.y - 13); hud.lineTo(b.x + 13, b.y + 13); hud.moveTo(b.x + 13, b.y - 13); hud.lineTo(b.x - 13, b.y + 13); }
+      hud.stroke();
+      hud.fillText((msl.lockD / 1852).toFixed(1), b.x, b.y + 25);
+    }
+    hud.restore();
+    // Fixed on the glass: airspeed box (left), altitude box with climb rate (right), heading tape (bottom).
+    const box = (x, y, w, text) => { hud.strokeRect(x, y - 12, w, 24); hud.fillText(text, x + w / 2, y); };
+    const ktsNow = Math.round(s.airspeed * KT), altFt = Math.max(0, (s.pos.y - GEAR) * FT), vsFpm = Math.round(s.vel.y * FPM / 10) * 10;
+    box(x0 + 8, cy - 40, 62, String(ktsNow));
+    box(x0 + bw - 78, cy - 40, 70, (altFt < 1000 ? Math.round(altFt) : Math.round(altFt / 10) * 10).toLocaleString('en-US'));
+    hud.fillText(`${vsFpm > 0 ? '+' : ''}${vsFpm.toLocaleString('en-US')}`, x0 + bw - 43, cy - 66);
+    if (ab.on) hud.fillText('AB', x0 + 39, cy - 66);
+    if (choice.mode === 'fight') {
+      hud.fillText(`MSL ${msl.left}`, x0 + 39, cy - 2);
+      if (msl.left <= 0) hud.fillText(`RLD ${Math.ceil(msl.reload)}`, x0 + 39, cy + 18);
+      else if (msl.lock && msl.lockD <= MSL.good) hud.fillText('SHOOT', x0 + 39, cy + 18);
+    }
+    hud.fillText(`FLR ${flare.left}`, x0 + 39, cy + 38);
+    const hdgNow = (Math.atan2(hudF.x, -hudF.z) * 180 / Math.PI + 360) % 360, ty = y0 + bh - 40, ppd = bw * 0.5 / 30;
+    hud.beginPath();
+    for (let d = Math.ceil((hdgNow - 15) / 5) * 5; d <= hdgNow + 15; d += 5) {
+      const x = cx + (d - hdgNow) * ppd, big = ((d % 10) + 10) % 10 === 0;
+      hud.moveTo(x, ty); hud.lineTo(x, ty - (big ? 9 : 5));
+      if (big) hud.fillText(String(((d % 360) + 360) % 360 / 10).padStart(2, '0'), x, ty - 18);
+    }
+    hud.moveTo(cx, ty + 3); hud.lineTo(cx - 5, ty + 10); hud.moveTo(cx, ty + 3); hud.lineTo(cx + 5, ty + 10);
+    hud.stroke();
+    box(cx - 24, ty + 24, 48, String(Math.round(hdgNow) % 360 || 360).padStart(3, '0'));
+    hud.restore();
+  }
   function resize() {
     const w = window.innerWidth, h = window.innerHeight;
     if (w === viewW && h === viewH) return;
@@ -6454,6 +7145,7 @@
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
+    resizeHud();
     sideTip();
   }
   // Phones can report the old size right after a turn, so check again a moment later.
@@ -6494,7 +7186,15 @@
     plane.position.copy(s.pos);
     plane.quaternion.copy(s.quat);
     prop.rotation.z += dt * (6 + s.throttle * 70);
-    jetBurner.visible = flyPlane() === 'jet' && s.throttle > 0.85 && !s.frozen;
+    jetBurner.visible = flyPlane() === 'jet' && (s.throttle > 0.85 || ab.level > 0.05) && !s.frozen;
+    if (flyPlane() === 'swallow') {
+      const aglNow = s.pos.y - GEAR - gh;
+      if (s.onGround || aglNow < 12 || (aglNow < 60 && s.vel.y < -1)) gearUp = false;
+      else if (aglNow > 15 && s.vel.y > -1) gearUp = true;
+      gearK += ((gearUp ? 1 : 0) - gearK) * Math.min(1, dt / 1.5);
+      setGear(swallowGear, gearK);
+    }
+    setExhaust(swallowBurner, swallowGlow, s.throttle * (1 + 0.5 * ab.level), flyPlane() === 'swallow' && !s.frozen);
     if (!paused) updateShifterModel(dt);
     for (const b of shifterBurners) b.visible = flyPlane() === 'shifter' && !s.frozen && (shifter.mode === 'jet' ? s.throttle > 0.85 : shifter.mode === 'hover' ? !s.onGround : shifter.jets);
     if (isHeli() && !s.frozen) {
@@ -6507,7 +7207,7 @@
     for (const b of owlBurners) { b.visible = flyPlane() === 'owl' && turbo.left > 0 && !s.frozen; if (b.visible) b.scale.z = 0.6 + Math.random() * 0.3; }
     owlDisc.material.opacity = s.frozen ? 0 : 0.03 + s.throttle * 0.12;
     for (const b of owlBeacons) b.visible = Math.sin(performance.now() / 150) > 0.6;
-    if (jetBurner.visible) jetBurner.scale.set(1, 1, 0.75 + s.throttle * 0.3 + Math.random() * 0.25);
+    if (jetBurner.visible) jetBurner.scale.set(1, 1, 0.75 + s.throttle * 0.3 + ab.level * 0.9 + Math.random() * 0.25);
     const fromRad = windFromNow * Math.PI / 180;
     sockPivot.rotation.y = Math.atan2(-Math.cos(fromRad), -Math.sin(fromRad));
     sockPivot.rotation.z = -(1 - clamp(windKtNow / 15, 0, 1)) * 1.2;
@@ -6532,6 +7232,7 @@
 
     updateCamera(dt);
     updateAim();
+    drawHud();
     updateSnow(dt);
     updateScarf(performance.now() / 1000);
     if (!paused) updateSmoke(dt);
@@ -6546,6 +7247,7 @@
     updateStallHorn();
     if (!paused && !introOpen && !menuOpen) updateDrone(dt);
     if (!paused && !introOpen && !menuOpen) updateDogfight(dt);
+    if (!paused && !introOpen && !menuOpen) { updateMissiles(dt); updateFlares(dt); } else seekerTone(0);
     updateGhosts(dt);
     if (!paused && !introOpen && !menuOpen) updateSnowballs(dt);
     updateBalloons(dt);
