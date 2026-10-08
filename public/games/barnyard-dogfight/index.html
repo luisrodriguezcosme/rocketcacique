@@ -273,13 +273,15 @@
     #tDown { order: 4; width: 52px; height: 52px; }
     #tFire { order: 5; }
   }
-  /* Sideways phone, helicopter with two sticks: ammo sits beside FIRE (on the inner side) so the pair stays low and clear of the tower line. */
+  /* Sideways phone, helicopter with two sticks: ammo (with the Barn Owl's Turbo above it) sits beside FIRE on the inner
+     side, so the buttons stay low and clear of the tower line. */
   @media (hover: none) and (pointer: coarse) and (max-height: 520px) {
     body.heli-sticks .tact { grid-template-columns: auto auto; }
-    body.heli-sticks #tAmmo { grid-column: auto; order: 1; }
-    body.heli-sticks #tFire { grid-column: auto; order: 2; }
-    body.heli-sticks.pad-right #tAmmo { order: 2; }
-    body.heli-sticks.pad-right #tFire { order: 1; }
+    body.heli-sticks #tXform { grid-column: 1; grid-row: 1; }
+    body.heli-sticks #tAmmo { grid-column: 1; grid-row: 2; }
+    body.heli-sticks #tFire { grid-column: 2; grid-row: 1 / span 2; }
+    body.heli-sticks.pad-right #tXform, body.heli-sticks.pad-right #tAmmo { grid-column: 2; }
+    body.heli-sticks.pad-right #tFire { grid-column: 1; }
   }
   @media (hover: none) and (pointer: coarse) and (max-height: 520px) and (max-width: 700px) {
     .instruments { --cmp: 112px; }
@@ -331,6 +333,7 @@
           <option value="ufo">UFO</option>
           <option value="jet">Jet fighter</option>
           <option value="heli">Attack helicopter</option>
+          <option value="owl">Barn Owl (fast helicopter)</option>
           <option value="shifter">Shifter (transforming jet)</option>
         </select></div>
         <span class="choice-label" id="ammoLabel">Ammo</span>
@@ -1953,12 +1956,14 @@
   }
   function myTeam() { return choice.mode === 'fight' && choice.team !== 'free' ? choice.team : null; }
   function flyPlane() { return myTeam() ? 'cub' : choice.plane; }
+  // The helicopters: the attack helicopter and the Barn Owl, a faster twin-engine helicopter with a turbo.
+  function isHeli() { return flyPlane() === 'heli' || flyPlane() === 'owl'; }
   // Flying Santa's sleigh, the mission carries presents to the farmer's house instead of supplies.
   function cargo() { const p = flyPlane(); return p === 'sleigh' ? (naughty ? 'lumps of coal' : 'presents') : p === 'ufo' ? 'cows' : 'supplies'; }
   function sameTeam(gh) { return !!myTeam() && gh.team === myTeam(); }
   function applyAirframe() {
     showModel(plane, flyPlane());
-    if (flyPlane() === 'heli') startHeli();
+    if (isHeli()) startHeli();
     if (flyPlane() === 'shifter') { setShifterMode('jet', true); loadXformClips(); }
     M.yellow.color.set(myTeam() ? TEAM_COLORS[myTeam()] : '#F2C230');
     updatePerf();
@@ -2284,6 +2289,78 @@
     box(0.04, 0.16, 2.2, blade, 0, 0, 0, 0, 0, 0, heliTail);
     H.add(heliTail);
   }
+  // Barn Owl: an original fast twin-engine helicopter. Rounded cabin, midnight blue over a silver belly with a gold stripe,
+  // amber "owl eye" lights on the nose, side pods with wheels that tuck up in flight, twin engines whose exhausts glow on
+  // turbo, a 2-blade main rotor, and a swept fin with a small tail wing.
+  const owlModel = new THREE.Group();
+  owlModel.name = 'owl';
+  owlModel.visible = false;
+  plane.add(owlModel);
+  const owlRotor = new THREE.Group(), owlTail = new THREE.Group(), owlGear = new THREE.Group(), owlBurners = [];
+  {
+    const O = owlModel, blue = lambert('#1F2E4D', { emissive: '#0A1020' }), silver = lambert('#B9BEC4', { emissive: '#2A2D30' });
+    const gold = lambert('#D9A43A', { emissive: '#4A3510' }), dark = lambert('#24272B'), blade = lambert('#1E2023');
+    const glass = lambert('#2E4558', { emissive: '#0E1820' }), eye = new THREE.MeshBasicMaterial({ color: '#FFB53A' });
+    const prof = [[0, -3.2], [0.35, -3.0], [0.7, -2.5], [0.95, -1.7], [1.05, -0.8], [1.05, 0.6], [0.9, 1.5], [0.55, 2.3], [0.3, 2.8], [0, 3.0]];
+    // One body shape, drawn as a silver hull, a blue upper shell, a gold stripe along each side, and the windscreen.
+    const shell = (pts, mat, scale, phiStart = 0, phiLength = Math.PI * 2) => {
+      const g = new THREE.LatheGeometry(pts.map(([r, z]) => new THREE.Vector2(r, z)), 20, phiStart, phiLength);
+      g.rotateX(Math.PI / 2);
+      g.scale(0.95 * scale, 0.9 * scale, 1);
+      const m = new THREE.Mesh(g, mat);
+      O.add(m);
+      return m;
+    };
+    shell(prof, silver, 1);
+    shell(prof, blue, 1.012, Math.PI / 2 - 0.3, Math.PI + 0.6);
+    shell(prof, gold, 1.02, Math.PI / 2 - 0.42, 0.12);
+    shell(prof, gold, 1.02, Math.PI * 1.5 + 0.3, 0.12);
+    shell(prof.slice(0, 5).concat([[0, -0.8]]), glass, 1.03, Math.PI / 2 + 0.45, Math.PI - 0.9);
+    for (const sx of [-1, 1]) {
+      box(0.05, 0.42, 1.3, glass, sx * 0.93, 0.28, -0.2, 0, 0, 0, O);
+      const e = new THREE.Mesh(new THREE.SphereGeometry(0.13, 10, 8), eye);
+      e.position.set(sx * 0.32, 0.22, -2.92);
+      O.add(e);
+      // Side pod with a main wheel that tucks up into it.
+      jetTube(O, 0.22, 0.3, 2.3, blue, sx * 1.12, -0.55, 0.2);
+      jetTube(O, 0.3, 0.12, 0.5, blue, sx * 1.12, -0.55, 1.6);
+      const w = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 0.14, 14), M.tire);
+      w.rotation.z = Math.PI / 2;
+      w.position.set(sx * 1.12, -1.0, 0.1);
+      owlGear.add(w);
+      box(0.06, 0.4, 0.06, dark, sx * 1.12, -0.82, 0.1, 0, 0, 0, owlGear);
+      // Twin engines on the roof; their exhausts glow when the turbo is on.
+      jetTube(O, 0.24, 0.28, 2.2, blue, sx * 0.34, 0.92, 0.5);
+      jetTube(O, 0.24, 0.2, 0.45, dark, sx * 0.34, 0.92, 1.8, true);
+      const b = new THREE.Mesh(burnerGeo, burnerMat);
+      b.scale.set(0.7, 0.7, 0.8);
+      b.position.set(sx * 0.34, 0.92, 2.85);
+      b.visible = false;
+      O.add(b);
+      owlBurners.push(b);
+    }
+    const nose = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.17, 0.12, 12), M.tire);
+    nose.rotation.z = Math.PI / 2;
+    nose.position.set(0, -1.08, -2.2);
+    owlGear.add(nose);
+    box(0.06, 0.35, 0.06, dark, 0, -0.85, -2.2, 0, 0, 0, owlGear);
+    O.add(owlGear);
+    jetTube(O, 0.26, 0.12, 4.6, blue, 0, 0.35, 5.0);
+    jetFlat(O, [[0.7, 0], [-0.4, 1.7], [-0.95, 1.7], [-0.9, 0]], 0.08, blue, 0, 0.4, 7.0, true);
+    jetFlat(O, [[0.25, -0.5], [-0.15, -1.3], [-0.45, -1.3], [-0.4, -0.5]], 0.06, blue, 0, 0.35, 7.0, true);
+    box(2.4, 0.06, 0.5, blue, 0, 0.35, 6.3, 0, 0, 0, O);
+    for (const sx of [-1, 1]) box(0.05, 0.55, 0.45, gold, sx * 1.2, 0.45, 6.35, 0, 0, 0, O);
+    const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.45, 10), dark);
+    mast.position.set(0, 1.35, -0.2);
+    O.add(mast);
+    owlRotor.position.set(0, 1.62, -0.2);
+    box(12.5, 0.05, 0.42, blade, 0, 0, 0, 0, 0, 0, owlRotor);
+    box(0.5, 0.18, 0.5, dark, 0, 0, 0, 0, 0, 0, owlRotor);
+    O.add(owlRotor);
+    owlTail.position.set(-0.2, 0.85, 7.25);
+    box(0.04, 1.8, 0.18, blade, 0, 0, 0, 0, 0, 0, owlTail);
+    O.add(owlTail);
+  }
   // Shifter: an original transforming jet with three modes. Its parts swing between poses: jet (wings out, legs tucked
   // under the tail as engine pods), hover (legs down, arms out with the gun pod), and robot (standing, wings folded on its
   // back, head out). Each part has a pose per mode, [position, rotation, size], in its parent's frame.
@@ -2427,9 +2504,9 @@
       shifterParts.gun.quaternion.setFromEuler(shE.set(rx - PI2, 0, 0));
     }
   }
-  // Show one airframe inside a plane group: 'cub', 'camel', 'triplane', 'sleigh', 'ufo', 'jet', 'redjet', 'heli', or 'shifter' (only the first three have a propeller).
+  // Show one airframe inside a plane group: 'cub', 'camel', 'triplane', 'sleigh', 'ufo', 'jet', 'redjet', 'heli', 'owl', or 'shifter' (only the first three have a propeller).
   function showModel(group, type) {
-    for (const name of ['cub', 'camel', 'triplane', 'sleigh', 'ufo', 'jet', 'redjet', 'heli', 'shifter']) { const m = group.getObjectByName(name); if (m) m.visible = name === type; }
+    for (const name of ['cub', 'camel', 'triplane', 'sleigh', 'ufo', 'jet', 'redjet', 'heli', 'owl', 'shifter']) { const m = group.getObjectByName(name); if (m) m.visible = name === type; }
     for (const name of ['prop', 'disc']) { const m = group.getObjectByName(name); if (m) m.visible = ['cub', 'camel', 'triplane'].includes(type); }
   }
   // Wingtip navigation lights (red left, green right) on the airplanes.
@@ -2508,7 +2585,7 @@
     autoPilot.cool = Math.max(0, autoPilot.cool - dt);
     if (flyPlane() === 'shifter' && shifter.mode === 'hover') { heliFly(dt); return; }
     if (flyPlane() === 'shifter' && shifter.mode === 'robot') { robotFly(dt); return; }
-    if (flyPlane() === 'heli') { if (heliReal() || choice.flying === 'easy') heliSim(dt); else heliFly(dt); return; }
+    if (isHeli()) { tickTurbo(dt); if (heliReal() || choice.flying === 'easy') heliSim(dt); else heliFly(dt); return; }
     if (hover.on) { hoverFly(dt); return; }
     if (autoPilot.on) { autoPilot.grace = Math.max(0, autoPilot.grace - dt); autoFly(dt); trackBarn(); trackStunts(); return; }
     ilsCheck();
@@ -2922,10 +2999,25 @@
   // screen, the ▲ and ▼ buttons press those keys); the nose keys speed up or slow down and the
   // speed holds; the bank keys turn. It tilts nose-down to speed up and leans into turns.
   const heli = { yaw: 0, vy: 0, speed: 0, pitch: 0, roll: 0, c: 0, ped: 0 };
+  // Barn Owl turbo: T (or the Turbo button) lights both exhausts and pushes it along its heading for 5 seconds, then it
+  // needs 12 seconds to recharge. It only works in the air.
+  const turbo = { left: 0, wait: 0 }, TURBO_TIME = 5, TURBO_WAIT = 12, TURBO_PUSH = 12;
+  function fireTurbo() {
+    if (flyPlane() !== 'owl' || state.frozen || paused || turbo.left > 0) return;
+    if (state.onGround) return toast('Turbo works in the air. Lift off first.', 2.5);
+    if (turbo.wait > 0) return toast(`Turbo is recharging: ${Math.ceil(turbo.wait)} s.`, 2);
+    Object.assign(turbo, { left: TURBO_TIME, wait: TURBO_WAIT });
+    toast('Turbo!', 1.5, true);
+  }
+  function tickTurbo(dt) {
+    if (turbo.left > 0) { turbo.left = Math.max(0, turbo.left - dt); return; }
+    if (turbo.wait > 0) { turbo.wait = Math.max(0, turbo.wait - dt); if (turbo.wait === 0 && flyPlane() === 'owl') toast('Turbo ready.', 1.5, true); }
+  }
   function startHeli() {
     euler.setFromQuaternion(state.quat, 'YXZ');
     const fx = -Math.sin(euler.y), fz = -Math.cos(euler.y);
-    Object.assign(heli, { yaw: euler.y, vy: 0, speed: state.onGround ? 0 : clamp(state.vel.x * fx + state.vel.z * fz, -10, flyPlane() === 'shifter' ? 92 : 75), pitch: 0, roll: 0, ped: 0, c: state.onGround ? 0 : HOVER_C });
+    Object.assign(heli, { yaw: euler.y, vy: 0, speed: state.onGround ? 0 : clamp(state.vel.x * fx + state.vel.z * fz, -10, flyPlane() === 'shifter' ? 92 : flyPlane() === 'owl' ? 90 : 75), pitch: 0, roll: 0, ped: 0, c: state.onGround ? 0 : HOVER_C });
+    Object.assign(turbo, { left: 0, wait: 0 });
   }
   function heliFly(dt) {
     const s = state, L = layout;
@@ -2933,8 +3025,10 @@
     const turn = (has(L.left) || has('ArrowLeft') ? 1 : 0) - (has(L.right) || has('ArrowRight') ? 1 : 0) - clamp(stick.roll, -1, 1);
     const push = (has(noseDownKey()) || has(pilotStick() ? 'ArrowUp' : 'ArrowDown') ? 1 : 0) - (has(noseUpKey()) || has(pilotStick() ? 'ArrowDown' : 'ArrowUp') ? 1 : 0) - clamp(stick.pitch, -1, 1);
     const before = heli.speed, wasUp = !s.onGround;
-    const sh = flyPlane() === 'shifter', top = sh ? 92 : 75, gear = sh ? shifter.gear : GEAR;
-    heli.speed = clamp(heli.speed + push * (sh ? 14 : 10) * dt, -10, top);
+    const sh = flyPlane() === 'shifter', owl = flyPlane() === 'owl', boost = owl && turbo.left > 0, gear = sh ? shifter.gear : GEAR;
+    const top = boost ? 135 : sh ? 92 : owl ? 90 : 75, sped = heli.speed + (push * (sh ? 14 : owl ? 12 : 10) + (boost ? 12 : 0)) * dt;
+    // Past top speed (just after a turbo), it slows back down gradually instead of all at once.
+    heli.speed = sped > top ? Math.max(top, heli.speed - 15 * dt) : Math.max(-10, sped);
     // Slow pedal turns in a hover (so it can't spin to aim at everything), full turn rate from about 80 kt.
     heli.yaw += turn * (0.4 + 0.4 * Math.min(1, Math.abs(heli.speed) / 40)) * dt;
     heli.vy += (up * (up > 0 ? 10 : 8) - heli.vy) * Math.min(1, dt * 2.5);
@@ -2999,7 +3093,7 @@
     if (easy && Math.abs(cp) < 0.08) pitchT = clamp(vFwd * 0.03, -T.tilt, T.tilt);
     if (easy && Math.abs(cr) < 0.08) rollT = clamp(vRight * 0.03, -T.tilt, T.tilt);
     if (s.onGround) { pitchT = 0; rollT = 0; }
-    const k = Math.min(1, dt / T.lag);
+    const owl = flyPlane() === 'owl', k = Math.min(1, dt / (T.lag * (owl ? 0.8 : 1)));
     heli.pitch += (pitchT - heli.pitch) * k;
     heli.roll += (rollT - heli.roll) * k;
     // The nose: pedals (on Easy, sideways in a hover), the tail weathervaning into the airflow, and Hard's torque.
@@ -3025,9 +3119,9 @@
       const need = G + (vyT - s.vel.y) * 2.5 + 0.6 * s.vel.y;
       heli.c = s.onGround && up <= 0 ? 0 : clamp(HOVER_C * need / (G * lf * Math.max(0.5, hUp.y)), 0, 1);
     } else heli.c = clamp(heli.c + up * 0.45 * dt, 0, 1);
-    const lift = G * (heli.c / HOVER_C) * lf, drag = 0.02 + 0.00074 * spd;
-    s.vel.x += (hUp.x * lift - s.vel.x * drag) * dt;
-    s.vel.z += (hUp.z * lift - s.vel.z * drag) * dt;
+    const lift = G * (heli.c / HOVER_C) * lf, drag = owl ? 0.016 + 0.0006 * spd : 0.02 + 0.00074 * spd, push = owl && turbo.left > 0 && !s.onGround ? TURBO_PUSH : 0;
+    s.vel.x += (hUp.x * lift + hFwd.x * push - s.vel.x * drag) * dt;
+    s.vel.z += (hUp.z * lift + hFwd.z * push - s.vel.z * drag) * dt;
     s.vel.y += (hUp.y * lift - G - 0.6 * s.vel.y) * dt;
     s.pos.addScaledVector(s.vel, dt);
     const floor = ground(s.pos.x, s.pos.z) + GEAR;
@@ -3510,7 +3604,7 @@
   }
   function radio(text, spoken) {
     // Tower's callsign matches the airframe: Cub Flight (the messages are written for the Cub), Camel Flight, Red Baron Flight, and so on.
-    const call = { camel: 'Camel Flight', triplane: 'Red Baron Flight', sleigh: 'Santa Flight', ufo: 'UFO Flight', jet: 'Jet Flight', heli: 'Chopper Flight', shifter: 'Shifter Flight' }[flyPlane()];
+    const call = { camel: 'Camel Flight', triplane: 'Red Baron Flight', sleigh: 'Santa Flight', ufo: 'UFO Flight', jet: 'Jet Flight', heli: 'Chopper Flight', owl: 'Owl Flight', shifter: 'Shifter Flight' }[flyPlane()];
     if (call) { text = text.replace(/Cub Flight/g, call); if (spoken) spoken = spoken.replace(/Cub Flight/g, call); }
     radioText.textContent = text;
     radioEl.hidden = false;
@@ -3610,7 +3704,7 @@
     mission.running = false;
     showCard(title, why);
   }
-  const tipStart = () => `Mission: ${flyPlane() === 'ufo' ? "return the farmer's cows to his barn" : `fly the ${flyPlane() === 'sleigh' ? `${cargo()} to the farmer's house` : "supplies to the farmer's barn"}`}. ${choice.season === 'winter' ? 'Watch the wind and the icy runway. ' : ''}${flyPlane() === 'heli' ? (TOUCH && heliReal() ? `Push the ${choice.pad === 'right' ? 'left' : 'right'} stick up to lift off.` : TOUCH ? 'Hold ▲ to lift off.' : `Hold ${keyName(layout.more)} to lift off.`) : TOUCH ? 'Hold ▲ or slide Power to 100.' : `Hold ${keyName(layout.more)} for full power.`}${flyPlane() === 'shifter' ? ' Press T to transform.' : ''}`;
+  const tipStart = () => `Mission: ${flyPlane() === 'ufo' ? "return the farmer's cows to his barn" : `fly the ${flyPlane() === 'sleigh' ? `${cargo()} to the farmer's house` : "supplies to the farmer's barn"}`}. ${choice.season === 'winter' ? 'Watch the wind and the icy runway. ' : ''}${isHeli() ? (TOUCH && heliReal() ? `Push the ${choice.pad === 'right' ? 'left' : 'right'} stick up to lift off.` : TOUCH ? 'Hold ▲ to lift off.' : `Hold ${keyName(layout.more)} to lift off.`) : TOUCH ? 'Hold ▲ or slide Power to 100.' : `Hold ${keyName(layout.more)} for full power.`}${flyPlane() === 'shifter' ? ' Press T to transform.' : flyPlane() === 'owl' ? (TOUCH ? ' Tap Turbo for a dash.' : ' Press T for turbo.') : ''}`;
   const tipRotate = () => `At 50 kt, ${TOUCH ? (pilotStick() ? 'drag down' : 'drag up') : `hold ${keyName(noseUpKey())}`} until the wheels lift, then let go.`;
   const TIP_ROUTE = "Follow the red arrow on the compass. The farmer's barn is over the hills.";
   const tipBarn = () => `Line up with the barn doors and stay under ${barnSize.ceilingFt} ft. ${TOUCH ? 'Tap Drop' : 'Press Space'} just as you enter.`;
@@ -3644,7 +3738,7 @@
     updateMissionText();
     toast(tipStart(), 0);
     if (choice.mode === 'fight') placeForFight();
-    if (flyPlane() === 'heli') startHeli();
+    if (isHeli()) startHeli();
     if (flyPlane() === 'shifter') { shifter.mode = 'jet'; shifterPose('jet', true); updatePerf(); renderKeys(); }
   }
   function barnApproach() {
@@ -3657,7 +3751,7 @@
     Object.assign(state, { throttle: levelThrottle(31), onGround: false, tipStage: 3 });
     Object.assign(mission, { practice: true, running: true, calledTakeoff: true });
     updateMissionText();
-    if (flyPlane() === 'heli') startHeli();
+    if (isHeli()) startHeli();
     toast(`Practice run. ${tipBarn()}`, 7);
   }
 
@@ -3683,7 +3777,7 @@
     else if (kind === 'season' && SEASONS[value]) { choice.season = value; applySeason(SEASONS[value]); }
     else if (kind === 'wx' && WX[value]) { choice.wx = value; restart = false; applyWeather(); }
     else if (kind === 'time' && Object.prototype.hasOwnProperty.call(TIMES, value)) { choice.time = value; restart = false; applyWeather(); }
-    else if (kind === 'plane' && ['cub', 'camel', 'triplane', 'sleigh', 'ufo', 'jet', 'heli', 'shifter'].includes(value)) {
+    else if (kind === 'plane' && ['cub', 'camel', 'triplane', 'sleigh', 'ufo', 'jet', 'heli', 'owl', 'shifter'].includes(value)) {
       if (!planeShown(value)) value = 'cub';
       choice.plane = value;
       restart = false;
@@ -3741,6 +3835,7 @@
   }
   function updateSpecs() {
     if (flyPlane() === 'heli') { $('specs').textContent = 'Top speed 145 kt · Climbs 2,000 ft/min · Hovers'; drawAsiArcs(); return; }
+    if (flyPlane() === 'owl') { $('specs').textContent = 'Top speed 180 kt · Turbo 260 kt · Hovers'; drawAsiArcs(); return; }
     if (flyPlane() === 'shifter' && shifter.mode !== 'jet') { $('specs').textContent = shifter.mode === 'hover' ? 'Hover mode · Top speed 180 kt · T to transform' : 'Robot mode · Walks and jumps · T to transform'; drawAsiArcs(); return; }
     const stall = Math.sqrt(2 * MASS * G / (RHO * WING * (CL0 + CLA * perf.aStall)));
     const bestGlide = Math.sqrt(2 * MASS * G / (RHO * WING * Math.sqrt(perf.cd0 / K_IND)));
@@ -3752,20 +3847,21 @@
     const ufo = flyPlane() === 'ufo';
     $('tAmmo').textContent = ufo ? 'Lasers' : (AMMO[choice.ammo] || AMMO.snow).name;
     $('tAmmo').disabled = ufo;
-    $('tXform').hidden = flyPlane() !== 'shifter';
-    const sticks = TOUCH && flyPlane() === 'heli' && heliReal();
+    $('tXform').hidden = flyPlane() !== 'shifter' && flyPlane() !== 'owl';
+    $('tXform').textContent = flyPlane() === 'owl' ? 'Turbo' : 'Transform';
+    const sticks = TOUCH && isHeli() && heliReal();
     document.body.classList.toggle('heli-sticks', sticks);
     $('tPad2').hidden = !sticks;
   }
   function renderKeys() {
     syncTouchUi();
     const L = layout, rows = [
-      ...(flyPlane() === 'heli' && heliReal() ? [[[noseDownKey(), noseUpKey()], 'Cyclic: tilt forward, back'], [[L.left, L.right], 'Cyclic: tilt left, right (slide sideways, or bank at speed)'], [[L.more, L.less], 'Collective: more lift, less lift (stays where you set it)'], [[L.yawL, L.yawR], choice.flying === 'hard' ? 'Pedals: nose left, right (adding power twists the nose right)' : 'Pedals: nose left, right']]
-        : flyPlane() === 'heli' && choice.flying === 'easy' ? [[[noseDownKey(), noseUpKey()], 'Tilt forward, back (it keeps moving, then slows to a hover)'], [[L.left, L.right], 'Turn in a hover; bank into turns at speed'], [[L.more, L.less], 'Up, down (holds height when you let go)']]
-        : flyPlane() === 'heli' || (flyPlane() === 'shifter' && shifter.mode === 'hover') ? [[[noseDownKey(), noseUpKey()], 'Faster, slower (it keeps its speed)'], [[L.left, L.right], 'Turn left, turn right'], [[L.more, L.less], 'Up, down (let go to hold your height)']]
+      ...(isHeli() && heliReal() ? [[[noseDownKey(), noseUpKey()], 'Cyclic: tilt forward, back'], [[L.left, L.right], 'Cyclic: tilt left, right (slide sideways, or bank at speed)'], [[L.more, L.less], 'Collective: more lift, less lift (stays where you set it)'], [[L.yawL, L.yawR], choice.flying === 'hard' ? 'Pedals: nose left, right (adding power twists the nose right)' : 'Pedals: nose left, right']]
+        : isHeli() && choice.flying === 'easy' ? [[[noseDownKey(), noseUpKey()], 'Tilt forward, back (it keeps moving, then slows to a hover)'], [[L.left, L.right], 'Turn in a hover; bank into turns at speed'], [[L.more, L.less], 'Up, down (holds height when you let go)']]
+        : isHeli() || (flyPlane() === 'shifter' && shifter.mode === 'hover') ? [[[noseDownKey(), noseUpKey()], 'Faster, slower (it keeps its speed)'], [[L.left, L.right], 'Turn left, turn right'], [[L.more, L.less], 'Up, down (let go to hold your height)']]
         : flyPlane() === 'shifter' && shifter.mode === 'robot' ? [[[noseDownKey(), noseUpKey()], 'Walk forward, walk back'], [[L.left, L.right], 'Turn left, turn right'], [[L.more], 'Jump jets: climb (3 s), or slow a fall'], [[L.less], 'Fall faster']]
         : [[[noseUpKey(), noseDownKey()], 'Nose up, nose down'], [[L.left, L.right], 'Bank left, bank right'], [[L.more, L.less], 'More power, less power']]),
-      ...(flyPlane() === 'shifter' ? [[['KeyT'], 'Transform: jet, hover, robot']] : []), ...(flyPlane() === 'sleigh' ? [[['KeyQ'], 'Presents or coal']] : flyPlane() === 'ufo' ? [[['KeyQ'], 'Stamp a crop circle'], [['KeyM'], 'Beam a cow down, or back up if one is below you (Shift+M drops a herd)'], [['KeyV'], 'Hover and stop (V again to fly normally). Shift+V: flat or airplane mode at your speed']] : []), [['Space'], choice.mode === 'fight' ? 'Hold to fire your ammo, brake on the ground' : `Fire your ammo (hold for more); drops ${cargo()} at the barn; brakes on the ground`], [['KeyB'], choice.mode === 'fight' ? 'Leave the fight and practice at the barn' : 'Practice: jump to the barn'],
+      ...(flyPlane() === 'shifter' ? [[['KeyT'], 'Transform: jet, hover, robot']] : flyPlane() === 'owl' ? [[['KeyT'], 'Turbo: a 5-second dash, then 12 seconds to recharge']] : []), ...(flyPlane() === 'sleigh' ? [[['KeyQ'], 'Presents or coal']] : flyPlane() === 'ufo' ? [[['KeyQ'], 'Stamp a crop circle'], [['KeyM'], 'Beam a cow down, or back up if one is below you (Shift+M drops a herd)'], [['KeyV'], 'Hover and stop (V again to fly normally). Shift+V: flat or airplane mode at your speed']] : []), [['Space'], choice.mode === 'fight' ? 'Hold to fire your ammo, brake on the ground' : `Fire your ammo (hold for more); drops ${cargo()} at the barn; brakes on the ground`], [['KeyB'], choice.mode === 'fight' ? 'Leave the fight and practice at the barn' : 'Practice: jump to the barn'],
       [['Digit1', 'Digit7'], 'Pick ammo, 1 to 7'], [['KeyC'], 'Change view'], [['KeyZ'], 'Smoke on or off'], [['KeyA'], 'Rapid fire on or off'], [['KeyP'], 'Barn autopilot on or off'], [['KeyO'], 'Your stats'], [['Escape'], 'Pause'], [['KeyX'], 'Mark a waypoint'], [['KeyG'], 'Hide the left card'], [['KeyH'], 'Hide this card']
     ];
     const list = $('keyList');
@@ -3830,7 +3926,7 @@
   applyChoice('pad', saved.pad === 'right' ? 'right' : 'left', false);
   applyChoice('wx', WX[saved.wx] ? saved.wx : 'light', false);
   applyChoice('time', ['dusk', 'night'].includes(saved.time) ? saved.time : 'day', false);
-  applyChoice('plane', ['camel', 'triplane', 'sleigh', 'ufo', 'jet', 'heli', 'shifter'].includes(saved.plane) ? saved.plane : 'cub', false);
+  applyChoice('plane', ['camel', 'triplane', 'sleigh', 'ufo', 'jet', 'heli', 'owl', 'shifter'].includes(saved.plane) ? saved.plane : 'cub', false);
   applyChoice('team', 'free', false);
   refreshPlaneLock();
   applyChoice('season', SEASONS[saved.season] ? saved.season : 'summer', false);
@@ -3922,7 +4018,7 @@
     else if (e.code === 'KeyX') markWaypoint();
     else if (e.code === 'KeyB') barnApproach();
     else if (/^Digit[1-7]$/.test(e.code)) pickAmmo(Number(e.code.slice(5)) - 1);
-    else if (e.code === 'KeyT') nextShifterMode();
+    else if (e.code === 'KeyT') { if (flyPlane() === 'owl') fireTurbo(); else nextShifterMode(); }
     else if (e.code === 'KeyA') { boostOn = !boostOn; toast(boostOn ? 'Rapid fire on.' : 'Rapid fire off.', 2); }
     else if (e.code === 'KeyO') toggleBoard();
     else if (e.code === 'KeyZ') { smokeOn = !smokeOn; net.sendWait = 0; toast(smokeOn ? 'Smoke on.' : 'Smoke off.', 2); }
@@ -3936,7 +4032,7 @@
       else exitHover();
     }
     else if (e.code === 'KeyQ' && flyPlane() === 'sleigh') { naughty = !naughty; applyAirframe(); updateMissionText(); toast(naughty ? 'Naughty list: Santa drops coal.' : 'Nice list: Santa drops presents.', 3); }
-    else if (e.code === 'KeyP' && flyPlane() === 'heli') toast('The barn autopilot is for airplanes.', 2.5);
+    else if (e.code === 'KeyP' && isHeli()) toast('The barn autopilot is for airplanes.', 2.5);
     else if (e.code === 'KeyP' && flyPlane() === 'shifter' && shifter.mode !== 'jet') toast('The barn autopilot only works in jet mode.', 3);
     else if (e.code === 'KeyP') {
       ilsMine = !ilsMine;
@@ -4078,7 +4174,7 @@
     clearInputs();
     touchFire = false;
   }
-  for (const [id, fn] of [['tPause', () => togglePause()], ['tFull', toggleFull], ['tXform', () => nextShifterMode()], ['tSettings', () => setMenu(true)], ['tClose', () => setMenu(false)],
+  for (const [id, fn] of [['tPause', () => togglePause()], ['tFull', toggleFull], ['tXform', () => (flyPlane() === 'owl' ? fireTurbo() : nextShifterMode())], ['tSettings', () => setMenu(true)], ['tClose', () => setMenu(false)],
     ['tAmmo', () => pickAmmo((AMMO_KEYS.indexOf(choice.ammo) + 1) % AMMO_KEYS.length)]]) {
     $(id).addEventListener('click', () => { startEngine(); fn(); $(id).blur(); });
   }
@@ -4977,7 +5073,7 @@
     gh.paint.color.set(BANDIT_PAINT);
     gh.body.traverse((o) => { if (o.isMesh && o.material && o.material.color && o.material.color.getHexString() === 'b3261e') o.material = gh.paint; });
     // Against the helicopter or the Shifter each bandit takes one extra hit, since they can hover and aim.
-    const hp = F.hp + (['heli', 'shifter'].includes(flyPlane()) ? 1 : 0);
+    const hp = F.hp + (isHeli() || flyPlane() === 'shifter' ? 1 : 0);
     Object.assign(gh, { color: BANDIT_TAG, baseColor: BANDIT_TAG, name: `Bandit ${i + 1}`, plane: kind, mode: 'fight', npc: true, enemy: true, direct: true, hp, hpMax: hp });
     showModel(gh.body, kind);
     net.ghosts.set(id, gh);
@@ -5885,7 +5981,7 @@
     engine.o1.frequency.setTargetAtTime(78 * rpm, t, 0.12);
     engine.o2.frequency.setTargetAtTime(39.4 * rpm, t, 0.12);
     engine.lp.frequency.setTargetAtTime(260 + 520 * state.throttle, t, 0.2);
-    const santa = flyPlane() === 'sleigh', ufo = flyPlane() === 'ufo', jet = flyPlane() === 'jet' || flyPlane() === 'shifter', heliOn = flyPlane() === 'heli';
+    const santa = flyPlane() === 'sleigh', ufo = flyPlane() === 'ufo', jet = flyPlane() === 'jet' || flyPlane() === 'shifter' || (flyPlane() === 'owl' && turbo.left > 0), heliOn = isHeli();
     engine.g.gain.setTargetAtTime(on && !santa && !ufo && !jet && !heliOn ? 0.025 + state.throttle * 0.035 : 0, t, 0.15);
     engine.rg.gain.setTargetAtTime(on && heliOn ? 0.05 + state.throttle * 0.05 : 0, t, 0.2);
     engine.rlg.gain.setTargetAtTime(on && heliOn ? 0.045 + state.throttle * 0.045 : 0, t, 0.2);
@@ -6236,7 +6332,7 @@
     hdgEl.textContent = String(hdg).padStart(3, '0');
     thrEl.textContent = Math.round(s.throttle * 100);
     if (document.activeElement !== thrInput) thrInput.value = Math.round(s.throttle * 100);
-    stallEl.hidden = s.frozen || s.onGround || speed < 5 || s.alpha < perf.aStall - 0.03 || flyPlane() === 'ufo' || flyPlane() === 'heli' || (flyPlane() === 'shifter' && shifter.mode !== 'jet');
+    stallEl.hidden = s.frozen || s.onGround || speed < 5 || s.alpha < perf.aStall - 0.03 || flyPlane() === 'ufo' || isHeli() || (flyPlane() === 'shifter' && shifter.mode !== 'jet');
     timeEl.textContent = fmt(mission.t);
 
     roseEl.setAttribute('transform', `rotate(${-hdg})`);
@@ -6335,7 +6431,14 @@
     jetBurner.visible = flyPlane() === 'jet' && s.throttle > 0.85 && !s.frozen;
     if (!paused) updateShifterModel(dt);
     for (const b of shifterBurners) b.visible = flyPlane() === 'shifter' && !s.frozen && (shifter.mode === 'jet' ? s.throttle > 0.85 : shifter.mode === 'hover' ? !s.onGround : shifter.jets);
-    if (flyPlane() === 'heli' && !s.frozen) { heliRotor.rotation.y += dt * (12 + s.throttle * 20); heliTail.rotation.x += dt * (20 + s.throttle * 30); }
+    if (isHeli() && !s.frozen) {
+      const owl = flyPlane() === 'owl', rotor = owl ? owlRotor : heliRotor, tail = owl ? owlTail : heliTail;
+      rotor.rotation.y += dt * (12 + s.throttle * 20);
+      tail.rotation.x += dt * (20 + s.throttle * 30);
+    }
+    // Barn Owl: the wheels tuck up above about 50 ft, and the exhausts glow on turbo.
+    owlGear.visible = s.onGround || agl < 15;
+    for (const b of owlBurners) { b.visible = flyPlane() === 'owl' && turbo.left > 0 && !s.frozen; if (b.visible) b.scale.z = 0.7 + Math.random() * 0.3; }
     if (jetBurner.visible) jetBurner.scale.set(1, 1, 0.75 + s.throttle * 0.3 + Math.random() * 0.25);
     const fromRad = windFromNow * Math.PI / 180;
     sockPivot.rotation.y = Math.atan2(-Math.cos(fromRad), -Math.sin(fromRad));
