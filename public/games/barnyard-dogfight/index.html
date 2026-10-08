@@ -2289,76 +2289,141 @@
     box(0.04, 0.16, 2.2, blade, 0, 0, 0, 0, 0, 0, heliTail);
     H.add(heliTail);
   }
-  // Barn Owl: an original fast twin-engine helicopter. Rounded cabin, midnight blue over a silver belly with a gold stripe,
-  // amber "owl eye" lights on the nose, side pods with wheels that tuck up in flight, twin engines whose exhausts glow on
-  // turbo, a 2-blade main rotor, and a swept fin with a small tail wing.
+  // Barn Owl: an original fast twin-engine helicopter. A smooth rounded cabin, midnight blue over a silver belly with a
+  // gold stripe, a framed glass canopy and cabin windows, amber "owl eye" lights with dark pupils on the nose, faired side
+  // pods whose wheels tuck up in flight (red and green lights on their noses), one engine cover with two angled exhausts
+  // that glow on turbo, a 2-blade main rotor with a hub cap and a faint blur disc, a tapered tail boom, a swept fin with
+  // a tail wing and small gold fins, a 2-blade tail rotor, and blinking red beacons on top and underneath.
   const owlModel = new THREE.Group();
   owlModel.name = 'owl';
   owlModel.visible = false;
   plane.add(owlModel);
-  const owlRotor = new THREE.Group(), owlTail = new THREE.Group(), owlGear = new THREE.Group(), owlBurners = [];
+  const owlRotor = new THREE.Group(), owlTail = new THREE.Group(), owlGear = new THREE.Group(), owlBurners = [], owlBeacons = [];
+  const owlDisc = new THREE.Mesh(new THREE.CircleGeometry(6.3, 40), new THREE.MeshBasicMaterial({ color: '#1E2023', transparent: true, opacity: 0.1, depthWrite: false, side: THREE.DoubleSide }));
   {
     const O = owlModel, blue = lambert('#1F2E4D', { emissive: '#0A1020' }), silver = lambert('#B9BEC4', { emissive: '#2A2D30' });
     const gold = lambert('#D9A43A', { emissive: '#4A3510' }), dark = lambert('#24272B'), blade = lambert('#1E2023');
-    const glass = lambert('#2E4558', { emissive: '#0E1820' }), eye = new THREE.MeshBasicMaterial({ color: '#FFB53A' });
-    const prof = [[0, -3.2], [0.35, -3.0], [0.7, -2.5], [0.95, -1.7], [1.05, -0.8], [1.05, 0.6], [0.9, 1.5], [0.55, 2.3], [0.3, 2.8], [0, 3.0]];
-    // One body shape, drawn as a silver hull, a blue upper shell, a gold stripe along each side, and the windscreen.
+    const glass = new THREE.MeshPhongMaterial({ color: '#6F93B3', emissive: '#14222E', specular: '#FFFFFF', shininess: 90, side: THREE.DoubleSide });
+    const amber = new THREE.MeshBasicMaterial({ color: '#FFB53A' }), pupil = new THREE.MeshBasicMaterial({ color: '#1A1410' });
+    const red = new THREE.MeshBasicMaterial({ color: '#FF3B30' }), green = new THREE.MeshBasicMaterial({ color: '#34E86B' });
+    const prof = [[0, -3.25], [0.22, -3.17], [0.45, -3.0], [0.66, -2.72], [0.83, -2.35], [0.96, -1.9], [1.03, -1.35], [1.06, -0.7],
+      [1.06, 0.2], [1.02, 0.8], [0.92, 1.4], [0.76, 1.95], [0.56, 2.4], [0.38, 2.75], [0.24, 3.0], [0, 3.1]];
+    // One cabin shape drawn as layers: a silver hull, a blue upper shell, gold stripes, the canopy and its frame, and
+    // the cabin windows. Angle 0 is straight down, PI straight up, PI/2 the right side.
     const shell = (pts, mat, scale, phiStart = 0, phiLength = Math.PI * 2) => {
-      const g = new THREE.LatheGeometry(pts.map(([r, z]) => new THREE.Vector2(r, z)), 20, phiStart, phiLength);
+      const g = new THREE.LatheGeometry(pts.map(([r, z]) => new THREE.Vector2(r, z)), 36, phiStart, phiLength);
       g.rotateX(Math.PI / 2);
       g.scale(0.95 * scale, 0.9 * scale, 1);
       const m = new THREE.Mesh(g, mat);
       O.add(m);
       return m;
     };
+    const UP = Math.PI;
     shell(prof, silver, 1);
     shell(prof, blue, 1.012, Math.PI / 2 - 0.3, Math.PI + 0.6);
-    shell(prof, gold, 1.02, Math.PI / 2 - 0.42, 0.12);
-    shell(prof, gold, 1.02, Math.PI * 1.5 + 0.3, 0.12);
-    shell(prof.slice(0, 5).concat([[0, -0.8]]), glass, 1.03, Math.PI / 2 + 0.45, Math.PI - 0.9);
+    shell(prof, gold, 1.02, Math.PI / 2 - 0.46, 0.16);
+    shell(prof, gold, 1.02, Math.PI * 1.5 + 0.3, 0.16);
+    const canopy = prof.slice(3, 7);
+    shell(canopy, glass, 1.026, UP - 1.0, 2.0);
+    for (const a of [UP - 1.02, UP - 0.025, UP + 0.98]) shell(canopy, dark, 1.034, a, 0.05);
+    shell([[1.03, -1.42], [1.035, -1.3]], dark, 1.03, UP - 1.0, 2.0);
+    for (const [z0, z1] of [[-1.0, -0.35], [-0.12, 0.55]]) {
+      const band = [[1.06, z0], [1.06, z1]];
+      shell(band, glass, 1.022, Math.PI / 2 + 0.28, 0.45);
+      shell(band, glass, 1.022, Math.PI * 1.5 - 0.73, 0.45);
+    }
     for (const sx of [-1, 1]) {
-      box(0.05, 0.42, 1.3, glass, sx * 0.93, 0.28, -0.2, 0, 0, 0, O);
-      const e = new THREE.Mesh(new THREE.SphereGeometry(0.13, 10, 8), eye);
-      e.position.set(sx * 0.32, 0.22, -2.92);
-      O.add(e);
-      // Side pod with a main wheel that tucks up into it.
-      jetTube(O, 0.22, 0.3, 2.3, blue, sx * 1.12, -0.55, 0.2);
-      jetTube(O, 0.3, 0.12, 0.5, blue, sx * 1.12, -0.55, 1.6);
+      // Owl eyes: an amber lens with a dark rim and a dark pupil, facing out from the nose.
+      const n = new THREE.Vector3(sx * 0.4, 0.12, -0.9).normalize(), at = new THREE.Vector3(sx * 0.33, 0.08, -2.95);
+      const lens = new THREE.Mesh(new THREE.SphereGeometry(0.15, 14, 10), amber);
+      lens.position.copy(at);
+      const rim = new THREE.Mesh(new THREE.TorusGeometry(0.15, 0.025, 6, 18), dark);
+      rim.position.copy(at).addScaledVector(n, 0.03);
+      rim.lookAt(rim.position.clone().add(n));
+      const dot = new THREE.Mesh(new THREE.SphereGeometry(0.065, 10, 8), pupil);
+      dot.position.copy(at).addScaledVector(n, 0.11);
+      O.add(lens, rim, dot);
+      // Side pod: a smooth faired pod on a short wing root; its main wheel tucks up into it.
+      const podGeo = new THREE.LatheGeometry([[0, -1.35], [0.17, -1.25], [0.27, -0.95], [0.32, -0.45], [0.32, 0.3], [0.27, 0.85], [0.16, 1.25], [0, 1.45]].map(([r, z]) => new THREE.Vector2(r, z)), 24);
+      podGeo.rotateX(Math.PI / 2);
+      podGeo.scale(1, 0.8, 1);
+      const pod = new THREE.Mesh(podGeo, blue);
+      pod.position.set(sx * 1.12, -0.58, 0.2);
+      O.add(pod);
+      box(0.5, 0.1, 1.5, blue, sx * 0.82, -0.5, 0.2, 0, 0, 0, O);
+      const nav = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), sx < 0 ? red : green);
+      nav.position.set(sx * 1.12, -0.56, -1.17);
+      O.add(nav);
       const w = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 0.14, 14), M.tire);
       w.rotation.z = Math.PI / 2;
       w.position.set(sx * 1.12, -1.0, 0.1);
       owlGear.add(w);
       box(0.06, 0.4, 0.06, dark, sx * 1.12, -0.82, 0.1, 0, 0, 0, owlGear);
-      // Twin engines on the roof; their exhausts glow when the turbo is on.
-      jetTube(O, 0.24, 0.28, 2.2, blue, sx * 0.34, 0.92, 0.5);
-      jetTube(O, 0.24, 0.2, 0.45, dark, sx * 0.34, 0.92, 1.8, true);
+      // Air intakes on the engine cover, and the two exhausts angled out at its back.
+      box(0.06, 0.2, 0.45, dark, sx * 0.55, 0.92, -0.25, 0, 0, 0, O);
+      const ex = jetTube(O, 0.17, 0.14, 0.55, dark, sx * 0.4, 0.95, 2.05, true);
+      ex.rotation.y = sx * 0.28;
       const b = new THREE.Mesh(burnerGeo, burnerMat);
-      b.scale.set(0.7, 0.7, 0.8);
-      b.position.set(sx * 0.34, 0.92, 2.85);
+      b.scale.set(0.6, 0.6, 0.75);
+      b.position.set(sx * 0.62, 0.95, 2.82);
+      b.rotation.y = sx * 0.28;
       b.visible = false;
       O.add(b);
       owlBurners.push(b);
+      // Small swept gold fins on the tail wing tips.
+      jetFlat(O, [[0.25, -0.25], [-0.05, 0.35], [-0.28, 0.35], [-0.28, -0.25]], 0.04, gold, sx * 1.2, 0.35, 6.35, true);
     }
+    // One engine cover on the roof.
+    const cowl = new THREE.LatheGeometry([[0, -1.05], [0.26, -0.9], [0.43, -0.45], [0.49, 0.25], [0.47, 0.95], [0.4, 1.5], [0.3, 1.85]].map(([r, z]) => new THREE.Vector2(r, z)), 28);
+    cowl.rotateX(Math.PI / 2);
+    cowl.scale(1.25, 0.6, 1);
+    const cowlMesh = new THREE.Mesh(cowl, blue);
+    cowlMesh.position.set(0, 0.86, 0.35);
+    O.add(cowlMesh);
     const nose = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.17, 0.12, 12), M.tire);
     nose.rotation.z = Math.PI / 2;
     nose.position.set(0, -1.08, -2.2);
     owlGear.add(nose);
     box(0.06, 0.35, 0.06, dark, 0, -0.85, -2.2, 0, 0, 0, owlGear);
     O.add(owlGear);
-    jetTube(O, 0.26, 0.12, 4.6, blue, 0, 0.35, 5.0);
+    // Tail: a boom that is thick where it leaves the cabin and thin at the fin, the fin, a small lower fin, and the tail wing.
+    jetTube(O, 0.3, 0.13, 4.4, blue, 0, 0.38, 4.9);
     jetFlat(O, [[0.7, 0], [-0.4, 1.7], [-0.95, 1.7], [-0.9, 0]], 0.08, blue, 0, 0.4, 7.0, true);
     jetFlat(O, [[0.25, -0.5], [-0.15, -1.3], [-0.45, -1.3], [-0.4, -0.5]], 0.06, blue, 0, 0.35, 7.0, true);
-    box(2.4, 0.06, 0.5, blue, 0, 0.35, 6.3, 0, 0, 0, O);
-    for (const sx of [-1, 1]) box(0.05, 0.55, 0.45, gold, sx * 1.2, 0.45, 6.35, 0, 0, 0, O);
-    const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.45, 10), dark);
+    box(2.4, 0.07, 0.55, blue, 0, 0.35, 6.3, 0, 0, 0, O);
+    box(0.24, 0.3, 0.36, dark, 0, 0.85, 7.25, 0, 0, 0, O);
+    // Red beacons on top and underneath; they blink.
+    for (const [y, z] of [[1.24, 1.55], [-0.84, 0.6]]) {
+      const bcn = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 6), red);
+      bcn.position.set(0, y, z);
+      O.add(bcn);
+      owlBeacons.push(bcn);
+    }
+    // Main rotor: mast, hub cap, and two tapered blades; the disc shows the blur when it spins.
+    const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.13, 0.5, 12), dark);
     mast.position.set(0, 1.35, -0.2);
     O.add(mast);
     owlRotor.position.set(0, 1.62, -0.2);
-    box(12.5, 0.05, 0.42, blade, 0, 0, 0, 0, 0, 0, owlRotor);
-    box(0.5, 0.18, 0.5, dark, 0, 0, 0, 0, 0, 0, owlRotor);
+    const cap = new THREE.Mesh(new THREE.SphereGeometry(0.24, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2), dark);
+    cap.scale.set(1, 0.7, 1);
+    owlRotor.add(cap);
+    for (const sx of [-1, 1]) {
+      box(0.7, 0.12, 0.22, dark, sx * 0.5, 0, 0, 0, 0, 0, owlRotor);
+      box(5.2, 0.05, 0.42, blade, sx * 3.4, 0, 0, 0, 0, 0, owlRotor);
+      box(0.6, 0.04, 0.3, blade, sx * 6.3, 0, 0, 0, 0, 0, owlRotor);
+    }
     O.add(owlRotor);
-    owlTail.position.set(-0.2, 0.85, 7.25);
-    box(0.04, 1.8, 0.18, blade, 0, 0, 0, 0, 0, 0, owlTail);
+    owlDisc.name = 'owl-disc';
+    owlDisc.rotation.x = -Math.PI / 2;
+    owlDisc.position.set(0, 1.6, -0.2);
+    O.add(owlDisc);
+    // Tail rotor on the left of the fin: a hub and two blades.
+    owlTail.position.set(-0.22, 0.85, 7.25);
+    const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.14, 10), dark);
+    hub.rotation.z = Math.PI / 2;
+    owlTail.add(hub);
+    box(0.03, 0.8, 0.17, blade, -0.04, 0.45, 0, 0, 0, 0, owlTail);
+    box(0.03, 0.8, 0.17, blade, -0.04, -0.45, 0, 0, 0, 0, owlTail);
     O.add(owlTail);
   }
   // Shifter: an original transforming jet with three modes. Its parts swing between poses: jet (wings out, legs tucked
@@ -6439,7 +6504,9 @@
     }
     // Barn Owl: the wheels tuck up above about 50 ft, and the exhausts glow on turbo.
     owlGear.visible = s.onGround || agl < 15;
-    for (const b of owlBurners) { b.visible = flyPlane() === 'owl' && turbo.left > 0 && !s.frozen; if (b.visible) b.scale.z = 0.7 + Math.random() * 0.3; }
+    for (const b of owlBurners) { b.visible = flyPlane() === 'owl' && turbo.left > 0 && !s.frozen; if (b.visible) b.scale.z = 0.6 + Math.random() * 0.3; }
+    owlDisc.material.opacity = s.frozen ? 0 : 0.03 + s.throttle * 0.12;
+    for (const b of owlBeacons) b.visible = Math.sin(performance.now() / 150) > 0.6;
     if (jetBurner.visible) jetBurner.scale.set(1, 1, 0.75 + s.throttle * 0.3 + Math.random() * 0.25);
     const fromRad = windFromNow * Math.PI / 180;
     sockPivot.rotation.y = Math.atan2(-Math.cos(fromRad), -Math.sin(fromRad));
