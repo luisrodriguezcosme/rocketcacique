@@ -2738,7 +2738,8 @@
   // scale their own volume. The tower voice tops out at 100 because speech can't play louder.
   const MIX = [['mixMusic', 150], ['mixFx', 150], ['mixEngine', 150], ['mixVoice', 100]];
   const mixer = { engine: null, fx: null, voice: null, out: null };
-  const dog = { on: false, restart: false, wave: 0, total: 0, foes: [], nextWave: 0, hp: 0, hpMax: 0, kills: 0, ref: 35, seq: 0 };
+  const dog = { on: false, restart: false, wave: 0, total: 0, foes: [], nextWave: 0, hp: 0, hpMax: 0, kills: 0, ref: 35, seq: 0, barnWait: 0, lowTip: false };
+  const REPAIR_TIP = 'Pop a balloon: +1 health. Fly through the barn: full repair.';
   const LAYOUTS = {
     right: { top: 'KeyI', bottom: 'KeyK', left: 'KeyJ', right: 'KeyL', more: 'KeyR', less: 'KeyF', yawL: 'KeyQ', yawR: 'KeyE' },
     left: { top: 'KeyE', bottom: 'KeyD', left: 'KeyS', right: 'KeyF', more: 'KeyU', less: 'KeyJ', yawL: 'KeyY', yawR: 'KeyI' }
@@ -2758,7 +2759,7 @@
 
   function updateMissionText() {
     $('timerLine').hidden = choice.mode === 'fight';
-    if (choice.mode === 'fight') { missionEl.textContent = choice.drone === 'dogfight' ? `Dogfight: ${TOUCH ? 'hold FIRE' : 'hold Space'} to throw. Shoot down every bandit.` : `Snowball fight: ${TOUCH ? 'hold FIRE' : 'hold Space'} to throw. Every hit is a point.`; return; }
+    if (choice.mode === 'fight') { missionEl.textContent = choice.drone === 'dogfight' ? `Dogfight: ${TOUCH ? 'hold FIRE' : 'hold Space'} to throw. Shoot down every bandit. ${REPAIR_TIP}` : `Snowball fight: ${TOUCH ? 'hold FIRE' : 'hold Space'} to throw. Every hit is a point.`; return; }
     missionEl.textContent = mission.stage === 'outbound' ? (flyPlane() === 'ufo' ? "1. Return the farmer's cows. Beam them into his barn. Follow the red arrow." : flyPlane() === 'sleigh' ? `1. Fly the ${cargo()} to the farmer's house. Drop them in his barn. Follow the red arrow.` : "1. Drop the supplies in the farmer's barn. Follow the red arrow.")
       : mission.stage === 'return' ? '2. Fly back to town and land on the runway. Follow the green arrow.'
       : 'Mission complete.';
@@ -3204,6 +3205,7 @@
     if (!inside && barnInside) {
       const passedThrough = Math.abs(lx) > BARN_HALF && Math.sign(lx) !== barnEntry;
       if (passedThrough && choice.mode === 'mission' && mission.stage === 'outbound' && !droppedThisPass) toast(`You flew through, but you did not drop the ${cargo()}. Go around and ${SPACE_OR_TAP} inside the barn.`, 6);
+      if (passedThrough && dog.on && dogActive()) barnRepair();
       droppedThisPass = false;
     }
     barnInside = inside;
@@ -4912,7 +4914,7 @@
   function dogStartWave(w) {
     dogClear();
     const F = FOES[choice.foe], n = Math.min(F.start + w - 1, F.max);
-    Object.assign(dog, { wave: w, hp: F.myHp, hpMax: F.myHp, total: n });
+    Object.assign(dog, { wave: w, hp: F.myHp, hpMax: F.myHp, total: n, barnWait: 0 });
     for (let i = 0; i < n; i++) spawnBandit(i, n);
     const what = `${n} ${n === 1 ? 'bandit' : 'bandits'}`;
     toast(`Wave ${w}: ${what} inbound. Follow the orange marks on the compass.`, 5);
@@ -4943,7 +4945,27 @@
     if (!dog.on || dog.hp <= 0) return;
     dog.hp = Math.max(0, dog.hp - dmg);
     renderScores();
-    if (dog.hp <= 0) crash('Shot down', `${gh.name} got you on wave ${dog.wave}. Fly again starts the wave over.`);
+    if (dog.hp <= 0) return crash('Shot down', `${gh.name} got you on wave ${dog.wave}. Fly again starts the wave over.`);
+    if (!dog.lowTip && dog.hp * 3 <= dog.hpMax) {
+      dog.lowTip = true;
+      radio("Mercy Flight, Valley Tower. You're hit hard. Pop a balloon for a patch, or fly through the barn (red arrow) to repair.");
+    }
+  }
+  // Repairs: a balloon you pop gives back 1 health, and flying through the barn (in one door and out the other) gives it
+  // all back. After a barn repair the barn needs 30 seconds before it can repair you again. Health never goes past full.
+  function dogRepair(n) {
+    if (!dog.on || dog.hp <= 0 || dog.hp >= dog.hpMax || state.frozen) return false;
+    dog.hp = Math.min(dog.hpMax, dog.hp + n);
+    renderScores();
+    return true;
+  }
+  function barnRepair() {
+    if (dog.hp >= dog.hpMax) return toast('Health is already full. Come back to the barn when you need repairs.', 3);
+    if (dog.barnWait > 0) return toast(`The barn can repair you again in ${Math.ceil(dog.barnWait)} seconds.`, 3);
+    if (!dogRepair(dog.hpMax)) return;
+    dog.barnWait = 30;
+    toast('Repaired at the barn. Health full.', 3, true);
+    radio('Mercy Flight, Valley Tower. Repairs done. Back in the fight.');
   }
   // Computer planes fire whatever ammo you have picked, with its speed, drop, hit size, and hit count.
   // Returns how their reload compares to a snowball's, kept between half and three times as long.
@@ -5042,9 +5064,10 @@
       if (dog.on) { dogClear(); Object.assign(dog, { on: false, wave: 0, restart: false }); }
       return;
     }
-    if (!dog.on) { Object.assign(dog, { on: true, restart: false, kills: 0 }); dogStartWave(1); }
+    if (!dog.on) { Object.assign(dog, { on: true, restart: false, kills: 0, lowTip: false }); dogStartWave(1); }
     else if (dog.restart) { dog.restart = false; dogStartWave(dog.wave || 1); }
     if (state.frozen) return;
+    if (dog.barnWait > 0) dog.barnWait = Math.max(0, dog.barnWait - dt);
     // Bandit speed follows yours, smoothed, so the difficulty's speed is always "next to you".
     dog.ref += (clamp(state.vel.length(), 30, ['jet', 'shifter'].includes(flyPlane()) ? 170 : 75) - dog.ref) * Math.min(1, dt * 0.5);
     const F = FOES[choice.foe];
@@ -5141,7 +5164,7 @@
   function myBalloonPop(i) {
     if (!popBalloon(i, 'You', '#F2C230')) return;
     bump('balloons');
-    if (choice.mode === 'fight') { myScore++; toast(`Balloon popped! You have ${myScore}.`, 3, true); } else toast('Balloon popped!', 3, true);
+    if (choice.mode === 'fight') { myScore++; toast(dogActive() && dogRepair(1) ? `Balloon popped! +1 health (${dog.hp}/${dog.hpMax}).` : `Balloon popped! You have ${myScore}.`, 3, true); } else toast('Balloon popped!', 3, true);
     if (net.room) net.room.emit('hit', { balloon: i }).catch(() => {});
     net.sendWait = 0;
     renderScores();
