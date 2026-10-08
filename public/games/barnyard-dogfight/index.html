@@ -77,6 +77,24 @@
       radial-gradient(circle at 30% 60%, rgba(255,255,255,0.85) 0 4%, transparent 5%), radial-gradient(circle at 70% 64%, rgba(255,255,255,0.85) 0 5%, transparent 6%); }
   .splat.zap { background: radial-gradient(circle at 50% 50%, rgba(108, 255, 142, 0.0) 0 30%, rgba(108, 255, 142, 0.45) 70%, rgba(108, 255, 142, 0.7) 100%); }
   @keyframes splat { 0%, 45% { opacity: 1; } 100% { opacity: 0; } }
+  /* Egg hits: egg white and yolk splats with drips that run down. Rooster hits: feathers burst out and float down. */
+  .splat.egg, .splat.feathers { background: none; overflow: hidden; }
+  .splat.egg { animation-duration: 3s; }
+  .splat.feathers { animation: none; }
+  .splat .egg-hit { position: absolute; }
+  .splat .egg-hit svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .splat .drip { position: absolute; top: 60%; border-radius: 0 0 50% 50% / 0 0 30% 30%; background: rgba(255, 250, 232, 0.8); transform-origin: top; animation: drip 3s ease-in both; }
+  @keyframes drip { from { transform: scaleY(0.12); } to { transform: scaleY(1); } }
+  .splat .feather { position: absolute; left: var(--x); top: var(--y); width: var(--s); transform: translate(var(--bx), var(--by)) rotate(var(--r1));
+    animation: feather-fall var(--t) cubic-bezier(0.2, 0.7, 0.4, 1) var(--d) both; }
+  .splat .feather svg { display: block; width: 100%; animation: feather-sway var(--sw) ease-in-out infinite alternate; }
+  @keyframes feather-fall {
+    0% { transform: translate(0, 0) rotate(var(--r0)) scale(0.4); opacity: 0; }
+    12% { transform: translate(var(--bx), var(--by)) rotate(var(--r1)) scale(1); opacity: 1; }
+    75% { opacity: 1; }
+    100% { transform: translate(calc(var(--bx) + var(--dx)), calc(var(--by) + var(--fall))) rotate(var(--r2)) scale(1); opacity: 0; }
+  }
+  @keyframes feather-sway { from { transform: translateX(-12px) rotate(-16deg); } to { transform: translateX(12px) rotate(16deg); } }
   .plate .timer b { color: var(--ink); }
   .keys { max-width: 290px; margin-left: auto; padding: 12px 14px; font-size: 12.5px; line-height: 1.35; }
   .keys h2 { margin: 0 0 8px; font: 700 10.5px/1 var(--body); letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); }
@@ -231,7 +249,7 @@
   .intro-card .dismiss { margin: 12px 0 0; font-size: 12.5px; letter-spacing: 0.04em; color: var(--dim); }
   @media (prefers-reduced-motion: reduce) {
     .stall { animation: none; }
-    .splat { animation: none; }
+    .splat, .splat .drip, .splat .feather, .splat .feather svg { animation: none; }
     .threat, .compass .hot { animation: none; }
   }
   /* Touch layouts come last so they win over the gauge sizes above. */
@@ -4742,14 +4760,71 @@
   const splatEl = $('splat');
   let splatWait = 0;
   function splat(byName, zapped = false, kind = 'snow') {
+    const look = zapped ? 'zap' : kind === 'egg' ? 'egg' : kind === 'rooster' ? 'feathers' : '';
     splatEl.hidden = true;
-    splatEl.classList.toggle('zap', zapped);
+    for (const c of ['zap', 'egg', 'feathers']) splatEl.classList.toggle(c, look === c);
+    splatEl.replaceChildren(...(look === 'egg' ? eggHits() : look === 'feathers' ? featherBurst() : []));
     void splatEl.offsetWidth;
     splatEl.hidden = false;
-    splatWait = 2.6;
+    splatWait = look === 'feathers' ? 3.4 : look === 'egg' ? 3 : 2.6;
     if (zapped) fieldFlash(state.pos, state.pos); else sfxSplat(0.4);
     const a = AMMO[kind] || AMMO.snow;
     toast(zapped ? `Zap! ${byName} got you with a laser.` : `${a.cry} ${byName} got you with ${a.one}.`, 3);
+  }
+  // An egg hit: one or two splats, each a lumpy egg white with a few splash arms, a yolk with a shine, specks around it,
+  // and drips that run down from its lower edge.
+  let eggSeq = 0;
+  function eggHits() {
+    const out = [], size = Math.min(innerWidth, innerHeight);
+    for (let n = Math.random() < 0.5 ? 1 : 2, i = 0; i < n; i++) {
+      const w = size * (0.36 + Math.random() * 0.14), el = document.createElement('div'), id = `yolk${++eggSeq}`;
+      el.className = 'egg-hit';
+      Object.assign(el.style, { width: `${w}px`, height: `${w}px`, left: `${18 + Math.random() * 52}%`, top: `${14 + Math.random() * 40}%`, marginLeft: `${-w / 2}px`, marginTop: `${-w / 2}px` });
+      const pts = [];
+      for (let k = 0; k < 16; k++) {
+        const a = k / 16 * Math.PI * 2, r = 58 * (0.8 + Math.random() * 0.35) * (Math.random() < 0.22 ? 1.45 : 1);
+        pts.push([Math.cos(a) * r, Math.sin(a) * r]);
+      }
+      const mid = (p, q) => `${((p[0] + q[0]) / 2).toFixed(1)} ${((p[1] + q[1]) / 2).toFixed(1)}`;
+      let d = `M${mid(pts[15], pts[0])}`;
+      pts.forEach((p, k) => { d += ` Q${p[0].toFixed(1)} ${p[1].toFixed(1)} ${mid(p, pts[(k + 1) % 16])}`; });
+      const yx = (Math.random() - 0.5) * 18, yy = (Math.random() - 0.5) * 18, yr = 22 + Math.random() * 8;
+      let specks = '';
+      for (let k = 0; k < 7; k++) {
+        const a = Math.random() * Math.PI * 2, r = 80 + Math.random() * 30;
+        specks += `<circle cx="${(Math.cos(a) * r).toFixed(1)}" cy="${(Math.sin(a) * r).toFixed(1)}" r="${(2 + Math.random() * 5).toFixed(1)}" fill="rgba(255,250,232,0.85)"/>`;
+      }
+      el.innerHTML = `<svg viewBox="-100 -100 200 200"><defs><radialGradient id="${id}" cx="40%" cy="38%" r="65%"><stop offset="0" stop-color="#FFE27A"/><stop offset="0.55" stop-color="#F7B21B"/><stop offset="1" stop-color="#DE8705"/></radialGradient></defs>`
+        + `<path d="${d} Z" fill="rgba(255,250,232,0.82)" stroke="rgba(214,200,160,0.55)" stroke-width="2"/>${specks}`
+        + `<circle cx="${yx.toFixed(1)}" cy="${yy.toFixed(1)}" r="${yr.toFixed(1)}" fill="url(#${id})"/>`
+        + `<ellipse cx="${(yx - yr * 0.35).toFixed(1)}" cy="${(yy - yr * 0.4).toFixed(1)}" rx="${(yr * 0.32).toFixed(1)}" ry="${(yr * 0.2).toFixed(1)}" fill="rgba(255,255,255,0.75)" transform="rotate(-30 ${(yx - yr * 0.35).toFixed(1)} ${(yy - yr * 0.4).toFixed(1)})"/></svg>`;
+      for (let k = 0, m = 2 + Math.floor(Math.random() * 3); k < m; k++) {
+        const drip = document.createElement('i'), dw = 5 + Math.random() * 5;
+        drip.className = 'drip';
+        Object.assign(drip.style, { left: `${30 + Math.random() * 40}%`, width: `${dw}%`, height: `${28 + Math.random() * 30}%`, marginLeft: `${-dw / 2}%`, animationDelay: `${Math.random() * 0.3}s` });
+        el.prepend(drip);
+      }
+      out.push(el);
+    }
+    return out;
+  }
+  // A rooster hit: about two dozen feathers burst from the middle of the view, then sway and spin as they float down.
+  // Most are white, like a pillow fight; a few have a rooster's rust, gold, and dark green.
+  const FEATHER_COLORS = ['#FAF7F0', '#FAF7F0', '#FAF7F0', '#F1E6CF', '#FAF7F0', '#B5532A', '#D99A2B', '#1F3B2D'];
+  function featherBurst() {
+    const out = [], r = (a, b) => a + Math.random() * (b - a);
+    for (let i = 0; i < 24; i++) {
+      const el = document.createElement('div'), col = FEATHER_COLORS[i % FEATHER_COLORS.length], s = el.style;
+      el.className = 'feather';
+      const v = { x: `${r(42, 58)}%`, y: `${r(32, 48)}%`, s: `${r(5, 9).toFixed(1)}vmin`, bx: `${r(-30, 30).toFixed(1)}vw`, by: `${r(-28, 12).toFixed(1)}vh`,
+        dx: `${r(-10, 10).toFixed(1)}vw`, fall: `${r(40, 70).toFixed(1)}vh`, r0: `${r(-180, 180).toFixed(0)}deg`, r1: `${r(-60, 60).toFixed(0)}deg`,
+        r2: `${r(-200, 200).toFixed(0)}deg`, t: `${r(2.4, 3.2).toFixed(2)}s`, d: `${r(0, 0.15).toFixed(2)}s`, sw: `${r(0.45, 0.85).toFixed(2)}s` };
+      for (const [k, val] of Object.entries(v)) s.setProperty(`--${k}`, val);
+      el.innerHTML = `<svg viewBox="0 0 20 60"><path d="M10 2 C16 12 18 28 13 46 C12 50 11 54 10 58 C9 54 8 50 7 46 C2 28 4 12 10 2 Z" fill="${col}" stroke="rgba(0,0,0,0.18)" stroke-width="0.6"/>`
+        + `<path d="M10 6 L10 58" stroke="rgba(0,0,0,0.28)" stroke-width="0.9" fill="none"/><path d="M10 20 L15 16 M10 30 L5 26 M10 38 L14 35" stroke="rgba(255,255,255,0.55)" stroke-width="0.8"/></svg>`;
+      out.push(el);
+    }
+    return out;
   }
   function nameFor(by) {
     for (const gh of net.ghosts.values()) if (gh.by === by) return gh.name;
@@ -4875,11 +4950,20 @@
 
   // Dogfight: waves of computer-flown bandits that chase you, shoot, break off when you get on their tail,
   // and go down in smoke after enough hits. Difficulty (FOES) sets their numbers, toughness, speed, turning, and aim.
-  const BANDIT_PAINT = '#3D4248', BANDIT_TAG = '#FF8A65';
+  const BANDIT_PAINT = '#3D4248', BANDIT_TAG = '#FF8A65', BANDIT_FLOOR = 30;
   const dogDir = new THREE.Vector3(), dogTo = new THREE.Vector3(), dogFwd = new THREE.Vector3(), dogSide = new THREE.Vector3(), dogAim = new THREE.Vector3();
   const dogEuler = new THREE.Euler(0, 0, 0, 'YXZ');
   const wrapAngle = (a) => Math.atan2(Math.sin(a), Math.cos(a));
   function dogActive() { return choice.mode === 'fight' && choice.drone === 'dogfight'; }
+  // The highest thing at a spot, so a diving bandit clears buildings too: the town (its grain elevator is 40 m tall),
+  // the silos, and the barn roof.
+  function skyline(x, z) {
+    const g = ground(x, z);
+    if (x > CITY.x0 - 20 && x < CITY.x1 + 20 && z > -20 && z < CITY.z1 + 20) return g + 42;
+    if (Math.abs(x - SILO_X) < 25 && Math.abs(z - SILO_Z) < 25) return g + SILO_H + 4;
+    if (Math.abs(x - BARN_X) < BARN_HALF + LEAF + 4 && Math.abs(z - BARN_Z) < BARN_W + 4) return Math.max(g, RIDGE + 1);
+    return g;
+  }
   function dogAlive() { return dog.foes.filter((f) => f.mode !== 'down').length; }
   function dogClear() {
     for (const f of dog.foes) removeGhost(f.gh.peer);
@@ -5019,7 +5103,14 @@
         f.vert = f.pos.y - ground(f.pos.x, f.pos.z) < 260 ? 0.5 : (Math.random() < 0.5 ? -0.45 : 0.5);
       }
       if (f.mode === 'break' && f.modeT <= 0) { f.mode = 'chase'; f.breakCool = F.reverse ? 2 : 5; }
-      if (f.mode === 'break') {
+      // You nearly stopped (a hover) and inside its turn, off its nose: it can't point at you by turning, so it flies
+      // straight out to a few turn widths away, then comes back around for a strafing run.
+      const slow = state.vel.length() < 15, turnR = dog.ref * f.mul / F.turn;
+      if (f.mode === 'chase' && slow && dist < turnR * 3.5 && dogFwd.dot(dogTo) / dist < 0.64) { f.mode = 'extend'; f.modeT = 8; }
+      if (f.mode === 'extend' && (!slow || f.modeT <= 0 || dist > Math.max(280, turnR * 6))) f.mode = 'chase';
+      if (f.mode === 'extend') {
+        dogDir.set(-Math.sin(f.yaw), 0.05, -Math.cos(f.yaw));
+      } else if (f.mode === 'break') {
         dogSide.set(Math.cos(f.yaw), 0, -Math.sin(f.yaw)).multiplyScalar(f.side);
         dogDir.copy(dogSide).addScaledVector(dogFwd, 0.3);
         dogDir.y += f.vert;
@@ -5033,12 +5124,16 @@
         const sep = f.pos.distanceTo(o.pos);
         if (sep < 45 && sep > 0.1) dogDir.addScaledVector(dogAim.subVectors(f.pos, o.pos).normalize(), 0.6 * (1 - sep / 45));
       }
-      // Never near the ground: look ahead (farther when fast) and pull up.
-      const agl = f.pos.y - ground(f.pos.x, f.pos.z), look = Math.max(90, f.vel.length() * 1.6);
-      const ahead = f.pos.y + dogFwd.y * look - ground(f.pos.x + dogFwd.x * look, f.pos.z + dogFwd.z * look), low = Math.min(agl, ahead);
-      if (low < Math.max(100, look)) dogDir.y = Math.max(dogDir.y, low < 45 ? 0.85 : 0.4);
+      // Never into the ground: it can dive to about 30 m above it (low enough to reach a helicopter near the ground).
+      // It counts the height a pull-out from its dive will lose (more when fast) and the highest ground in the next
+      // 3 seconds of flight, and starts leveling out early enough to stop at that floor.
+      const turn = F.turn * (f.mode === 'break' ? 1.35 : 1), v = Math.max(1, f.vel.length());
+      const pullOut = f.pitch < 0 ? v / (turn * 0.8) * (1 - Math.cos(f.pitch)) : 0;
+      let hi = skyline(f.pos.x, f.pos.z);
+      for (let k = 1; k <= 6; k++) { const d = v * 0.5 * k; hi = Math.max(hi, skyline(f.pos.x - Math.sin(f.yaw) * d, f.pos.z - Math.cos(f.yaw) * d)); }
+      const margin = f.pos.y - pullOut - hi;
+      if (margin < BANDIT_FLOOR) dogDir.y = Math.max(dogDir.y, Math.min(0.85, (BANDIT_FLOOR - margin) / BANDIT_FLOOR * 0.85));
       dogDir.normalize();
-      const turn = F.turn * (f.mode === 'break' ? 1.35 : 1);
       const yawStep = clamp(wrapAngle(Math.atan2(-dogDir.x, -dogDir.z) - f.yaw), -turn * dt, turn * dt);
       f.yaw = wrapAngle(f.yaw + yawStep);
       f.pitch += clamp(clamp(Math.asin(clamp(dogDir.y, -1, 1)), -0.7, 0.7) - f.pitch, -turn * 0.8 * dt, turn * 0.8 * dt);
