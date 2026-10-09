@@ -46,8 +46,12 @@ The music was a harder call, because I wanted it. I found a copy of the real Air
 
 Two leftovers from the original game survived the first pass. The tower still used the original game's call sign for the Cub, because the code that swaps call signs covered every aircraft except the default one. The settings panel still carried the original game's name. Both are fixed, and the check I run before every publish now looks for them.
 
+## Update: the Barn Swallow
+
+*Added October 8, a few hours after this post went up.* My co-worker shared a newer version of the original game with a twin-tail fighter jet, and it now flies here as the Barn Swallow. It brought its own handling, a head-up display, an afterburner, heat-seeking missiles, and flares. I added one thing: on Hard and Ace, enemy jets fire missiles back. The test pilot found that turning hard never shakes one, so flares are the way out. Three flares pulled 14 of 20 test missiles away.
+
 ## Play it
 
-[Play Barnyard Dogfight](/games/barnyard-dogfight/). On a phone, turn it sideways. Pick Barn Owl under Plane, push the right stick up to lift off, and tap Turbo.
+[Play Barnyard Dogfight](/games/barnyard-dogfight/). On a phone, turn it sideways. Pick Barn Owl under Plane, push the right stick up to lift off, and tap Turbo. For a fight, pick Barn Swallow and start a dogfight on Hard.
 
-The original game, its flight model, and its farm world are my co-worker's work, shared here with their OK. The remix was built with Claude and three.js. Music made with Suno.
+The original game, its flight model, its farm world, and the Barn Swallow jet are my co-worker's work, shared here with their OK. The remix was built with Claude and three.js. Music made with Suno.
