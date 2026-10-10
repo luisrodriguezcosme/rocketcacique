@@ -1036,6 +1036,8 @@ svg{display:block}
       home:{ en:'Snack share. Cut a snack into pieces. Take turns: one for you, one for me.', es:'Compartir la merienda. Corta una merienda en pedazos. Túrnense: uno para ti, uno para mí.' }
     }
   };
+  /* Art names use the key word, so the Truth lesson's pictures are sign-true and sym-true */
+  var ART = { truth:'true', kind:'kind', love:'love', share:'share' };
   var STEP_KEYS = ['watch', 'sign', 'play', 'home'];
   var STEP_ICON = { watch:'book', sign:'hand', play:'star', home:'hearthome' };
   var STEP_GO = { watch:'story', sign:'sign', play:'game', home:'athome' };
@@ -1223,10 +1225,10 @@ svg{display:block}
   RENDER.sign = function(){
     var d = L[lesson], other = st.lang === 'es' ? d.word.en : d.word.es;
     sayText = [d.word[st.lang].toLowerCase(), d.how[st.lang]];
-    var signArt = '<svg viewBox="0 0 200 230" aria-hidden="true" style="' + d.signVars + '"><use href="#sign-' + lesson + '-base" width="200" height="230"/>' +
-      '<use class="mv mv-' + lesson + '" href="#sign-' + lesson + '-move" width="200" height="230"/><use class="sg-arrow" href="#sign-' + lesson + '-arrow" width="200" height="230"/></svg>';
+    var signArt = '<svg viewBox="0 0 200 230" aria-hidden="true" style="' + d.signVars + '"><use href="#sign-' + ART[lesson] + '-base" width="200" height="230"/>' +
+      '<use class="mv mv-' + ART[lesson] + '" href="#sign-' + ART[lesson] + '-move" width="200" height="230"/><use class="sg-arrow" href="#sign-' + ART[lesson] + '-arrow" width="200" height="230"/></svg>';
     return header('path', t('sign')) +
-      '<div class="signwrap"><div class="wordcard">' + use('sym-' + lesson, '0 0 100 100') + '<b>' + esc(d.word[st.lang]) + '</b><span>' + esc(other) + '</span></div>' +
+      '<div class="signwrap"><div class="wordcard">' + use('sym-' + ART[lesson], '0 0 100 100') + '<b>' + esc(d.word[st.lang]) + '</b><span>' + esc(other) + '</span></div>' +
       '<div class="signcard"' + (st.signs ? '' : ' hidden') + '><span class="vidtag">' + esc(t('video')) + '</span><div id="signart">' + signArt + '</div><p>' + esc(d.how[st.lang]) + '</p></div></div>' +
       '<div class="actions"><button type="button" class="kbtn" data-act="replay">' + ic('replay') + esc(t('again')) + '</button>' +
       '<button type="button" class="kbtn go" data-act="signdone">' + ic('check') + esc(t('did')) + '</button></div>' +
@@ -1453,7 +1455,7 @@ svg{display:block}
     var d = L[lesson];
     sayText = [t('athomeT'), d.home[st.lang]];
     return header('path', t('athome'), d.c) +
-      '<div class="homecard">' + use('sym-' + lesson, '0 0 100 100') + '<div><h3>' + esc(t('athomeT')) + '</h3><p>' + esc(d.home[st.lang]) + '</p></div></div>' +
+      '<div class="homecard">' + use('sym-' + ART[lesson], '0 0 100 100') + '<div><h3>' + esc(t('athomeT')) + '</h3><p>' + esc(d.home[st.lang]) + '</p></div></div>' +
       '<div class="actions"><button type="button" class="kbtn go" data-act="wedid">' + ic('check') + esc(t('wedid')) + '</button></div>' + guide(t('athomeHint'));
   };
 
