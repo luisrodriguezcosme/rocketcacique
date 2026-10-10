@@ -1,0 +1,1608 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Little Lights Play</title>
+<meta name="robots" content="noindex">
+<meta name="copyright" content="© 2026 Luis Rodriguez Cosme. All rights reserved.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Baloo+2:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a full-screen kid app inside a slim night-blue demo bar. One look in every theme: the app is always light, the bar is always dark. */
+:root{
+  color-scheme:light;
+  --night:#1A2552; --night-2:#2C3C80; --night-ink:#F3F5FF; --night-muted:#B8C1EA; --night-line:#4A5899;
+  --bg:#F7F9FF; --surface:#FFFFFF; --sunk:#ECEFF7; --ink:#1C2340; --muted:#5A6283; --line:#DCE2F0;
+  --glow:#F6B93B; --glow-soft:#FFE7A3; --go:#1C2340; --yes:#23885C; --yes-soft:#DFF2E8;
+  --truth:#2F74B5; --truth-soft:#E2EDF9; --kind:#23885C; --kind-soft:#DFF2E8; --love:#D2405D; --love-soft:#FBE3E8; --share:#D9741A; --share-soft:#FCEBDB;
+  --font-display:"Baloo 2", "Arial Rounded MT Bold", "Trebuchet MS", system-ui, sans-serif;
+  --font-body:"Atkinson Hyperlegible", Verdana, system-ui, sans-serif;
+  --font-mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;display:flex;flex-direction:column;background:var(--night);color:var(--ink);font-family:var(--font-body);-webkit-text-size-adjust:100%}
+button{font:inherit;color:inherit}
+svg{display:block}
+:focus-visible{outline:3px solid var(--glow);outline-offset:3px}
+.sprite{position:absolute;width:0;height:0;overflow:hidden}
+
+/* ---------- Demo bar (for grown-ups reviewing the mockup) ---------- */
+.demo{flex:none;display:flex;align-items:center;gap:10px 16px;flex-wrap:wrap;padding:8px 16px;padding-top:calc(8px + env(safe-area-inset-top,0px));background:var(--night);color:var(--night-ink)}
+.demo .brand{display:flex;align-items:center;gap:8px;font-family:var(--font-display);font-weight:800;font-size:18px;margin-right:auto}
+.demo .brand svg{width:20px;height:20px;color:var(--glow)}
+.demo .brand small{font-family:var(--font-mono);font-weight:400;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--night-muted)}
+.dctl{display:flex;align-items:center;gap:6px}
+.dctl > span{font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--night-muted)}
+.dseg{display:inline-flex;border:1px solid var(--night-line);border-radius:10px;padding:2px;gap:2px}
+.dseg button{border:0;background:transparent;color:var(--night-muted);border-radius:8px;padding:4px 10px;font-size:14px;cursor:pointer;min-width:34px}
+.dseg button[aria-pressed="true"]{background:var(--night-ink);color:var(--night);font-weight:700}
+.dbtn{border:1px solid var(--night-line);background:transparent;color:var(--night-ink);border-radius:10px;padding:5px 12px;font-size:14px;cursor:pointer}
+.dbtn[aria-expanded="true"]{background:var(--night-ink);color:var(--night)}
+@media (max-width:620px){.demo .brand small,.dctl > span{display:none}}
+
+/* ---------- App stage ---------- */
+.app{flex:1;min-height:0;display:flex;justify-content:center;padding-inline:0;padding-bottom:env(safe-area-inset-bottom,0px)}
+.stage{position:relative;width:100%;max-width:1200px;height:100%;background:var(--bg);container:stage / size;overflow:hidden}
+@media (min-width:1220px){.stage{border-radius:22px 22px 0 0}}
+.scr{position:absolute;inset:0;display:flex;flex-direction:column;gap:.75em;padding:.9em 1.3em 1em;overflow:auto;font-size:clamp(15px,2cqi,24px);line-height:1.3}
+@container stage (max-width:640px){.scr{padding:.8em .9em .9em}}
+.scr.calm *{animation:none!important;transition:none!important}
+
+/* Shared kid UI */
+.abar{display:flex;align-items:center;gap:.6em;min-height:3.3em;flex:none}
+.ttl{font-family:var(--font-display);font-weight:800;font-size:1.45em;line-height:1.1;margin:0;flex:1;min-width:0}
+.ibtn{width:3.3em;height:3.3em;border-radius:50%;border:2.5px solid var(--ink);background:var(--surface);display:grid;place-items:center;cursor:pointer;flex:none;padding:0}
+.ibtn svg{width:1.5em;height:1.5em}
+.ibtn.say{background:var(--glow-soft)}
+.kbtn{font-family:var(--font-display);font-weight:800;font-size:1.2em;border:3px solid var(--ink);border-radius:999px;padding:.45em 1.25em;display:inline-flex;align-items:center;gap:.45em;cursor:pointer;min-height:2.9em;line-height:1;background:var(--surface)}
+.kbtn.go{background:var(--go);color:#FFFFFF}
+.kbtn svg{width:1.2em;height:1.2em}
+.actions{display:flex;gap:.8em;justify-content:center;flex-wrap:wrap;flex:none}
+.dots{display:flex;gap:.4em;align-items:center}
+.dots i{width:.85em;height:.85em;border-radius:50%;background:var(--line);border:2px solid var(--ink)}
+.dots i.on{background:var(--c,var(--share))}
+.guide{display:flex;align-items:center;gap:.7em;flex:none;min-height:4em}
+.guide .lumi{width:3.6em;height:3.6em;border-radius:50%;background:var(--surface);border:2.5px solid var(--ink);flex:none;overflow:hidden}
+.guide .lumi.bop{animation:bop .6s ease}
+@keyframes bop{0%,100%{transform:none}40%{transform:translateY(-6px) rotate(-6deg)}}
+.bubble{flex:1;min-width:0;margin:0;background:var(--surface);border:2.5px solid var(--ink);border-radius:1em 1em 1em .2em;padding:.55em .9em;font-family:var(--font-display);font-weight:700;font-size:1.15em;line-height:1.15}
+.glowing{box-shadow:0 0 0 .3em var(--glow)!important;animation:nudge 1.1s ease-in-out infinite}
+@keyframes nudge{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+.wiggle{animation:wiggle .45s ease}
+@keyframes wiggle{0%,100%{transform:none}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.pop{animation:pop .45s cubic-bezier(.2,1.5,.4,1)}
+@keyframes pop{from{transform:scale(.3)}to{transform:scale(1)}}
+
+/* Home */
+.who{display:flex;align-items:center;gap:.5em;font-family:var(--font-display);font-weight:800;font-size:1.45em;flex:1;min-width:0}
+.avatar{width:2.3em;height:2.3em;border-radius:50%;background:var(--share-soft);border:2.5px solid var(--ink);flex:none}
+.lockbtn{position:relative;isolation:isolate;display:flex;align-items:center;gap:.4em;border:2px dashed var(--muted);background:transparent;border-radius:999px;padding:.45em .9em;font-size:.82em;color:var(--muted);cursor:pointer;overflow:hidden;flex:none;touch-action:none;user-select:none;-webkit-user-select:none}
+.lockbtn svg{width:1.2em;height:1.2em}
+.lockbtn .fill{position:absolute;inset:0;background:var(--truth-soft);transform:scaleX(0);transform-origin:left;z-index:-1}
+.lockbtn.holding .fill{transform:scaleX(1);transition:transform 1s linear}
+.kid-title{font-family:var(--font-display);font-weight:800;font-size:1.9em;line-height:1.05;margin:0}
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1em;flex:1;align-content:center}
+@container stage (max-width:640px){.tiles{grid-template-columns:1fr 1fr;gap:.8em}}
+.tile{position:relative;display:flex;flex-direction:column;gap:.45em;background:var(--cs);border:3px solid var(--ink);border-radius:1.2em;padding:.55em .55em .7em;cursor:pointer;text-align:center;transition:transform .2s}
+.tile:hover{transform:translateY(-3px)}
+.tile > svg{width:100%;height:auto;border-radius:.7em;border:2px solid var(--ink)}
+.tile-name{font-family:var(--font-display);font-weight:800;font-size:1.25em;line-height:1.05}
+.tile .steps{display:flex;justify-content:center;gap:.3em}
+.tile .steps i{width:.75em;height:.75em;border-radius:50%;border:2px solid var(--ink);background:var(--surface)}
+.tile .steps i.on{background:var(--c)}
+.tile .got{position:absolute;top:-.75em;right:-.75em;min-width:2.4em;height:2.4em;padding:0 .35em;border-radius:999px;background:var(--c);border:2.5px solid var(--ink);display:flex;align-items:center;justify-content:center;gap:.1em;color:#FFFFFF;font-family:var(--font-display);font-weight:800}
+.tile .got svg{width:1.3em;height:1.3em}
+.shelf{display:flex;align-items:center;gap:.5em;color:var(--muted);font-weight:700;margin-top:auto;flex-wrap:wrap}
+.stk{position:relative;width:2.2em;height:2.2em;border-radius:50%;display:grid;place-items:center;background:var(--line);color:#FFFFFF;border:2px solid var(--ink)}
+.stk.on{background:var(--c)}
+.stk svg{width:1.25em;height:1.25em}
+.stk b{position:absolute;right:-.45em;bottom:-.35em;background:var(--ink);color:#FFFFFF;border-radius:999px;font-size:.7em;min-width:1.5em;height:1.5em;display:grid;place-items:center;padding:0 .3em}
+
+/* Lesson path */
+.lpath{flex:1;display:flex;flex-direction:column;justify-content:center;gap:1.4em;min-height:0}
+.lrow{position:relative;display:flex;align-items:flex-start;justify-content:center;gap:1em}
+.lrow::before{content:"";position:absolute;left:12%;right:12%;top:2.6em;border-top:.3em dashed var(--line)}
+.step{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:.5em;background:none;border:0;cursor:pointer;flex:1;max-width:10em;padding:0}
+.disc{position:relative;width:5.2em;height:5.2em;border-radius:50%;border:3px solid var(--ink);background:var(--surface);display:grid;place-items:center;flex:none}
+.disc svg{width:2.4em;height:2.4em}
+.step.done .disc{background:var(--cs)}
+.step.now .disc{background:var(--c);color:#FFFFFF;animation:breathe 2.4s ease-in-out infinite}
+@keyframes breathe{0%,100%{box-shadow:0 0 0 .3em var(--glow-soft)}50%{box-shadow:0 0 0 .7em var(--glow-soft)}}
+.step .lbl{font-family:var(--font-display);font-weight:800;font-size:1.2em;line-height:1.05;text-align:center}
+.tick{position:absolute;right:-.3em;top:-.3em;width:1.9em;height:1.9em;border-radius:50%;background:var(--yes);color:#FFFFFF;border:2.5px solid var(--ink);display:grid;place-items:center}
+.tick svg{width:1.1em;height:1.1em}
+@container stage (max-width:640px){
+  .lrow{flex-direction:column;align-items:stretch;gap:.8em}
+  .lrow::before{left:2.6em;right:auto;top:8%;bottom:8%;border-top:0;border-left:.3em dashed var(--line)}
+  .step{flex-direction:row;max-width:none;gap:.9em}
+  .disc{width:4.4em;height:4.4em}
+  .step .lbl{text-align:left}
+}
+
+/* Story */
+.story{flex:1;display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-rows:minmax(0,1fr) auto;gap:.6em 1em;align-items:center;min-height:0}
+.story-pic{grid-column:2;grid-row:1;margin:0;height:100%;min-height:0;display:flex;align-items:center;justify-content:center;container-type:size}
+.story-pic svg{width:min(100cqw, 100cqh * 400 / 260);height:auto;border-radius:1em;border:3px solid var(--ink);background:#FFFFFF}
+.caption{grid-column:2;grid-row:2;font-weight:700;font-size:1.55em;line-height:1.3;text-align:center;margin:0;min-height:2.6em}
+.w{border-radius:.2em;padding:0 .06em;transition:background .15s}
+.w.on{background:var(--glow-soft)}
+.navbtn{width:4.2em;height:4.2em;border-radius:50%;border:3px solid var(--ink);background:var(--go);color:#FFFFFF;display:grid;place-items:center;cursor:pointer;padding:0;grid-row:1}
+.navbtn.prev{background:var(--surface);color:var(--ink);grid-column:1}
+.navbtn.next{grid-column:3}
+.navbtn svg{width:2em;height:2em}
+.navbtn:disabled{opacity:.3;cursor:default}
+@container stage (max-width:640px){
+  .story{grid-template-columns:1fr 1fr;grid-template-rows:auto auto auto;align-content:start}
+  .story-pic{grid-column:1 / -1;grid-row:1;height:auto;container-type:normal}
+  .story-pic svg{width:100%;height:auto}
+  .caption{grid-column:1 / -1;grid-row:2}
+  .navbtn.prev{grid-column:1;grid-row:3;justify-self:start}
+  .navbtn.next{grid-column:2;grid-row:3;justify-self:end}
+}
+
+/* Word + sign */
+.signwrap{flex:1;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:1em;min-height:0}
+@container stage (max-width:640px){.signwrap{grid-template-columns:1fr;flex:none}}
+.wordcard,.signcard{border:3px solid var(--ink);border-radius:1.2em;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.4em;padding:.9em;position:relative;min-height:0}
+.wordcard{background:var(--surface)}
+.wordcard svg{width:50%;max-width:9em;height:auto}
+.wordcard b{font-family:var(--font-display);font-weight:800;font-size:2.4em;letter-spacing:.04em;color:var(--c);line-height:1}
+.wordcard span{color:var(--muted);font-style:italic;font-size:1.1em}
+.signcard{background:var(--cs)}
+#signart{flex:1;min-height:12em;width:100%;display:flex}
+#signart svg{width:100%;height:100%}
+.signcard p{font-family:var(--font-display);font-weight:700;font-size:1.15em;text-align:center;margin:0}
+.vidtag{position:absolute;top:.7em;left:.7em;font-family:var(--font-mono);font-size:.68em;background:var(--ink);color:#FFFFFF;border-radius:.4em;padding:.2em .55em}
+.mv,.sg-arrow{transform-box:view-box}
+.mv-true{transform-origin:44px 214px;animation:mvTrue 1.8s ease-in-out infinite}
+@keyframes mvTrue{0%,15%{transform:rotate(0)}55%,75%{transform:rotate(13deg)}100%{transform:rotate(0)}}
+.mv-kind{animation:mvKind 1.8s linear infinite}
+@keyframes mvKind{0%,100%{transform:translate(0,0)}25%{transform:translate(10px,14px)}50%{transform:translate(0,32px)}75%{transform:translate(-10px,14px)}}
+.mv-love{transform-origin:100px 60px;animation:mvLove 1.6s ease-in-out infinite}
+@keyframes mvLove{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+.mv-share{animation:mvShare 1.4s ease-in-out infinite}
+@keyframes mvShare{0%,100%{transform:translateX(-10px)}50%{transform:translateX(10px)}}
+.sg-arrow{animation:sgArrow 1.6s ease-in-out infinite}
+@keyframes sgArrow{0%,100%{opacity:.4}50%{opacity:1}}
+
+/* Games */
+.game{flex:1;display:flex;flex-direction:column;justify-content:center;gap:.9em;min-height:0}
+.choice2{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:1.1em;align-items:center}
+@container stage (max-width:640px){.choice2{grid-template-columns:1fr}}
+.pic{margin:0;display:flex;flex-direction:column;gap:.5em;align-items:center}
+.pic > svg{width:100%;height:auto;border:3px solid var(--ink);border-radius:1em;background:#FFFFFF}
+.pic.obj > svg{padding:1.2em 2em;max-height:14em;background:var(--surface)}
+.pic figcaption{font-weight:700;font-size:1.4em;text-align:center}
+.answers{display:grid;gap:.8em}
+.ans{display:flex;align-items:center;gap:.6em;font-family:var(--font-display);font-weight:800;font-size:1.5em;border:3px solid var(--ink);border-radius:1em;padding:.45em .8em;cursor:pointer;min-height:2.6em;transition:transform .2s, box-shadow .2s, opacity .2s;background:var(--surface)}
+.ans.yes{background:var(--yes-soft)}
+.ans.no{background:var(--sunk)}
+.ans svg{width:1.9em;height:auto;flex:none}
+.ans .down{transform:rotate(180deg)}
+.ans.right{box-shadow:0 0 0 .3em var(--glow);transform:scale(1.03)}
+.ans.dim{opacity:.45}
+.rdots{display:flex;justify-content:center}
+
+/* Share game */
+.friends{display:flex;justify-content:space-around;align-items:flex-end;gap:.6em}
+.friend{display:flex;flex-direction:column;align-items:center;gap:.2em;border-radius:1em;padding:.3em .4em;cursor:pointer;border:2.5px solid transparent;transition:box-shadow .2s}
+.friend.target{border-color:var(--ink);border-style:dashed}
+.friend .kidsvg{height:min(30cqh,15em);width:auto}
+.wants{display:flex;gap:.2em;min-height:2.1em;align-items:center;background:var(--surface);border:2px solid var(--ink);border-radius:.7em;padding:.15em .4em}
+.wants svg{width:2.8em;height:auto;opacity:.25;filter:grayscale(1)}
+.wants svg.got{opacity:1;filter:none}
+.fname{font-weight:700}
+.basket{display:flex;justify-content:center;align-items:center;gap:.5em;background:var(--share-soft);border:3px solid var(--ink);border-radius:1.2em;padding:.5em 1em;align-self:center;flex-wrap:wrap}
+.item{width:5.6em;height:4.6em;border-radius:1em;border:2.5px dashed transparent;background:transparent;cursor:grab;display:grid;place-items:center;padding:0;touch-action:none;user-select:none;-webkit-user-select:none}
+.item:hover{border-color:var(--ink)}
+.item.sel{border-color:var(--ink);border-style:solid;background:var(--glow-soft)}
+.item.dragging{position:relative;z-index:10;cursor:grabbing;pointer-events:none}
+.item.back{transition:transform .3s ease}
+.item.gone{visibility:hidden}
+.item svg{width:4.8em;height:auto}
+@container stage (max-width:640px){.friend .kidsvg{height:min(24cqh,9em)}.item{width:3.8em;height:3.4em}.item svg{width:3.2em}}
+
+/* Love game */
+.welcome{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:1em;align-items:end}
+@container stage (max-width:640px){.welcome{grid-template-columns:1fr}}
+.waiting{display:flex;flex-wrap:wrap;justify-content:center;gap:.4em;min-height:9em;align-items:flex-end;background:var(--sunk);border-radius:1.2em;padding:.6em}
+.withj{position:relative;display:flex;flex-direction:column;align-items:center;background:var(--love-soft);border:3px solid var(--ink);border-radius:1.2em;padding:.6em}
+.withj .jesus{height:min(30cqh,14em);width:auto}
+.circle{display:flex;flex-wrap:wrap;justify-content:center;gap:.2em;min-height:6em;align-items:flex-end}
+.kidbtn{background:none;border:0;padding:0;cursor:pointer;border-radius:.8em}
+.kidbtn svg{height:min(24cqh,10em);width:auto}
+.circle .kidbtn svg{height:5.4em}
+.circle .kidbtn{cursor:default}
+
+/* Order game */
+.slots{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:.8em}
+.slot{position:relative;aspect-ratio:400/260;border:3px dashed var(--muted);border-radius:1em;display:grid;place-items:center;background:var(--sunk)}
+.slot > b{font-family:var(--font-display);font-weight:800;font-size:2em;color:var(--muted)}
+.slot .card{position:absolute;inset:-3px;cursor:default}
+.cards{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:.8em}
+.card{padding:0;border:3px solid var(--ink);border-radius:1em;overflow:hidden;background:#FFFFFF;cursor:pointer;transition:box-shadow .2s, transform .2s}
+.card svg{width:100%;height:auto}
+.card.used{visibility:hidden}
+@container stage (max-width:640px){.slots,.cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* At home + reward */
+.homecard{flex:1;display:grid;grid-template-columns:auto minmax(0,1fr);gap:1.2em;align-items:center;background:var(--surface);border:3px solid var(--ink);border-radius:1.4em;padding:1.2em 1.4em;min-height:0}
+@container stage (max-width:640px){.homecard{grid-template-columns:1fr;justify-items:center;text-align:center}}
+.homecard > svg{width:9em;height:auto}
+.homecard h3{font-family:var(--font-display);font-weight:800;font-size:1.6em;margin:0 0 .3em;color:var(--c)}
+.homecard p{font-size:1.35em;font-weight:700;margin:0}
+.reward{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.7em;text-align:center;position:relative}
+.burst{position:absolute;inset:0;pointer-events:none}
+.burst svg{position:absolute;width:1.6em;height:1.6em;color:var(--glow);animation:float 3s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.big-stk{width:7.5em;height:7.5em;border-radius:50%;background:var(--c);border:4px solid var(--ink);display:grid;place-items:center;color:#FFFFFF;box-shadow:0 0 0 .6em var(--cs);animation:stk .7s cubic-bezier(.2,1.4,.4,1)}
+.big-stk svg{width:4.2em;height:4.2em}
+@keyframes stk{from{transform:scale(.3) rotate(-20deg);opacity:0}to{transform:none;opacity:1}}
+.reward h3{font-family:var(--font-display);font-weight:800;font-size:2.3em;margin:0}
+.reward > p{font-size:1.3em;font-weight:700;margin:0}
+
+/* Grown-up corner */
+.scr.parent{background:var(--sunk)}
+.pgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.8em;font-size:.88em}
+@container stage (max-width:640px){.pgrid{grid-template-columns:1fr}}
+.pcard{background:var(--surface);border-radius:.9em;padding:.9em 1em;display:grid;gap:.65em;align-content:start;border:1px solid var(--line)}
+.pcard h3{font-family:var(--font-display);font-weight:800;font-size:1.3em;margin:0}
+.prow{display:grid;grid-template-columns:.9em minmax(0,1fr) 5em 3.6em;gap:.6em;align-items:center}
+.prow .dot{width:.9em;height:.9em;border-radius:50%;background:var(--c)}
+.meter{height:.6em;background:var(--line);border-radius:999px;overflow:hidden}
+.meter i{display:block;height:100%;background:var(--c);border-radius:999px}
+.prow .n{font-family:var(--font-mono);font-size:.85em;color:var(--muted);text-align:right}
+.lvl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.4em}
+.lvl button,.pseg button{border:2px solid var(--line);background:var(--surface);border-radius:.6em;padding:.45em .3em;cursor:pointer;font-weight:700;line-height:1.1}
+.lvl button[aria-pressed="true"],.pseg button[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:#FFFFFF}
+.lvl small{display:block;font-weight:400;font-size:.8em;opacity:.85}
+.pdesc{color:var(--muted);margin:0}
+.swt{display:flex;justify-content:space-between;align-items:center;gap:.6em}
+.switch{width:2.9em;height:1.65em;border-radius:999px;background:var(--line);border:0;position:relative;cursor:pointer;flex:none;padding:0}
+.switch::after{content:"";position:absolute;top:.22em;left:.22em;width:1.2em;height:1.2em;border-radius:50%;background:#FFFFFF;transition:transform .2s;box-shadow:0 1px 2px rgba(0,0,0,.25)}
+.switch[aria-checked="true"]{background:var(--yes)}
+.switch[aria-checked="true"]::after{transform:translateX(1.25em)}
+.pseg{display:flex;gap:.3em}
+.pseg button{padding:.3em .7em}
+.reset{justify-self:start;border:2px solid var(--love);color:var(--love);background:var(--surface);border-radius:.6em;padding:.4em .8em;font-weight:700;cursor:pointer}
+.reset.armed{background:var(--love);color:#FFFFFF}
+
+/* About drawer */
+.about{position:absolute;top:0;right:0;bottom:0;width:min(380px,100%);background:var(--surface);border-left:1px solid var(--line);box-shadow:-10px 0 30px rgba(20,30,70,.18);z-index:40;display:flex;flex-direction:column;gap:12px;padding:20px;overflow:auto;font-size:15.5px;line-height:1.5}
+.about h2{font-family:var(--font-display);font-weight:800;font-size:24px;margin:0}
+.about h3{font-family:var(--font-display);font-weight:800;font-size:19px;margin:6px 0 0}
+.about p,.about li{color:var(--muted);margin:0}
+.about ul{margin:0;padding-left:20px;display:grid;gap:4px}
+.about .eyebrow{font-family:var(--font-mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.about .try{font-family:var(--font-mono);font-size:13px;color:var(--ink);background:var(--sunk);border-radius:10px;padding:9px 11px}
+.about .close{align-self:flex-end;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:5px 12px;cursor:pointer}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+</style>
+</head>
+<body>
+
+<svg class="sprite" xmlns="http://www.w3.org/2000/svg" width="0" height="0" aria-hidden="true" focusable="false">
+<defs>
+<!-- ART:START (shared with little-lights-play.html; run tools/sync-art.py after editing) -->
+  <radialGradient id="g-glow">
+    <stop offset="0" stop-color="#FFEBB0" stop-opacity="1"/>
+    <stop offset=".45" stop-color="#FFC94A" stop-opacity=".45"/>
+    <stop offset="1" stop-color="#FFC94A" stop-opacity="0"/>
+  </radialGradient>
+
+  <!-- UI icons -->
+  <symbol id="i-speaker" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5h3.5L13 5v14l-5.5-4.5H4z" fill="currentColor"/><path d="M16.5 9a4 4 0 0 1 0 6"/><path d="M19 6.5a7.5 7.5 0 0 1 0 11"/></symbol>
+  <symbol id="i-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></symbol>
+  <symbol id="i-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 11L12 4l8.5 7"/><path d="M5.5 9.5V20h13V9.5"/><path d="M10 20v-5h4v5"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9.5" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-replay" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12a7.5 7.5 0 1 0 2.3-5.4"/><path d="M4.5 4.5v4h4"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10 5 7 4.5 3.5 5v13c3.5-.5 6.5 0 8.5 1.5 2-1.5 5-2 8.5-1.5V5c-3.5-.5-6.5 0-8.5 1.5z"/><path d="M12 6.5v13"/></symbol>
+  <symbol id="i-hand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M8 12.5V5.5a1.5 1.5 0 0 1 3 0V11"/><path d="M11 10.5V4a1.5 1.5 0 0 1 3 0v6.5"/><path d="M14 10.5V5.5a1.5 1.5 0 0 1 3 0v8a6.5 6.5 0 0 1-6.5 6.5h-.5a6 6 0 0 1-5-2.7L3.6 14a1.5 1.5 0 0 1 2.4-1.8L8 14.5"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 2.5l2.9 6 6.6.8-4.9 4.6 1.3 6.6L12 17.2l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z" fill="currentColor"/></symbol>
+  <symbol id="i-hearthome" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 11L12 4l8.5 7"/><path d="M5.5 9.5V20h13V9.5"/><path d="M12 17.5s-3.2-1.9-3.2-3.9a1.7 1.7 0 0 1 3.2-.8 1.7 1.7 0 0 1 3.2.8c0 2-3.2 3.9-3.2 3.9z" fill="currentColor" stroke-width="1.4"/></symbol>
+  <symbol id="i-lamp" viewBox="0 0 24 24"><path d="M15.5 2.5c-2 2.6-2.1 5 0 6.3 2.1-1.3 2-3.7 0-6.3z" fill="currentColor"/><path d="M2.5 14.2c0-2.2 3.5-2.8 7.5-2.4l5.2-.4c2.4-.2 3.6.9 2.8 2.3-1.3 2.4-4 4-7.4 4-4.6 0-8.1-1.1-8.1-3.5z" fill="currentColor"/><path d="M7 18.2h7l-.6 2.3H7.6z" fill="currentColor"/></symbol>
+  <symbol id="i-print" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9V3.5h10V9"/><rect x="3.5" y="9" width="17" height="8" rx="2"/><path d="M7 14.5h10V21H7z" fill="#FFFFFF"/></symbol>
+
+  <!-- Objects -->
+  <symbol id="lamp" viewBox="0 0 80 70">
+    <circle cx="55" cy="20" r="22" fill="url(#g-glow)"/>
+    <path d="M55 6C49 14 50 24 55 27c5-3 6-13 0-21z" fill="#FFC94A" stroke="#1C2340" stroke-width="2.5" stroke-linejoin="round"/>
+    <path d="M55 14c-2 4-1.6 7.5 0 9 1.6-1.5 2-5 0-9z" fill="#FFF3C4"/>
+    <path d="M8 30c-6 1-6 9 0 10" fill="none" stroke="#1C2340" stroke-width="3" stroke-linecap="round"/>
+    <path d="M8 40c0-8 12-10 28-8l14-2c6-1 10 2 8 6-4 8-12 14-24 14C18 50 8 48 8 40z" fill="#D98E2B" stroke="#1C2340" stroke-width="2.5" stroke-linejoin="round"/>
+    <ellipse cx="28" cy="35" rx="8" ry="2.6" fill="#8A5A1E"/>
+    <path d="M20 50h24l-2 7H22z" fill="#B87322" stroke="#1C2340" stroke-width="2.5" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="bread" viewBox="0 0 40 26">
+    <path d="M3 18C2 8 12 3 20 3s18 5 17 15c-1 4-5 5-17 5S4 22 3 18z" fill="#E2A257" stroke="#1C2340" stroke-width="2.2" stroke-linejoin="round"/>
+    <path d="M12 9l3 6M19 7l2 7M26 8l1 6" stroke="#9C5F22" stroke-width="2" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="fish" viewBox="0 0 46 26">
+    <path d="M34 13l10-8-1 16z" fill="#7FB0D6" stroke="#1C2340" stroke-width="2.2" stroke-linejoin="round"/>
+    <path d="M3 13C9 3 26 2 35 13 26 24 9 23 3 13z" fill="#9CC6E6" stroke="#1C2340" stroke-width="2.2" stroke-linejoin="round"/>
+    <circle cx="11" cy="11.5" r="2" fill="#1C2340"/>
+    <path d="M19 8q3 5 0 10" fill="none" stroke="#1C2340" stroke-width="1.6"/>
+  </symbol>
+  <symbol id="basket" viewBox="0 0 80 50">
+    <path d="M4 16h72l-8 30H12z" fill="#C98B4E" stroke="#1C2340" stroke-width="2.4" stroke-linejoin="round"/>
+    <path d="M8 26h64M10 36h60M28 16l2 30M52 16l-2 30" stroke="#9A6532" stroke-width="2"/>
+  </symbol>
+  <symbol id="heart" viewBox="0 0 32 30">
+    <path d="M16 28C5 20 1 14 2 9 3 3 11 1 16 7c5-6 13-4 14 2 1 5-3 11-14 19z" style="fill:var(--heart,#E0516B)" stroke="#1C2340" stroke-width="2.2" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="cloud" viewBox="0 0 44 32">
+    <path d="M11 28h22a7.5 7.5 0 0 0 1-15 10.5 10.5 0 0 0-20-2.5A8.8 8.8 0 0 0 11 28z" fill="#B8C1D9" stroke="#1C2340" stroke-width="2.2" stroke-linejoin="round"/>
+    <circle cx="17" cy="18" r="1.8" fill="#1C2340"/><circle cx="27" cy="18" r="1.8" fill="#1C2340"/>
+    <path d="M18.5 24q3.5-3 7 0" fill="none" stroke="#1C2340" stroke-width="1.8" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="ball" viewBox="0 0 30 30">
+    <circle cx="15" cy="15" r="13" fill="#F6B93B" stroke="#1C2340" stroke-width="2.2"/>
+    <path d="M3 13q12 7 24 0M8 25q7-9 14 0" fill="none" stroke="#E0516B" stroke-width="2.6"/>
+  </symbol>
+  <symbol id="teddy" viewBox="0 0 34 34">
+    <g fill="#B07A4A" stroke="#1C2340" stroke-width="2.2">
+      <ellipse cx="17" cy="28" rx="10" ry="5.5"/>
+      <circle cx="8" cy="7" r="5"/><circle cx="26" cy="7" r="5"/>
+      <circle cx="17" cy="15" r="11"/>
+    </g>
+    <ellipse cx="17" cy="19" rx="4.5" ry="3.5" fill="#E3BC8E"/>
+    <circle cx="13" cy="13" r="1.6" fill="#1C2340"/><circle cx="21" cy="13" r="1.6" fill="#1C2340"/><circle cx="17" cy="18" r="1.4" fill="#1C2340"/>
+  </symbol>
+  <symbol id="flower" viewBox="0 0 24 40">
+    <path d="M12 40V18" stroke="#23885C" stroke-width="3"/>
+    <path d="M12 30c4-6 9-5 10-4-2 4-6 5-10 4z" fill="#5FB884" stroke="#1C2340" stroke-width="1.6"/>
+    <g fill="#F07C94" stroke="#1C2340" stroke-width="1.8"><circle cx="12" cy="5.5" r="5"/><circle cx="18.5" cy="12" r="5"/><circle cx="12" cy="18.5" r="5"/><circle cx="5.5" cy="12" r="5"/></g>
+    <circle cx="12" cy="12" r="4" fill="#F6B93B" stroke="#1C2340" stroke-width="1.8"/>
+  </symbol>
+  <symbol id="jar" viewBox="0 0 30 40">
+    <path d="M10 3h10v5c7 3 8 12 6 20-2 8-20 8-22 0-2-8-1-17 6-20z" fill="#C9774A" stroke="#1C2340" stroke-width="2.2" stroke-linejoin="round"/>
+    <path d="M6 18q9 4 18 0" fill="none" stroke="#8E4E2C" stroke-width="2"/>
+  </symbol>
+  <symbol id="box" viewBox="0 0 40 34">
+    <rect x="2" y="2" width="36" height="30" rx="3" fill="#D9A86A" stroke="#1C2340" stroke-width="2.4"/>
+    <path d="M2 11h36M20 2v9" stroke="#1C2340" stroke-width="2"/>
+  </symbol>
+  <symbol id="wheelchair" viewBox="0 0 60 60" overflow="visible">
+    <path d="M12 6v22h26l6 14" fill="none" stroke="#1C2340" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="26" cy="38" r="19" fill="#C9D1E8" fill-opacity=".55" stroke="#1C2340" stroke-width="3.4"/>
+    <path d="M26 21v34M9 38h34M14 26l24 24M38 26L14 50" stroke="#1C2340" stroke-width="1.4" opacity=".55"/>
+    <circle cx="26" cy="38" r="4" fill="#1C2340"/>
+    <circle cx="51" cy="53" r="5" fill="#FFFFFF" stroke="#1C2340" stroke-width="2.6"/>
+  </symbol>
+
+  <!-- Characters -->
+  <symbol id="lumi" viewBox="0 0 140 140">
+    <g fill="#3A3F5C" stroke="#1C2340" stroke-width="2.5"><rect x="46" y="110" width="13" height="24" rx="6.5"/><rect x="81" y="110" width="13" height="24" rx="6.5"/></g>
+    <g fill="#1C2340"><circle cx="44" cy="96" r="21.5"/><circle cx="70" cy="90" r="25.5"/><circle cx="96" cy="96" r="21.5"/><circle cx="56" cy="111" r="17.5"/><circle cx="84" cy="111" r="17.5"/></g>
+    <g fill="#FFFFFF"><circle cx="44" cy="96" r="19"/><circle cx="70" cy="90" r="23"/><circle cx="96" cy="96" r="19"/><circle cx="56" cy="111" r="15"/><circle cx="84" cy="111" r="15"/></g>
+    <g stroke="#1C2340" stroke-width="2.5" fill="#F6E3D3"><ellipse cx="38" cy="54" rx="15" ry="8" transform="rotate(-22 38 54)"/><ellipse cx="102" cy="54" rx="15" ry="8" transform="rotate(22 102 54)"/></g>
+    <ellipse cx="38" cy="54" rx="9" ry="4" transform="rotate(-22 38 54)" fill="#F4B5B5"/>
+    <ellipse cx="102" cy="54" rx="9" ry="4" transform="rotate(22 102 54)" fill="#F4B5B5"/>
+    <ellipse cx="70" cy="60" rx="27" ry="29" fill="#F6E3D3" stroke="#1C2340" stroke-width="2.5"/>
+    <g fill="#1C2340"><circle cx="58" cy="35" r="12.5"/><circle cx="70" cy="30" r="13.5"/><circle cx="82" cy="35" r="12.5"/></g>
+    <g fill="#FFFFFF"><circle cx="58" cy="35" r="10"/><circle cx="70" cy="30" r="11"/><circle cx="82" cy="35" r="10"/></g>
+    <circle cx="60" cy="60" r="5" fill="#1C2340"/><circle cx="80" cy="60" r="5" fill="#1C2340"/>
+    <circle cx="61.8" cy="58.2" r="1.7" fill="#FFFFFF"/><circle cx="81.8" cy="58.2" r="1.7" fill="#FFFFFF"/>
+    <circle cx="52.5" cy="70" r="4.5" fill="#F4A3A3" opacity=".75"/><circle cx="87.5" cy="70" r="4.5" fill="#F4A3A3" opacity=".75"/>
+    <path d="M66.5 69h7L70 73z" fill="#1C2340" stroke="#1C2340" stroke-width="1.5" stroke-linejoin="round"/>
+    <path d="M63 76q7 7 14 0" fill="none" stroke="#1C2340" stroke-width="2.5" stroke-linecap="round"/>
+  </symbol>
+
+  <symbol id="kid" viewBox="0 0 60 110" overflow="visible">
+    <g stroke="#1C2340" stroke-width="2.4" stroke-linejoin="round">
+      <path d="M12.5 24C11 6 49 6 47.5 24L49 44c-4 3-8 1-8.5-4h-21c-.5 5-4.5 7-8.5 4z" style="fill:var(--hair,#4A2E1C);opacity:var(--long,0)"/>
+      <rect x="19" y="72" width="9.5" height="29" rx="4.5" style="fill:var(--pants,#3A4A7A)"/>
+      <rect x="31.5" y="72" width="9.5" height="29" rx="4.5" style="fill:var(--pants,#3A4A7A)"/>
+      <ellipse cx="22.5" cy="102.5" rx="7" ry="4" fill="#1C2340"/>
+      <ellipse cx="37.5" cy="102.5" rx="7" ry="4" fill="#1C2340"/>
+      <g style="opacity:calc(1 - var(--reachL,0))"><rect x="8" y="44" width="9.5" height="27" rx="4.75" style="fill:var(--shirt,#F2B33D)"/><circle cx="12.75" cy="72" r="5" style="fill:var(--skin,#F1C7A5)"/></g>
+      <g transform="rotate(60 13 46)" style="opacity:var(--reachL,0)"><rect x="8" y="44" width="9.5" height="27" rx="4.75" style="fill:var(--shirt,#F2B33D)"/><circle cx="12.75" cy="72" r="5" style="fill:var(--skin,#F1C7A5)"/></g>
+      <g style="opacity:calc(1 - var(--reach,0))"><rect x="42.5" y="44" width="9.5" height="27" rx="4.75" style="fill:var(--shirt,#F2B33D)"/><circle cx="47.25" cy="72" r="5" style="fill:var(--skin,#F1C7A5)"/></g>
+      <g transform="rotate(-60 47 46)" style="opacity:var(--reach,0)"><rect x="42.5" y="44" width="9.5" height="27" rx="4.75" style="fill:var(--shirt,#F2B33D)"/><circle cx="47.25" cy="72" r="5" style="fill:var(--skin,#F1C7A5)"/></g>
+      <rect x="15" y="40" width="30" height="37" rx="10" style="fill:var(--shirt,#F2B33D)"/>
+      <circle cx="13.5" cy="24" r="3.6" style="fill:var(--skin,#F1C7A5)"/>
+      <circle cx="46.5" cy="24" r="3.6" style="fill:var(--skin,#F1C7A5)"/>
+      <circle cx="30" cy="23" r="16.5" style="fill:var(--skin,#F1C7A5)"/>
+      <path d="M13.6 21C12.5 7 47.5 7 46.4 21c-4.4-5.5-11.4-7.5-17.4-4.5-4.5-3-11.5-1.5-15.4 4.5z" style="fill:var(--hair,#4A2E1C)"/>
+    </g>
+    <g fill="#1C2340">
+      <g style="opacity:calc(1 - var(--almond,0) - var(--sleep,0))"><circle cx="24" cy="24" r="2.4"/><circle cx="36" cy="24" r="2.4"/></g>
+      <g style="opacity:calc(var(--almond,0) - var(--sleep,0))"><path d="M20.8 22.4q3.6-2 6.6 1.4-3.6 1.6-6.6-1.4z"/><path d="M39.2 22.4q-3.6-2-6.6 1.4 3.6 1.6 6.6-1.4z"/></g>
+    </g>
+    <circle cx="20.5" cy="29.5" r="2.6" fill="#F08F8F" opacity=".55"/><circle cx="39.5" cy="29.5" r="2.6" fill="#F08F8F" opacity=".55"/>
+    <g fill="none" stroke="#1C2340" stroke-width="2" stroke-linecap="round">
+      <path d="M25 30q5 4.5 10 0" style="opacity:var(--happy,1)"/>
+      <path d="M25.5 33q4.5-4 9 0" style="opacity:var(--sad,0)"/>
+      <g style="opacity:var(--sleep,0)"><path d="M21 24q3 2.5 6 0"/><path d="M33 24q3 2.5 6 0"/></g>
+      <g style="opacity:var(--mad,0)"><path d="M26 32h8"/><path d="M20.5 18.5l6.5 2"/><path d="M39.5 18.5l-6.5 2"/></g>
+      <g style="opacity:var(--glasses,0)" stroke-width="1.8"><circle cx="24" cy="24" r="5"/><circle cx="36" cy="24" r="5"/><path d="M29 24h2"/></g>
+    </g>
+  </symbol>
+
+  <symbol id="adult" viewBox="0 0 70 150" overflow="visible">
+    <g stroke="#1C2340" stroke-width="2.4" stroke-linejoin="round">
+      <ellipse cx="26" cy="145" rx="8" ry="4" fill="#7A5230"/><ellipse cx="44" cy="145" rx="8" ry="4" fill="#7A5230"/>
+      <g style="opacity:calc(1 - var(--reachL,0))"><rect x="7" y="54" width="12" height="46" rx="6" style="fill:var(--robe,#7C6FB0)"/><circle cx="13" cy="101" r="6" style="fill:var(--skin,#D9A57B)"/></g>
+      <g transform="rotate(65 15 58)" style="opacity:var(--reachL,0)"><rect x="7" y="54" width="12" height="46" rx="6" style="fill:var(--robe,#7C6FB0)"/><circle cx="13" cy="101" r="6" style="fill:var(--skin,#D9A57B)"/></g>
+      <g style="opacity:calc(1 - var(--reach,0))"><rect x="51" y="54" width="12" height="46" rx="6" style="fill:var(--robe,#7C6FB0)"/><circle cx="57" cy="101" r="6" style="fill:var(--skin,#D9A57B)"/></g>
+      <g transform="rotate(-65 55 58)" style="opacity:var(--reach,0)"><rect x="51" y="54" width="12" height="46" rx="6" style="fill:var(--robe,#7C6FB0)"/><circle cx="57" cy="101" r="6" style="fill:var(--skin,#D9A57B)"/></g>
+      <path d="M20 50q15-6 30 0l10 92q-25 5-50 0z" style="fill:var(--robe,#7C6FB0)"/>
+      <rect x="17" y="84" width="36" height="7" rx="3" style="fill:var(--sash,#E9D8B4)"/>
+      <path d="M15 34C15 8 55 8 55 34l2 24H13z" style="fill:var(--cloth,#E9D8B4);opacity:var(--headcloth,0)"/>
+      <circle cx="35" cy="32" r="17.5" style="fill:var(--skin,#D9A57B)"/>
+      <path d="M17.6 30C16 12 54 12 52.4 30c-5.4-7-12.4-9-17.4-6-5-3-12-1-17.4 6z" style="fill:var(--hair,#3B2618);opacity:calc(1 - var(--headcloth,0))"/>
+      <path d="M16.5 28c1.5-16 35.5-16 37 0-7.5-7-29.5-7-37 0z" style="fill:var(--cloth,#E9D8B4);opacity:var(--headcloth,0)"/>
+      <path d="M19.5 36c1 16 30 16 31 0-4 8-27 8-31 0z" style="fill:var(--hair,#3B2618);opacity:var(--beard,0)"/>
+    </g>
+    <circle cx="29" cy="31" r="2.4" fill="#1C2340"/><circle cx="41" cy="31" r="2.4" fill="#1C2340"/>
+    <circle cx="25" cy="37" r="2.5" fill="#F08F8F" opacity=".45"/><circle cx="45" cy="37" r="2.5" fill="#F08F8F" opacity=".45"/>
+    <g fill="none" stroke="#1C2340" stroke-width="2" stroke-linecap="round">
+      <path d="M30 38.5q5 4 10 0" style="opacity:var(--happy,1)"/>
+      <path d="M30.5 41q4.5-3.5 9 0" style="opacity:var(--sad,0)"/>
+    </g>
+    <g style="opacity:var(--bandage,0)"><rect x="22" y="17" width="26" height="7" rx="3" fill="#FFFFFF" stroke="#1C2340" stroke-width="1.8"/><path d="M35 18.2v4.6M32.7 20.5h4.6" stroke="#E0516B" stroke-width="1.7"/></g>
+  </symbol>
+
+  <!-- Picture symbols (AAC style) -->
+  <symbol id="sym-true" viewBox="0 0 100 100">
+    <path d="M18 16h64a8 8 0 0 1 8 8v38a8 8 0 0 1-8 8H46L28 86V70H18a8 8 0 0 1-8-8V24a8 8 0 0 1 8-8z" fill="#FFFFFF" stroke="#1C2340" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M31 43l13 12 25-25" fill="none" stroke="#2F74B5" stroke-width="8.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="sym-kind" viewBox="0 0 100 100">
+    <use href="#heart" x="30" y="14" width="40" height="38" style="--heart:#23885C"/>
+    <path d="M10 56c4 30 76 30 80 0-12 12-68 12-80 0z" fill="#F1C7A5" stroke="#1C2340" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M30 76v8M42 79v7M58 79v7M70 76v8" stroke="#1C2340" stroke-width="3" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="sym-love" viewBox="0 0 100 100">
+    <use href="#heart" x="14" y="18" width="72" height="68" style="--heart:#D2405D"/>
+    <use href="#heart" x="70" y="6" width="22" height="21" style="--heart:#F07C94"/>
+  </symbol>
+  <symbol id="sym-share" viewBox="0 0 100 100">
+    <g transform="translate(-7 0)"><path d="M46 22a28 28 0 0 0 0 56l-6-12 8-10-8-10 8-10z" fill="#E2A257" stroke="#1C2340" stroke-width="4" stroke-linejoin="round"/><circle cx="32" cy="40" r="3.2" fill="#6B3E16"/><circle cx="30" cy="58" r="3.2" fill="#6B3E16"/></g>
+    <g transform="translate(7 0)"><path d="M54 22a28 28 0 0 1 0 56l-6-12 8-10-8-10 8-10z" fill="#E2A257" stroke="#1C2340" stroke-width="4" stroke-linejoin="round"/><circle cx="68" cy="42" r="3.2" fill="#6B3E16"/><circle cx="66" cy="62" r="3.2" fill="#6B3E16"/></g>
+    <path d="M24 92H6M12 86l-6 6 6 6M76 92h18M88 86l6 6-6 6" fill="none" stroke="#D9741A" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+
+  <!-- ===== Sign art v3 (our own drawings of ASL key-word signs; needs review by a signing teacher)
+       Each sign = base (kid + still parts) + move (the part that moves; animated in the app) + arrow (yellow motion arrows).
+       sign-<word> stacks all three for print. ===== -->
+  <symbol id="hand-flat" viewBox="0 0 44 70" overflow="visible">
+    <g style="fill:var(--skin,#F3CFB0)" stroke="#1C2340" stroke-width="2.6" stroke-linejoin="round">
+      <rect x="-1" y="32" width="10" height="24" rx="5" transform="rotate(-32 4 50)"/>
+      <rect x="8" y="7" width="8" height="36" rx="4"/>
+      <rect x="15.5" y="3" width="8" height="40" rx="4"/>
+      <rect x="23" y="5" width="8" height="38" rx="4"/>
+      <rect x="30.5" y="13" width="7.5" height="30" rx="3.75"/>
+      <rect x="8" y="30" width="30" height="36" rx="11"/>
+    </g>
+  </symbol>
+  <symbol id="hand-point" viewBox="0 0 38 58" overflow="visible">
+    <g style="fill:var(--skin,#F3CFB0)" stroke="#1C2340" stroke-width="2.6" stroke-linejoin="round">
+      <rect x="14" y="1" width="9" height="34" rx="4.5"/>
+      <rect x="5" y="26" width="29" height="30" rx="10"/>
+    </g>
+    <path d="M9 34h16M9 41h17M10 48h15" stroke="#1C2340" stroke-width="2" stroke-linecap="round" opacity=".45"/>
+    <path d="M7 44q6-6 12-4" fill="none" stroke="#1C2340" stroke-width="2.4" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="hand-fist" viewBox="0 0 38 36" overflow="visible">
+    <rect x="3" y="3" width="32" height="30" rx="10" style="fill:var(--skin,#F3CFB0)" stroke="#1C2340" stroke-width="2.6"/>
+    <path d="M11 4v10M19 3v11M27 4v10" stroke="#1C2340" stroke-width="2" stroke-linecap="round" opacity=".45"/>
+    <rect x="6" y="18" width="22" height="9" rx="4.5" style="fill:var(--skin,#F3CFB0)" stroke="#1C2340" stroke-width="2.4"/>
+  </symbol>
+
+  <symbol id="bust" viewBox="0 0 200 230" overflow="visible">
+    <g stroke="#1C2340" stroke-width="3" stroke-linejoin="round">
+      <path d="M52 92C46 34 154 34 148 92l4 58c-10 6-20 0-20-8H68c0 8-10 14-20 8z" style="fill:var(--hair,#4A2E1C);opacity:var(--long,0)"/>
+      <g style="opacity:var(--tails,0)"><circle cx="40" cy="98" r="15" style="fill:var(--hair,#4A2E1C)"/><circle cx="160" cy="98" r="15" style="fill:var(--hair,#4A2E1C)"/></g>
+      <path d="M28 230c0-50 30-74 72-74s72 24 72 74z" style="fill:var(--shirt,#2F74B5)"/>
+      <rect x="89" y="126" width="22" height="36" rx="6" style="fill:var(--skin,#F3CFB0)"/>
+      <path d="M85 157q15 16 30 0z" style="fill:var(--skin,#F3CFB0)"/>
+      <circle cx="55" cy="94" r="9" style="fill:var(--skin,#F3CFB0)"/><circle cx="145" cy="94" r="9" style="fill:var(--skin,#F3CFB0)"/>
+      <circle cx="100" cy="90" r="46" style="fill:var(--skin,#F3CFB0)"/>
+      <path d="M54 88C50 30 150 30 146 88c-8-20-26-28-46-20-20-8-38 0-46 20z" style="fill:var(--hair,#4A2E1C)"/>
+      <g style="opacity:var(--tails,0)"><circle cx="52" cy="90" r="5" fill="#E0516B"/><circle cx="148" cy="90" r="5" fill="#E0516B"/></g>
+    </g>
+    <g fill="#1C2340">
+      <g style="opacity:calc(1 - var(--almond,0))"><circle cx="84" cy="92" r="5.5"/><circle cx="116" cy="92" r="5.5"/></g>
+      <g style="opacity:var(--almond,0)"><path d="M75 92q10-10 19 1q-9 7-19-1zM125 92q-10-10-19 1q9 7 19-1z"/></g>
+    </g>
+    <circle cx="86" cy="90" r="1.8" fill="#FFFFFF"/><circle cx="118" cy="90" r="1.8" fill="#FFFFFF"/>
+    <circle cx="72" cy="106" r="6.5" fill="#F08F8F" opacity=".5"/><circle cx="128" cy="106" r="6.5" fill="#F08F8F" opacity=".5"/>
+    <path d="M86 108q14 13 28 0" fill="none" stroke="#1C2340" stroke-width="3" stroke-linecap="round"/>
+    <g fill="none" stroke="#1C2340" stroke-width="2.4" style="opacity:var(--glasses,0)"><circle cx="84" cy="92" r="11"/><circle cx="116" cy="92" r="11"/><path d="M95 92h10"/></g>
+  </symbol>
+
+  <!-- TRUE / VERDAD (Mia): pointer finger at the lips, then move it straight out -->
+  <symbol id="sign-true-base" viewBox="0 0 200 230" overflow="visible">
+    <use href="#bust" width="200" height="230"/>
+    <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M148 186l8 46" stroke="#1C2340" stroke-width="19"/><path d="M148 186l8 46" style="stroke:var(--skin,#F3CFB0)" stroke-width="13"/>
+      <path d="M52 186l-8 28" stroke="#1C2340" stroke-width="19"/><path d="M52 186l-8 28" style="stroke:var(--skin,#F3CFB0)" stroke-width="13"/>
+    </g>
+    <ellipse cx="148" cy="182" rx="17" ry="15" style="fill:var(--shirt,#2F74B5)" stroke="#1C2340" stroke-width="3"/>
+    <ellipse cx="52" cy="182" rx="17" ry="15" style="fill:var(--shirt,#2F74B5)" stroke="#1C2340" stroke-width="3"/>
+  </symbol>
+  <symbol id="sign-true-move" viewBox="0 0 200 230" overflow="visible">
+    <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M44 214l52-54" stroke="#1C2340" stroke-width="19"/><path d="M44 214l52-54" style="stroke:var(--skin,#F3CFB0)" stroke-width="13"/>
+    </g>
+    <use href="#hand-point" x="82" y="104" width="38" height="58"/>
+  </symbol>
+  <symbol id="sign-true-arrow" viewBox="0 0 200 230" overflow="visible">
+    <path d="M122 112q28 2 30 30" fill="none" stroke="#1C2340" stroke-width="10" stroke-linecap="round"/>
+    <path d="M122 112q28 2 30 30" fill="none" stroke="#FFC93C" stroke-width="5" stroke-linecap="round"/>
+    <path d="M142 140h20l-10 14z" fill="#FFC93C" stroke="#1C2340" stroke-width="2.6" stroke-linejoin="round"/>
+  </symbol>
+
+  <!-- KIND / AMABLE (Ana): flat hand circles around the other flat hand -->
+  <symbol id="sign-kind-base" viewBox="0 0 200 230" overflow="visible">
+    <use href="#bust" width="200" height="230"/>
+    <g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M148 186l14 30" stroke="#1C2340" stroke-width="19"/><path d="M148 186l14 30" style="stroke:var(--skin,#F3CFB0)" stroke-width="13"/><path d="M52 186l-14 28" stroke="#1C2340" stroke-width="19"/><path d="M52 186l-14 28" style="stroke:var(--skin,#F3CFB0)" stroke-width="13"/></g>
+    <ellipse cx="148" cy="182" rx="17" ry="15" style="fill:var(--shirt,#2F74B5)" stroke="#1C2340" stroke-width="3"/>
+    <ellipse cx="52" cy="182" rx="17" ry="15" style="fill:var(--shirt,#2F74B5)" stroke="#1C2340" stroke-width="3"/>
+    <g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M162 216l-16-6" stroke="#1C2340" stroke-width="19"/><path d="M162 216l-16-6" style="stroke:var(--skin,#F3CFB0)" stroke-width="13"/></g>
+    <g transform="translate(146 210) rotate(-90) scale(-1 1) translate(-23 -66)"><use href="#hand-flat" width="44" height="70"/></g>
+  </symbol>
+  <symbol id="sign-kind-move" viewBox="0 0 200 230" overflow="visible">
+    <g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M38 214l24-38" stroke="#1C2340" stroke-width="19"/><path d="M38 214l24-38" style="stroke:var(--skin,#F3CFB0)" stroke-width="13"/></g>
+    <g transform="translate(62 174) rotate(90) translate(-23 -66)"><use href="#hand-flat" width="44" height="70"/></g>
+  </symbol>
+  <symbol id="sign-kind-arrow" viewBox="0 0 200 230" overflow="visible">
+    <path d="M162 216A60 34 0 1 1 146 172" fill="none" stroke="#1C2340" stroke-width="10" stroke-linecap="round"/>
+    <path d="M162 216A60 34 0 1 1 146 172" fill="none" stroke="#FFC93C" stroke-width="5" stroke-linecap="round"/>
+    <path d="M142 162l20 12-18 10z" fill="#FFC93C" stroke="#1C2340" stroke-width="2.6" stroke-linejoin="round"/>
+  </symbol>
+
+  <!-- LOVE / AMOR (Sam): fists crossed over the heart, like a hug -->
+  <symbol id="sign-love-base" viewBox="0 0 200 230" overflow="visible">
+    <use href="#bust" width="200" height="230"/>
+    <g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M148 186l-12 34" stroke="#1C2340" stroke-width="19"/><path d="M148 186l-12 34" style="stroke:var(--skin,#F3CFB0)" stroke-width="13"/><path d="M52 186l12 34" stroke="#1C2340" stroke-width="19"/><path d="M52 186l12 34" style="stroke:var(--skin,#F3CFB0)" stroke-width="13"/></g>
+    <ellipse cx="148" cy="182" rx="17" ry="15" style="fill:var(--shirt,#2F74B5)" stroke="#1C2340" stroke-width="3"/>
+    <ellipse cx="52" cy="182" rx="17" ry="15" style="fill:var(--shirt,#2F74B5)" stroke="#1C2340" stroke-width="3"/>
+    <g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M136 220l-60-40" stroke="#1C2340" stroke-width="19"/><path d="M136 220l-60-40" style="stroke:var(--skin,#F3CFB0)" stroke-width="13"/></g>
+    <use href="#hand-fist" x="56" y="160" width="38" height="36"/>
+    <g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M64 220l60-40" stroke="#1C2340" stroke-width="19"/><path d="M64 220l60-40" style="stroke:var(--skin,#F3CFB0)" stroke-width="13"/></g>
+    <use href="#hand-fist" x="106" y="160" width="38" height="36"/>
+  </symbol>
+  <symbol id="sign-love-move" viewBox="0 0 200 230" overflow="visible">
+    <use href="#heart" x="16" y="40" width="28" height="26" style="--heart:#F07C94"/>
+    <use href="#heart" x="156" y="30" width="34" height="32" style="--heart:#D2405D"/>
+  </symbol>
+  <symbol id="sign-love-arrow" viewBox="0 0 200 230" overflow="visible">
+    <g fill="none" stroke-linecap="round"><path d="M28 168q-8 16 0 32M172 168q8 16 0 32" stroke="#1C2340" stroke-width="10"/><path d="M28 168q-8 16 0 32M172 168q8 16 0 32" stroke="#FFC93C" stroke-width="5"/></g>
+  </symbol>
+
+  <!-- SHARE / COMPARTIR (Ben): edge of one flat hand on the other, slide it back and forth -->
+  <symbol id="sign-share-base" viewBox="0 0 200 230" overflow="visible">
+    <use href="#bust" width="200" height="230"/>
+    <g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M148 186l14 30" stroke="#1C2340" stroke-width="19"/><path d="M148 186l14 30" style="stroke:var(--skin,#F3CFB0)" stroke-width="13"/><path d="M52 186l-12 28" stroke="#1C2340" stroke-width="19"/><path d="M52 186l-12 28" style="stroke:var(--skin,#F3CFB0)" stroke-width="13"/></g>
+    <ellipse cx="148" cy="182" rx="17" ry="15" style="fill:var(--shirt,#2F74B5)" stroke="#1C2340" stroke-width="3"/>
+    <ellipse cx="52" cy="182" rx="17" ry="15" style="fill:var(--shirt,#2F74B5)" stroke="#1C2340" stroke-width="3"/>
+    <g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M40 214l78-4" stroke="#1C2340" stroke-width="19"/><path d="M40 214l78-4" style="stroke:var(--skin,#F3CFB0)" stroke-width="13"/><path d="M162 216l-14-6" stroke="#1C2340" stroke-width="19"/><path d="M162 216l-14-6" style="stroke:var(--skin,#F3CFB0)" stroke-width="13"/></g>
+    <g transform="translate(148 212) rotate(-90) scale(-1 1) translate(-23 -66)"><use href="#hand-flat" width="44" height="70"/></g>
+  </symbol>
+  <symbol id="sign-share-move" viewBox="0 0 200 230" overflow="visible">
+    <g transform="translate(106 198) rotate(-6) scale(.8 .85) translate(-23 -66)"><use href="#hand-flat" width="44" height="70"/></g>
+  </symbol>
+  <symbol id="sign-share-arrow" viewBox="0 0 200 230" overflow="visible">
+    <g fill="none" stroke-linecap="round"><path d="M84 148H66M126 148h18" stroke="#1C2340" stroke-width="10"/><path d="M84 148H66M126 148h18" stroke="#FFC93C" stroke-width="5"/></g>
+    <path d="M68 138l-14 10 14 10zM142 138l14 10-14 10z" fill="#FFC93C" stroke="#1C2340" stroke-width="2.6" stroke-linejoin="round"/>
+  </symbol>
+
+  <!-- Print versions: kid + moving part + arrows in one picture -->
+  <symbol id="sign-true" viewBox="0 0 200 230" overflow="visible"><g style="--skin:#8D5A3B;--hair:#1F140D;--shirt:#2F74B5;--tails:1"><use href="#sign-true-base" width="200" height="230"/><use href="#sign-true-move" width="200" height="230"/><use href="#sign-true-arrow" width="200" height="230"/></g></symbol>
+  <symbol id="sign-kind" viewBox="0 0 200 230" overflow="visible"><g style="--skin:#E7B992;--hair:#C98A3A;--shirt:#23885C;--long:1;--glasses:1"><use href="#sign-kind-base" width="200" height="230"/><use href="#sign-kind-move" width="200" height="230"/><use href="#sign-kind-arrow" width="200" height="230"/></g></symbol>
+  <symbol id="sign-love" viewBox="0 0 200 230" overflow="visible"><g style="--skin:#F3CFB0;--hair:#8B5A2B;--shirt:#D2405D;--almond:1"><use href="#sign-love-base" width="200" height="230"/><use href="#sign-love-move" width="200" height="230"/><use href="#sign-love-arrow" width="200" height="230"/></g></symbol>
+  <symbol id="sign-share" viewBox="0 0 200 230" overflow="visible"><g style="--skin:#6B4430;--hair:#1F140D;--shirt:#D9741A"><use href="#sign-share-base" width="200" height="230"/><use href="#sign-share-move" width="200" height="230"/><use href="#sign-share-arrow" width="200" height="230"/></g></symbol>
+
+  <!-- ===== Extra objects ===== -->
+  <symbol id="thumb" viewBox="0 0 40 40">
+    <rect x="3" y="17" width="8" height="19" rx="2.5" fill="#3B6E8F" stroke="#1C2340" stroke-width="2.4"/>
+    <path d="M11 18l6-12c1-3 6-2 6 2l-1 8h10c3 0 5 3 4 5l-3 11c-1 2-2 3-4 3H11z" fill="#F3CFB0" stroke="#1C2340" stroke-width="2.4" stroke-linejoin="round"/>
+    <path d="M22 22h12M22 28h11" stroke="#C9946E" stroke-width="2" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="inn" viewBox="0 0 130 110">
+    <path d="M8 46L65 6l57 40z" fill="#C8463D" stroke="#1C2340" stroke-width="2.6" stroke-linejoin="round"/>
+    <rect x="18" y="44" width="94" height="62" fill="#EED9B4" stroke="#1C2340" stroke-width="2.6"/>
+    <rect x="54" y="66" width="22" height="40" rx="3" fill="#8A5A2B" stroke="#1C2340" stroke-width="2.4"/>
+    <rect x="28" y="58" width="18" height="16" rx="2" fill="#FFE59A" stroke="#1C2340" stroke-width="2.2"/>
+    <rect x="84" y="58" width="18" height="16" rx="2" fill="#FFE59A" stroke="#1C2340" stroke-width="2.2"/>
+  </symbol>
+  <symbol id="soundwaves" viewBox="0 0 40 40">
+    <g fill="none" stroke="#FFD866" stroke-width="3.4" stroke-linecap="round"><path d="M10 14q-6 6 0 12"/><path d="M18 8q-12 12 0 24"/><path d="M26 2q-18 18 0 36"/></g>
+  </symbol>
+
+  <!-- ===== Tell the truth: Samuel (1 Samuel 3) ===== -->
+  <symbol id="scene-truth-1" viewBox="0 0 400 260">
+    <rect width="400" height="260" fill="#2E3C70"/>
+    <rect x="290" y="30" width="80" height="70" rx="8" fill="#1A2552" stroke="#1C2340" stroke-width="2.4"/>
+    <circle cx="314" cy="56" r="12" fill="#FFE59A"/><circle cx="320" cy="52" r="10" fill="#1A2552"/>
+    <circle cx="350" cy="44" r="2" fill="#FFE59A"/><circle cx="348" cy="82" r="2" fill="#FFE59A"/>
+    <path d="M330 30v70M290 65h80" stroke="#1C2340" stroke-width="2.4"/>
+    <rect y="204" width="400" height="56" fill="#5E5478" stroke="#1C2340" stroke-width="2.4"/>
+    <rect x="232" y="164" width="40" height="40" rx="3" fill="#8A6A48" stroke="#1C2340" stroke-width="2.4"/>
+    <use href="#lamp" x="220" y="120" width="64" height="56"/>
+    <rect x="40" y="186" width="176" height="20" rx="8" fill="#C9A86A" stroke="#1C2340" stroke-width="2.4"/>
+    <ellipse cx="66" cy="180" rx="22" ry="10" fill="#F4E6CF" stroke="#1C2340" stroke-width="2.4"/>
+    <g transform="translate(50 196) rotate(-90)"><use href="#kid" width="62" height="114" style="--shirt:#3B82C4;--skin:#E7B992;--hair:#5A3A22;--pants:#6B5B3E;--sleep:1;--happy:0"/></g>
+    <rect x="92" y="164" width="120" height="30" rx="12" fill="#6C9BC9" stroke="#1C2340" stroke-width="2.4"/>
+    <use href="#soundwaves" x="110" y="96" width="52" height="52" transform="rotate(200 136 122)"/>
+  </symbol>
+  <symbol id="scene-truth-2" viewBox="0 0 400 260">
+    <rect width="400" height="260" fill="#2E3C70"/>
+    <rect x="30" y="30" width="80" height="70" rx="8" fill="#1A2552" stroke="#1C2340" stroke-width="2.4"/>
+    <circle cx="56" cy="56" r="12" fill="#FFE59A"/><circle cx="62" cy="52" r="10" fill="#1A2552"/>
+    <path d="M70 30v70M30 65h80" stroke="#1C2340" stroke-width="2.4"/>
+    <rect y="204" width="400" height="56" fill="#5E5478" stroke="#1C2340" stroke-width="2.4"/>
+    <use href="#lamp" x="168" y="40" width="64" height="56"/>
+    <g stroke="#FFE59A" stroke-width="4" stroke-linecap="round" opacity=".8"><path d="M60 128h28M52 146h32M60 164h24"/></g>
+    <use href="#kid" x="94" y="92" width="64" height="117" style="--shirt:#3B82C4;--skin:#E7B992;--hair:#5A3A22;--pants:#6B5B3E;--reach:1"/>
+    <use href="#adult" x="248" y="58" width="70" height="150" style="--robe:#8C7BC0;--skin:#E2B48C;--hair:#DADADA;--beard:1;--headcloth:1;--cloth:#F1E7D2;--happy:0"/>
+  </symbol>
+  <symbol id="scene-truth-3" viewBox="0 0 400 260">
+    <rect width="400" height="260" fill="#F4EAD5"/>
+    <rect x="290" y="28" width="80" height="70" rx="8" fill="#BFE4FA" stroke="#1C2340" stroke-width="2.4"/>
+    <circle cx="330" cy="62" r="16" fill="#FFD866" stroke="#1C2340" stroke-width="2"/>
+    <path d="M330 28v70M290 63h80" stroke="#1C2340" stroke-width="2.4"/>
+    <rect y="204" width="400" height="56" fill="#CDBB9C" stroke="#1C2340" stroke-width="2.4"/>
+    <use href="#adult" x="232" y="58" width="70" height="150" style="--robe:#8C7BC0;--skin:#E2B48C;--hair:#DADADA;--beard:1;--headcloth:1;--cloth:#F1E7D2;--happy:0"/>
+    <use href="#kid" x="104" y="92" width="64" height="117" style="--shirt:#3B82C4;--skin:#E7B992;--hair:#5A3A22;--pants:#6B5B3E;--happy:0;--sad:1"/>
+    <path d="M186 24h46q12 0 12 12v28q0 12-12 12h-18l-10 16-4-16h-14q-12 0-12-12V36q0-12 12-12z" fill="#FFFFFF" stroke="#1C2340" stroke-width="2.4" stroke-linejoin="round"/>
+    <text x="209" y="64" text-anchor="middle" font-family="Baloo 2, Arial Rounded MT Bold, sans-serif" font-weight="800" font-size="40" fill="#2F74B5">?</text>
+  </symbol>
+
+  <!-- ===== Be kind: the Good Samaritan (Luke 10) ===== -->
+  <symbol id="scene-kind-1" viewBox="0 0 400 260">
+    <rect width="400" height="260" fill="#FCEFD6"/>
+    <circle cx="340" cy="44" r="20" fill="#FFD866" stroke="#1C2340" stroke-width="2.4"/>
+    <path d="M0 128q90-32 180-6t180-12 40 6v144H0z" fill="#EAD6AE" stroke="#1C2340" stroke-width="2.4"/>
+    <path d="M0 176q140-16 400 6v78H0z" fill="#CDE3A6" stroke="#1C2340" stroke-width="2.4"/>
+    <path d="M230 260c12-46 36-82 70-110h20c-18 32-30 70-18 110z" fill="#DCC08E" stroke="#1C2340" stroke-width="2.4" stroke-linejoin="round"/>
+    <use href="#adult" x="94" y="92" width="70" height="150" style="--robe:#A9A3BA;--skin:#C68E62;--hair:#2A1B12;--beard:1;--happy:0;--sad:1"/>
+    <path d="M64 260c-4-46 26-74 70-74s72 28 74 74z" fill="#B9AC9C" stroke="#1C2340" stroke-width="2.4"/>
+  </symbol>
+  <symbol id="scene-kind-2" viewBox="0 0 400 260">
+    <rect width="400" height="260" fill="#FCEFD6"/>
+    <circle cx="58" cy="44" r="20" fill="#FFD866" stroke="#1C2340" stroke-width="2.4"/>
+    <path d="M0 128q90-32 180-6t180-12 40 6v144H0z" fill="#EAD6AE" stroke="#1C2340" stroke-width="2.4"/>
+    <path d="M0 176q140-16 400 6v78H0z" fill="#CDE3A6" stroke="#1C2340" stroke-width="2.4"/>
+    <path d="M210 260c12-46 36-82 70-110h20c-18 32-30 70-18 110z" fill="#DCC08E" stroke="#1C2340" stroke-width="2.4" stroke-linejoin="round"/>
+    <use href="#adult" x="64" y="92" width="70" height="150" style="--robe:#A9A3BA;--skin:#C68E62;--hair:#2A1B12;--beard:1;--happy:0;--sad:1"/>
+    <path d="M34 260c-4-46 26-74 70-74s72 28 74 74z" fill="#B9AC9C" stroke="#1C2340" stroke-width="2.4"/>
+    <use href="#adult" x="252" y="96" width="44" height="94" style="--robe:#E9E4F5;--sash:#8C7BC0;--skin:#E2B48C;--hair:#3B2618;--beard:1;--headcloth:1;--cloth:#FFFFFF;--happy:0"/>
+    <use href="#adult" x="300" y="84" width="40" height="86" style="--robe:#D9A14A;--skin:#A86B48;--hair:#1F140D;--beard:1;--happy:0"/>
+    <path d="M268 210q30-30 76-50" fill="none" stroke="#7D86A3" stroke-width="4" stroke-linecap="round" stroke-dasharray="2 10"/>
+    <path d="M334 152l12 7-9 10" fill="none" stroke="#7D86A3" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="scene-kind-4" viewBox="0 0 400 260">
+    <rect width="400" height="260" fill="#FCEFD6"/>
+    <path d="M0 176q140-16 400 6v78H0z" fill="#CDE3A6" stroke="#1C2340" stroke-width="2.4"/>
+    <use href="#inn" x="232" y="68" width="150" height="127"/>
+    <use href="#adult" x="70" y="58" width="70" height="150" style="--robe:#A9A3BA;--skin:#C68E62;--hair:#2A1B12;--beard:1;--bandage:1;--reach:1"/>
+    <use href="#adult" x="148" y="58" width="70" height="150" style="--robe:#3E8E68;--skin:#9B6845;--hair:#1F140D;--beard:1;--headcloth:1;--cloth:#F2E3C2;--reachL:1"/>
+    <use href="#heart" x="124" y="20" width="40" height="37" style="--heart:#3FB27A"/>
+  </symbol>
+
+  <!-- ===== Love others: Jesus welcomes the children (Mark 10) ===== -->
+  <symbol id="scene-love-1" viewBox="0 0 400 260">
+    <rect width="400" height="260" fill="#FCE8EE"/>
+    <path d="M0 180q200-16 400 0v80H0z" fill="#C7E3AE" stroke="#1C2340" stroke-width="2.4"/>
+    <path d="M0 228q150-22 300-34" fill="none" stroke="#E9D3A6" stroke-width="22" stroke-linecap="round"/>
+    <use href="#adult" x="296" y="40" width="70" height="150" style="--robe:#FFFFFF;--sash:#C8463D;--skin:#C68E62;--hair:#5B3820;--beard:1"/>
+    <use href="#adult" x="30" y="66" width="60" height="128" style="--robe:#B57BB0;--skin:#8D5A3B;--hair:#1F140D;--headcloth:1;--cloth:#E8C9A0;--reach:1"/>
+    <use href="#kid" x="90" y="118" width="52" height="96" style="--skin:#8D5A3B;--hair:#1F140D;--shirt:#2F74B5;--reachL:1"/>
+    <use href="#adult" x="150" y="74" width="56" height="120" style="--robe:#6C9BC9;--skin:#F1C7A5;--hair:#C98A3A;--beard:1;--reach:1"/>
+    <use href="#kid" x="204" y="118" width="52" height="96" style="--almond:1;--skin:#F3CFB0;--hair:#8B5A2B;--shirt:#F6B93B;--reachL:1"/>
+    <path d="M240 96h36M266 88l10 8-10 8" fill="none" stroke="#D2405D" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="scene-love-2" viewBox="0 0 400 260">
+    <rect width="400" height="260" fill="#FCE8EE"/>
+    <path d="M0 180q200-16 400 0v80H0z" fill="#C7E3AE" stroke="#1C2340" stroke-width="2.4"/>
+    <use href="#adult" x="306" y="48" width="56" height="120" style="--robe:#FFFFFF;--sash:#C8463D;--skin:#C68E62;--hair:#5B3820;--beard:1;--happy:0"/>
+    <use href="#adult" x="166" y="56" width="70" height="150" style="--robe:#7DB38A;--skin:#C68E62;--hair:#2A1B12;--beard:1;--happy:0;--reachL:1"/>
+    <use href="#adult" x="226" y="62" width="64" height="137" style="--robe:#D9A14A;--skin:#A86B48;--hair:#1F140D;--beard:1;--happy:0;--reachL:1"/>
+    <use href="#kid" x="36" y="114" width="54" height="99" style="--long:1;--glasses:1;--skin:#F1C7A5;--hair:#C98A3A;--shirt:#7BC4A4;--happy:0;--sad:1"/>
+    <use href="#kid" x="96" y="114" width="54" height="99" style="--almond:1;--skin:#F3CFB0;--hair:#8B5A2B;--shirt:#F6B93B;--happy:0;--sad:1"/>
+    <path d="M150 50h40v28h-40z" fill="none"/>
+    <path d="M128 40l22 22M150 40l-22 22" stroke="#7D86A3" stroke-width="5" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="scene-love-3" viewBox="0 0 400 260">
+    <rect width="400" height="260" fill="#FCE8EE"/>
+    <path d="M0 180q200-16 400 0v80H0z" fill="#C7E3AE" stroke="#1C2340" stroke-width="2.4"/>
+    <use href="#adult" x="310" y="70" width="52" height="112" style="--robe:#7DB38A;--skin:#C68E62;--hair:#2A1B12;--beard:1"/>
+    <use href="#adult" x="216" y="40" width="70" height="150" style="--robe:#FFFFFF;--sash:#C8463D;--skin:#C68E62;--hair:#5B3820;--beard:1;--reach:1;--reachL:1"/>
+    <use href="#kid" x="34" y="116" width="54" height="99" style="--long:1;--glasses:1;--skin:#F1C7A5;--hair:#C98A3A;--shirt:#7BC4A4;--reach:1"/>
+    <use href="#kid" x="96" y="112" width="56" height="103" style="--almond:1;--skin:#F3CFB0;--hair:#8B5A2B;--shirt:#F6B93B;--reach:1"/>
+    <use href="#kid" x="150" y="116" width="54" height="99" style="--skin:#6B4430;--hair:#1F140D;--shirt:#E0516B;--long:1;--reach:1"/>
+    <g stroke="#D2405D" stroke-width="4" stroke-linecap="round" opacity=".7"><path d="M14 150h18M10 168h22M16 186h14"/></g>
+    <use href="#heart" x="244" y="8" width="26" height="24" style="--heart:#F07C94"/>
+  </symbol>
+  <!-- Story scenes: The boy who shared (John 6) -->
+  <symbol id="scene-share-1" viewBox="0 0 400 260">
+    <rect width="400" height="260" fill="#DCEFFB"/>
+    <circle cx="345" cy="48" r="22" fill="#FFD866" stroke="#1C2340" stroke-width="2.4"/>
+    <path d="M0 172q110-26 210-8t190-8v104H0z" fill="#BCDFA2" stroke="#1C2340" stroke-width="2.4"/>
+    <ellipse cx="78" cy="46" rx="42" ry="27" fill="#FFFFFF" stroke="#1C2340" stroke-width="2.4"/>
+    <circle cx="106" cy="86" r="6.5" fill="#FFFFFF" stroke="#1C2340" stroke-width="2.2"/>
+    <circle cx="117" cy="100" r="4" fill="#FFFFFF" stroke="#1C2340" stroke-width="2"/>
+    <path d="M58 40h40q0 17-20 17t-20-17z" fill="#E9EEF8" stroke="#1C2340" stroke-width="2.2" stroke-linejoin="round"/>
+    <use href="#adult" x="16" y="90" width="56" height="120" style="--robe:#B57BB0;--skin:#A86B48;--hair:#2A1B12;--headcloth:1;--cloth:#E8C9A0;--happy:0;--sad:1"/>
+    <use href="#adult" x="64" y="98" width="52" height="112" style="--robe:#6C9BC9;--skin:#E2B48C;--hair:#5A3A22;--beard:1;--happy:0;--sad:1"/>
+    <use href="#kid" x="112" y="128" width="46" height="84" style="--shirt:#E77F5A;--skin:#8D5A3B;--hair:#1F140D;--happy:0;--sad:1"/>
+    <use href="#adult" x="168" y="58" width="70" height="150" style="--robe:#FFFFFF;--sash:#C8463D;--skin:#C68E62;--hair:#5B3820;--beard:1"/>
+    <use href="#adult" x="258" y="94" width="54" height="116" style="--robe:#7DB38A;--skin:#C68E62;--hair:#2A1B12;--headcloth:1;--cloth:#F0E2C4;--happy:0;--sad:1"/>
+    <use href="#kid" x="308" y="126" width="46" height="84" style="--shirt:#5C8FD6;--skin:#F1C7A5;--hair:#B5651D;--long:1;--happy:0;--sad:1"/>
+    <use href="#adult" x="346" y="100" width="50" height="108" style="--robe:#D9A14A;--skin:#8D5A3B;--hair:#1F140D;--beard:1;--happy:0;--sad:1"/>
+  </symbol>
+  <symbol id="scene-share-2" viewBox="0 0 400 260">
+    <rect width="400" height="260" fill="#DCEFFB"/>
+    <circle cx="352" cy="44" r="20" fill="#FFD866" stroke="#1C2340" stroke-width="2.4"/>
+    <path d="M0 176q120-22 220-6t180-10v100H0z" fill="#BCDFA2" stroke="#1C2340" stroke-width="2.4"/>
+    <ellipse cx="272" cy="198" rx="114" ry="25" fill="#F4E6CF" stroke="#1C2340" stroke-width="2.4"/>
+    <use href="#fish" x="212" y="146" width="54" height="30"/>
+    <use href="#fish" x="282" y="146" width="54" height="30"/>
+    <use href="#bread" x="180" y="180" width="36" height="23"/>
+    <use href="#bread" x="218" y="180" width="36" height="23"/>
+    <use href="#bread" x="256" y="180" width="36" height="23"/>
+    <use href="#bread" x="294" y="180" width="36" height="23"/>
+    <use href="#bread" x="332" y="180" width="36" height="23"/>
+    <use href="#kid" x="58" y="44" width="92" height="169" style="--shirt:#F08A24;--skin:#B9825A;--hair:#2A1B12;--pants:#5B4A8A;--reach:1"/>
+  </symbol>
+  <symbol id="scene-share-3" viewBox="0 0 400 260">
+    <rect width="400" height="260" fill="#DCEFFB"/>
+    <path d="M0 176q120-22 220-6t180-10v100H0z" fill="#BCDFA2" stroke="#1C2340" stroke-width="2.4"/>
+    <use href="#kid" x="70" y="76" width="76" height="139" style="--shirt:#F08A24;--skin:#B9825A;--hair:#2A1B12;--pants:#5B4A8A;--reach:1"/>
+    <use href="#adult" x="236" y="62" width="70" height="150" style="--robe:#FFFFFF;--sash:#C8463D;--skin:#C68E62;--hair:#5B3820;--beard:1;--reachL:1"/>
+    <use href="#bread" x="156" y="116" width="32" height="21"/>
+    <use href="#fish" x="182" y="114" width="38" height="22"/>
+    <use href="#basket" x="148" y="124" width="76" height="48"/>
+    <use href="#heart" x="166" y="44" width="42" height="39" style="--heart:#F07C94"/>
+  </symbol>
+  <symbol id="scene-share-4" viewBox="0 0 400 260">
+    <rect width="400" height="260" fill="#DCEFFB"/>
+    <circle cx="48" cy="40" r="20" fill="#FFD866" stroke="#1C2340" stroke-width="2.4"/>
+    <path d="M0 168q110-24 210-6t190-8v106H0z" fill="#BCDFA2" stroke="#1C2340" stroke-width="2.4"/>
+    <use href="#adult" x="26" y="82" width="56" height="120" style="--robe:#B57BB0;--skin:#A86B48;--hair:#2A1B12;--headcloth:1;--cloth:#E8C9A0"/>
+    <use href="#kid" x="96" y="114" width="50" height="92" style="--shirt:#5C8FD6;--skin:#F1C7A5;--hair:#B5651D;--long:1"/>
+    <use href="#adult" x="165" y="44" width="70" height="150" style="--robe:#FFFFFF;--sash:#C8463D;--skin:#C68E62;--hair:#5B3820;--beard:1"/>
+    <use href="#kid" x="252" y="114" width="50" height="92" style="--shirt:#F6B93B;--skin:#F3CFB0;--hair:#8B5A2B;--almond:1"/>
+    <use href="#adult" x="306" y="82" width="56" height="120" style="--robe:#6C9BC9;--skin:#E2B48C;--hair:#5A3A22;--beard:1"/>
+    <use href="#bread" x="52" y="190" width="32" height="21"/><use href="#fish" x="80" y="188" width="36" height="20"/>
+    <use href="#bread" x="172" y="190" width="32" height="21"/><use href="#bread" x="200" y="188" width="32" height="21"/>
+    <use href="#fish" x="290" y="188" width="36" height="20"/><use href="#bread" x="318" y="190" width="32" height="21"/>
+    <use href="#basket" x="40" y="198" width="84" height="52"/>
+    <use href="#basket" x="158" y="198" width="84" height="52"/>
+    <use href="#basket" x="276" y="198" width="84" height="52"/>
+  </symbol>
+
+  <!-- Key scenes for the other lessons -->
+  <symbol id="scene-truth" viewBox="0 0 400 260">
+    <rect width="400" height="260" fill="#E4E2F4"/>
+    <rect x="276" y="28" width="94" height="78" rx="8" fill="#26346B" stroke="#1C2340" stroke-width="2.4"/>
+    <circle cx="303" cy="56" r="13" fill="#FFE59A"/><circle cx="309" cy="52" r="11" fill="#26346B"/>
+    <circle cx="345" cy="45" r="2.2" fill="#FFE59A"/><circle cx="355" cy="85" r="2.2" fill="#FFE59A"/><circle cx="296" cy="90" r="1.8" fill="#FFE59A"/>
+    <path d="M323 28v78M276 67h94" stroke="#1C2340" stroke-width="2.4"/>
+    <rect x="0" y="198" width="400" height="62" fill="#CDBB9C" stroke="#1C2340" stroke-width="2.4"/>
+    <rect x="30" y="158" width="50" height="40" rx="3" fill="#A0784E" stroke="#1C2340" stroke-width="2.4"/>
+    <use href="#lamp" x="18" y="114" width="64" height="56"/>
+    <use href="#adult" x="254" y="58" width="70" height="150" style="--robe:#8C7BC0;--skin:#E2B48C;--hair:#DADADA;--beard:1;--headcloth:1;--cloth:#F1E7D2"/>
+    <use href="#kid" x="96" y="92" width="64" height="117" style="--shirt:#3B82C4;--skin:#E7B992;--hair:#5A3A22;--pants:#6B5B3E"/>
+    <path d="M162 30h76q12 0 12 12v36q0 12-12 12h-66l-26 18 10-18h-6q-12 0-12-12V42q0-12 12-12z" fill="#FFFFFF" stroke="#1C2340" stroke-width="2.4" stroke-linejoin="round"/>
+    <path d="M178 60l16 14 28-28" fill="none" stroke="#2F74B5" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="scene-kind" viewBox="0 0 400 260">
+    <rect width="400" height="260" fill="#FCEFD6"/>
+    <circle cx="58" cy="44" r="20" fill="#FFD866" stroke="#1C2340" stroke-width="2.4"/>
+    <path d="M0 128q90-32 180-6t180-12 40 6v144H0z" fill="#EAD6AE" stroke="#1C2340" stroke-width="2.4"/>
+    <path d="M0 176q140-16 400 6v78H0z" fill="#CDE3A6" stroke="#1C2340" stroke-width="2.4"/>
+    <path d="M210 260c12-46 36-82 70-110h20c-18 32-30 70-18 110z" fill="#DCC08E" stroke="#1C2340" stroke-width="2.4" stroke-linejoin="round"/>
+    <use href="#adult" x="64" y="92" width="70" height="150" style="--robe:#A9A3BA;--skin:#C68E62;--hair:#2A1B12;--beard:1;--bandage:1;--happy:0;--sad:1"/>
+    <path d="M34 260c-4-46 26-74 70-74s72 28 74 74z" fill="#B9AC9C" stroke="#1C2340" stroke-width="2.4"/>
+    <use href="#adult" x="178" y="60" width="70" height="150" style="--robe:#3E8E68;--skin:#9B6845;--hair:#1F140D;--beard:1;--headcloth:1;--cloth:#F2E3C2;--reachL:1"/>
+    <use href="#jar" x="252" y="176" width="26" height="35"/>
+    <use href="#heart" x="124" y="40" width="40" height="37" style="--heart:#3FB27A"/>
+  </symbol>
+  <symbol id="scene-love" viewBox="0 0 400 260">
+    <rect width="400" height="260" fill="#FCE8EE"/>
+    <path d="M0 180q200-16 400 0v80H0z" fill="#C7E3AE" stroke="#1C2340" stroke-width="2.4"/>
+    <use href="#heart" x="52" y="34" width="30" height="28" style="--heart:#F07C94"/>
+    <use href="#heart" x="318" y="30" width="34" height="32" style="--heart:#D2405D"/>
+    <use href="#heart" x="188" y="6" width="24" height="22" style="--heart:#F07C94"/>
+    <use href="#adult" x="165" y="40" width="70" height="150" style="--robe:#FFFFFF;--sash:#C8463D;--skin:#C68E62;--hair:#5B3820;--beard:1;--reach:1;--reachL:1"/>
+    <use href="#kid" x="40" y="118" width="52" height="96" style="--long:1;--glasses:1;--skin:#F1C7A5;--hair:#C98A3A;--shirt:#7BC4A4"/>
+    <use href="#kid" x="98" y="112" width="56" height="103" style="--almond:1;--skin:#F3CFB0;--hair:#8B5A2B;--shirt:#F6B93B"/>
+    <use href="#kid" x="250" y="112" width="56" height="103" style="--skin:#8D5A3B;--hair:#1F140D;--shirt:#2F74B5"/>
+    <use href="#wheelchair" x="244" y="160" width="64" height="64"/>
+    <use href="#kid" x="318" y="118" width="52" height="96" style="--long:1;--skin:#6B4430;--hair:#1F140D;--shirt:#E0516B"/>
+  </symbol>
+
+  <!-- Kind or not kind? scenarios -->
+  <symbol id="sc-a" viewBox="0 0 220 160">
+    <rect width="220" height="160" fill="#F3F7FD"/>
+    <rect y="138" width="220" height="22" fill="#E3EBD3"/>
+    <path d="M70 22q40-20 80 0" fill="none" stroke="#23885C" stroke-width="4" stroke-linecap="round"/>
+    <path d="M139 13l11 9-13 4" fill="none" stroke="#23885C" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    <use href="#kid" x="28" y="26" width="62" height="114" style="--long:1;--hair:#2A1B12;--skin:#8D5A3B;--shirt:#E0516B;--reach:1"/>
+    <use href="#kid" x="130" y="26" width="62" height="114" style="--skin:#F1C7A5;--hair:#C98A3A;--shirt:#2F74B5;--reachL:1"/>
+    <use href="#ball" x="98" y="75" width="24" height="24"/>
+  </symbol>
+  <symbol id="sc-b" viewBox="0 0 220 160">
+    <rect width="220" height="160" fill="#F3F7FD"/>
+    <rect y="138" width="220" height="22" fill="#E3EBD3"/>
+    <path d="M150 22q-40-20-80 0" fill="none" stroke="#7D86A3" stroke-width="4" stroke-linecap="round"/>
+    <path d="M81 13l-11 9 13 4" fill="none" stroke="#7D86A3" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    <use href="#kid" x="28" y="26" width="62" height="114" style="--skin:#E7B992;--hair:#5A3A22;--shirt:#7BC4A4;--reach:1;--mad:1;--happy:0"/>
+    <use href="#kid" x="130" y="26" width="62" height="114" style="--long:1;--skin:#F1C7A5;--hair:#B5651D;--shirt:#B57BB0;--reachL:1;--sad:1;--happy:0"/>
+    <use href="#teddy" x="94" y="70" width="30" height="30"/>
+  </symbol>
+  <symbol id="sc-c" viewBox="0 0 220 160">
+    <rect width="220" height="160" fill="#F3F7FD"/>
+    <rect y="138" width="220" height="22" fill="#E3EBD3"/>
+    <use href="#kid" x="28" y="26" width="62" height="114" style="--almond:1;--skin:#F3CFB0;--hair:#8B5A2B;--shirt:#F6B93B;--reach:1"/>
+    <use href="#kid" x="130" y="26" width="62" height="114" style="--skin:#6B4430;--hair:#1F140D;--shirt:#2F74B5;--reachL:1;--glasses:1"/>
+    <use href="#box" x="88" y="66" width="44" height="37"/>
+  </symbol>
+  <symbol id="sc-d" viewBox="0 0 220 160">
+    <rect width="220" height="160" fill="#F3F7FD"/>
+    <rect y="138" width="220" height="22" fill="#E3EBD3"/>
+    <use href="#adult" x="132" y="10" width="64" height="137" style="--robe:#9B7BC0;--hair:#D0D0D0;--skin:#E7B992;--sash:#F6B93B;--reachL:1"/>
+    <use href="#kid" x="24" y="26" width="62" height="114" style="--long:1;--skin:#C68E62;--hair:#1F140D;--shirt:#F07C94;--reach:1"/>
+    <use href="#flower" x="92" y="54" width="22" height="36"/>
+  </symbol>
+<!-- ART:END -->
+</defs>
+</svg>
+
+<div class="demo" role="region" aria-label="Demo controls">
+  <div class="brand"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-lamp" width="24" height="24"/></svg>Little Lights <small>Playable mockup v0.1 · © 2026 Luis Rodriguez Cosme</small></div>
+  <div class="dctl"><span id="lbl-dlevel">Level</span>
+    <div class="dseg" role="group" aria-labelledby="lbl-dlevel">
+      <button type="button" id="dl-1" data-level="1" aria-pressed="true">1</button>
+      <button type="button" id="dl-2" data-level="2" aria-pressed="false">2</button>
+      <button type="button" id="dl-3" data-level="3" aria-pressed="false">3</button>
+    </div>
+  </div>
+  <div class="dctl"><span id="lbl-dlang">Language</span>
+    <div class="dseg" role="group" aria-labelledby="lbl-dlang">
+      <button type="button" id="dg-en" data-lang="en" aria-pressed="true">EN</button>
+      <button type="button" id="dg-es" data-lang="es" aria-pressed="false">ES</button>
+    </div>
+  </div>
+  <button type="button" class="dbtn" id="about-btn" aria-expanded="false" aria-controls="about">About this demo</button>
+</div>
+
+<main class="app">
+  <div class="stage" id="stage">
+    <section class="scr" id="scr" aria-live="polite"></section>
+    <aside class="about" id="about" hidden aria-label="About this demo">
+      <button type="button" class="close" id="about-close">Close</button>
+      <p class="eyebrow">For grown-ups reviewing the idea</p>
+      <h2>About this demo</h2>
+      <p>This is a playable mockup, not the finished app. It shows how a child moves through a lesson: watch the story, learn the word and sign, play two short games, then do it for real at home and earn a sticker.</p>
+      <ul>
+        <li>All four lessons work at Level 1. Switch the level in the bar above to see the games change. The Share game shows the biggest difference.</li>
+        <li>Nothing has a timer and nothing buzzes. If a child waits 6 seconds, Lumi repeats the question. After 12 seconds, the right answer glows.</li>
+        <li>Lines are read out loud when a screen opens, and again with the yellow speaker. In this public demo the voice comes from your own browser, so it may sound different on each device. The real app will use recorded human voices.</li>
+        <li>Stickers stay in this browser only. Reset them in the Grown-up corner (press and hold the dashed button for 1 second).</li>
+        <li>All art is placeholder. Sign drawings need review by a signing teacher.</li>
+      </ul>
+      <h3>Ownership</h3>
+      <p>© 2026 Luis Rodriguez Cosme. All rights reserved. Little Lights, its characters, art, lessons, and this demo are shared for review and feedback only. Please do not copy, share, or adapt them without written permission.</p>
+      <h3 id="about-title">On this screen</h3>
+      <p id="about-text"></p>
+      <p class="try" id="about-try"></p>
+    </aside>
+  </div>
+</main>
+
+<!-- AUDIO:START (public copy: no recorded clips; uses the browser voice) -->
+<script>window.LL_AUDIO = null;</script>
+<!-- AUDIO:END -->
+<script>
+(function(){
+  'use strict';
+  var $ = function(s, r){ return (r || document).querySelector(s); };
+  var $$ = function(s, r){ return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+  var KEY = 'littleLights.play.v1';
+  var LESSONS = ['truth', 'kind', 'love', 'share'];
+
+  /* ---------- Saved state (this browser only) ---------- */
+  function fresh(){ return { level:1, lang:'en', read:true, rate:0.85, calm:false, signs:true, lessons:{ truth:{}, kind:{}, love:{}, share:{} } }; }
+  var st = fresh();
+  try {
+    var saved = JSON.parse(localStorage.getItem(KEY) || 'null');
+    if (saved && typeof saved === 'object') {
+      Object.keys(st).forEach(function(k){ if (k !== 'lessons' && saved[k] != null) st[k] = saved[k]; });
+      if (saved.lessons) LESSONS.forEach(function(id){ if (saved.lessons[id]) st.lessons[id] = saved.lessons[id]; });
+    }
+  } catch (e) {}
+  function save(){ try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} }
+
+  /* ---------- Words ---------- */
+  var T = {
+    en: {
+      hi:'Hi, Sam!', pick:'Pick a story', hold:'Grown-ups: hold', stickers:'My stickers', back:'Back', home:'Home', readaloud:'Read out loud', next:'Next',
+      watch:'Watch', sign:'Word + Sign', play:'Play', athome:'At home',
+      nextUp:'Next: {step}!', allDone:'You did every step! Play again any time.',
+      signhint:'Watch {name}. Now you try!', again:'Show me again', did:'I did it!', video:'VIDEO IN REAL APP',
+      truthT:'Is it true?', yesTrue:'True', noTrue:'Not true',
+      truthRightT:'Yes! That is true.', truthRightN:'Yes! That is not true.', truthHintT:'Look again. That is true.', truthHintN:'Look again. That is not true.', truthDone:'You know what is true!',
+      kindT:'Is this kind?', yesKind:'Kind', noKind:'Not kind',
+      kindRightK:'Yes! That is kind.', kindRightN:'Yes. Taking is not kind.', kindHintK:'Look again. That is kind. Tap the heart.', kindHintN:'Look again. Taking is not kind. Tap the cloud.', kindDone:'You can tell what is kind!',
+      loveT:'Bring everyone to Jesus.', loveGo:'Tap a friend.', loveGood:'Welcome, {name}!', loveDone:'Jesus loves everyone!',
+      shareT1:'Give each friend a bread roll.', shareT2:'Give each friend a bread roll.', shareT3:'Give each friend what they want.',
+      shareGo1:'Tap the bread.', shareGo2:'Drag the bread to a friend.', shareGo3:'Tap the food. Then tap a friend.',
+      shareGood:'Yum! Thank you!', shareFull:'{name} has enough. Try another friend.', shareWrong:'{name} wants something else. Look at the picture.', sharePick:'Now tap a friend.', shareDone:'You shared! Everyone has food.',
+      orderT:'Put the story in order.', orderFirst:'What happened first?', orderNext:'What happened next?', orderHint:'Look again. This one comes next.', orderDone:'You told the whole story!',
+      athomeT:'Tonight at home', athomeHint:'Do this with a grown-up. Then tap the button.', wedid:'We did it!',
+      earned:'You earned a sticker!', moreStories:'Pick another story',
+      grown:'Grown-up corner', progress:'Progress', steps:'steps', level:'Level', settings:'Settings',
+      l1:'Look and Tap', l2:'Choose', l3:'Tell and Do',
+      l1d:'1 or 2 big choices. Tap only. Short games.', l2d:'2 or 3 choices. Tap or drag. Put 3 pictures in order.', l3d:'3 or 4 choices. Follow numbers. Put all 4 pictures in order.',
+      readOn:'Read words out loud', voice:'Voice speed', slow:'Slow', normal:'Normal', language:'Language', showSigns:'Show signs', calm:'Gentle motion',
+      reset:'Reset stickers and progress', resetSure:'Tap again to reset', resetDone:'Progress cleared.'
+    },
+    es: {
+      hi:'¡Hola, Sam!', pick:'Elige una historia', hold:'Adultos: mantén', stickers:'Mis calcomanías', back:'Atrás', home:'Inicio', readaloud:'Leer en voz alta', next:'Siguiente',
+      watch:'Mira', sign:'Palabra + seña', play:'Juega', athome:'En casa',
+      nextUp:'Ahora: ¡{step}!', allDone:'¡Hiciste todos los pasos! Juega otra vez cuando quieras.',
+      signhint:'Mira a {name}. ¡Ahora tú!', again:'Otra vez', did:'¡Lo hice!', video:'VIDEO EN LA APP REAL',
+      truthT:'¿Es verdad?', yesTrue:'Verdad', noTrue:'No es verdad',
+      truthRightT:'¡Sí! Eso es verdad.', truthRightN:'¡Sí! Eso no es verdad.', truthHintT:'Mira otra vez. Eso es verdad.', truthHintN:'Mira otra vez. Eso no es verdad.', truthDone:'¡Sabes lo que es verdad!',
+      kindT:'¿Es amable?', yesKind:'Amable', noKind:'No es amable',
+      kindRightK:'¡Sí! Eso es amable.', kindRightN:'Sí. Quitar no es amable.', kindHintK:'Mira otra vez. Eso es amable. Toca el corazón.', kindHintN:'Mira otra vez. Quitar no es amable. Toca la nube.', kindDone:'¡Sabes lo que es ser amable!',
+      loveT:'Lleva a todos con Jesús.', loveGo:'Toca a un amigo.', loveGood:'¡Qué bueno que viniste, {name}!', loveDone:'¡Jesús ama a todos!',
+      shareT1:'Dale un pan a cada amigo.', shareT2:'Dale un pan a cada amigo.', shareT3:'Dale a cada amigo lo que quiere.',
+      shareGo1:'Toca el pan.', shareGo2:'Arrastra el pan hasta un amigo.', shareGo3:'Toca la comida. Luego toca a un amigo.',
+      shareGood:'¡Qué rico! ¡Gracias!', shareFull:'{name} ya tiene suficiente. Prueba con otro amigo.', shareWrong:'{name} quiere otra cosa. Mira el dibujo.', sharePick:'Ahora toca a un amigo.', shareDone:'¡Compartiste! Todos tienen comida.',
+      orderT:'Pon la historia en orden.', orderFirst:'¿Qué pasó primero?', orderNext:'¿Qué pasó después?', orderHint:'Mira otra vez. Esta va después.', orderDone:'¡Contaste toda la historia!',
+      athomeT:'Esta noche en casa', athomeHint:'Hazlo con un adulto. Luego toca el botón.', wedid:'¡Lo hicimos!',
+      earned:'¡Ganaste una calcomanía!', moreStories:'Elige otra historia',
+      grown:'Rincón de adultos', progress:'Progreso', steps:'pasos', level:'Nivel', settings:'Ajustes',
+      l1:'Mira y toca', l2:'Elige', l3:'Cuenta y haz',
+      l1d:'1 o 2 opciones grandes. Solo tocar. Juegos cortos.', l2d:'2 o 3 opciones. Tocar o arrastrar. Ordenar 3 dibujos.', l3d:'3 o 4 opciones. Seguir números. Ordenar los 4 dibujos.',
+      readOn:'Leer en voz alta', voice:'Velocidad de la voz', slow:'Lenta', normal:'Normal', language:'Idioma', showSigns:'Mostrar señas', calm:'Movimiento suave',
+      reset:'Borrar calcomanías y progreso', resetSure:'Toca otra vez para borrar', resetDone:'Progreso borrado.'
+    }
+  };
+  function t(k, vars){
+    var v = T[st.lang][k]; if (v == null) v = T.en[k] || k;
+    if (vars) Object.keys(vars).forEach(function(n){ v = v.replace('{' + n + '}', vars[n]); });
+    return v;
+  }
+  function esc(s){ return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+
+  /* ---------- Lessons ---------- */
+  var L = {
+    truth: {
+      c:'var(--truth)', cs:'var(--truth-soft)', title:{ en:'Tell the truth', es:'Decir la verdad' }, word:{ en:'TRUE', es:'VERDAD' },
+      signer:'Mia', signVars:'--skin:#8D5A3B;--hair:#1F140D;--shirt:#2F74B5;--tails:1',
+      how:{ en:'Pointer finger on your lips. Move it straight out.', es:'Dedo índice en los labios. Muévelo hacia adelante.' },
+      pages:[
+        { art:'scene-truth-1', en:'God called young Samuel in the night.', es:'Dios llamó al niño Samuel en la noche.' },
+        { art:'scene-truth-2', en:'Samuel ran to Eli. “Here I am!”', es:'Samuel corrió a ver a Elí. “¡Aquí estoy!”' },
+        { art:'scene-truth-3', en:'In the morning, Eli asked, “What did God say?”', es:'En la mañana, Elí preguntó: “¿Qué te dijo Dios?”' },
+        { art:'scene-truth', en:'Samuel was scared. But he told the truth.', es:'Samuel tenía miedo. Pero dijo la verdad.' }
+      ],
+      game:'g-truth',
+      home:{ en:'Thumbs up, thumbs down. A grown-up says silly things and true things. Show a thumbs up when it is true!', es:'Pulgar arriba, pulgar abajo. Un adulto dice cosas tontas y cosas verdaderas. ¡Pulgar arriba si es verdad!' }
+    },
+    kind: {
+      c:'var(--kind)', cs:'var(--kind-soft)', title:{ en:'Be kind', es:'Ser amable' }, word:{ en:'KIND', es:'AMABLE' },
+      signer:'Ana', signVars:'--skin:#E7B992;--hair:#C98A3A;--shirt:#23885C;--long:1;--glasses:1',
+      how:{ en:'One flat hand circles around the other.', es:'Una mano plana da vueltas alrededor de la otra.' },
+      pages:[
+        { art:'scene-kind-1', en:'A man was hurt by the road.', es:'Un hombre estaba herido junto al camino.' },
+        { art:'scene-kind-2', en:'Two people saw him. They walked past.', es:'Dos personas lo vieron. Pasaron de largo.' },
+        { art:'scene-kind', en:'A Samaritan man stopped. He helped him.', es:'Un samaritano se detuvo. Lo ayudó.' },
+        { art:'scene-kind-4', en:'He took care of the man until he was well.', es:'Lo cuidó hasta que estuvo bien.' }
+      ],
+      game:'g-kind',
+      home:{ en:'Bandage helper. When someone in your family is kind, give them a sticker and sign “kind.”', es:'Ayudante de curitas. Cuando alguien de tu familia sea amable, dale una calcomanía y haz la seña de “amable”.' }
+    },
+    love: {
+      c:'var(--love)', cs:'var(--love-soft)', title:{ en:'Love others', es:'Amar a los demás' }, word:{ en:'LOVE', es:'AMOR' },
+      signer:'Sam', signVars:'--skin:#F3CFB0;--hair:#8B5A2B;--shirt:#D2405D;--almond:1',
+      how:{ en:'Make two fists. Cross your arms over your heart.', es:'Haz dos puños. Cruza los brazos sobre tu corazón.' },
+      pages:[
+        { art:'scene-love-1', en:'Families brought their children to Jesus.', es:'Las familias llevaron a sus niños a Jesús.' },
+        { art:'scene-love-2', en:'Some grown-ups said, “Go away!”', es:'Algunos adultos dijeron: “¡Váyanse!”' },
+        { art:'scene-love-3', en:'Jesus said, “Let the children come to me.”', es:'Jesús dijo: “Dejen que los niños vengan a mí.”' },
+        { art:'scene-love', en:'He hugged them and blessed them.', es:'Los abrazó y los bendijo.' }
+      ],
+      game:'g-love',
+      home:{ en:'Love list. Pick one person you love. Give them a hug, a drawing, or a phone call.', es:'Lista de amor. Elige a una persona que amas. Dale un abrazo, un dibujo o llámala.' }
+    },
+    share: {
+      c:'var(--share)', cs:'var(--share-soft)', title:{ en:'Share', es:'Compartir' }, word:{ en:'SHARE', es:'COMPARTIR' },
+      signer:'Ben', signVars:'--skin:#6B4430;--hair:#1F140D;--shirt:#D9741A',
+      how:{ en:'Stand one flat hand on the other. Slide it back and forth.', es:'Para una mano plana sobre la otra. Deslízala adelante y atrás.' },
+      pages:[
+        { art:'scene-share-1', en:'Many people came to see Jesus. They were hungry.', es:'Mucha gente vino a ver a Jesús. Tenían hambre.' },
+        { art:'scene-share-2', en:'A boy had 5 bread rolls and 2 fish.', es:'Un niño tenía 5 panes y 2 peces.' },
+        { art:'scene-share-3', en:'He gave his lunch to Jesus.', es:'Le dio su almuerzo a Jesús.' },
+        { art:'scene-share-4', en:'Jesus fed everyone. There was food left over!', es:'Jesús dio de comer a todos. ¡Sobró comida!' }
+      ],
+      game:'g-share',
+      home:{ en:'Snack share. Cut a snack into pieces. Take turns: one for you, one for me.', es:'Compartir la merienda. Corta una merienda en pedazos. Túrnense: uno para ti, uno para mí.' }
+    }
+  };
+  var STEP_KEYS = ['watch', 'sign', 'play', 'home'];
+  var STEP_ICON = { watch:'book', sign:'hand', play:'star', home:'hearthome' };
+  var STEP_GO = { watch:'story', sign:'sign', play:'game', home:'athome' };
+  var STEP_LABEL = { watch:'watch', sign:'sign', play:'play', home:'athome' };
+
+  var KIDS = {
+    Mia:{ v:'--long:1;--skin:#8D5A3B;--hair:#1F140D;--shirt:#E0516B' },
+    Leo:{ v:'--almond:1;--skin:#F3CFB0;--hair:#8B5A2B;--shirt:#2F74B5' },
+    Ana:{ v:'--long:1;--glasses:1;--skin:#E7B992;--hair:#C98A3A;--shirt:#23885C' },
+    Ben:{ v:'--skin:#6B4430;--hair:#1F140D;--shirt:#D9741A', chair:true },
+    Zoe:{ v:'--long:1;--skin:#C68E62;--hair:#3B2618;--shirt:#8C7BC0' }
+  };
+
+  /* ---------- Small builders ---------- */
+  function use(id, vb, style, cls){
+    var p = vb.split(' ');
+    return '<svg viewBox="' + vb + '" aria-hidden="true"' + (cls ? ' class="' + cls + '"' : '') + '><use href="#' + id + '" width="' + p[2] + '" height="' + p[3] + '"' + (style ? ' style="' + style + '"' : '') + '/></svg>';
+  }
+  function ic(name){ return use('i-' + name, '0 0 24 24'); }
+  function lumiHead(){ return '<svg viewBox="28 16 84 78" aria-hidden="true"><use href="#lumi" width="140" height="140"/></svg>'; }
+  function kidSvg(name, mood, cls){
+    var k = KIDS[name], v = k.v + (mood === 'sad' ? ';--happy:0;--sad:1' : '');
+    var chair = k.chair ? '<use href="#wheelchair" x="-4" y="52" width="62" height="62"/>' : '';
+    return '<svg viewBox="-8 0 76 112" aria-hidden="true" class="' + (cls || 'kidsvg') + '"><use href="#kid" width="60" height="110" style="' + v + '"/>' + chair + '</svg>';
+  }
+  function sayBtn(){ return '<button type="button" class="ibtn say" data-act="say" aria-label="' + esc(t('readaloud')) + '">' + ic('speaker') + '</button>'; }
+  function header(back, title, color){
+    return '<header class="abar">' +
+      (back ? '<button type="button" class="ibtn" data-go="' + back + '" aria-label="' + esc(back === 'home' ? t('home') : t('back')) + '">' + ic('home') + '</button>' : '') +
+      '<h2 class="ttl"' + (color ? ' style="color:' + color + '"' : '') + '>' + esc(title) + '</h2>' + sayBtn() + '</header>';
+  }
+  function guide(msg){
+    return '<footer class="guide"><span class="lumi" id="glumi">' + lumiHead() + '</span><p class="bubble" id="gmsg">' + esc(msg) + '</p>' +
+      '<button type="button" class="kbtn go" id="gnext" data-act="next" hidden>' + esc(t('next')) + ic('right') + '</button></footer>';
+  }
+  function setMsg(msg, speakIt){ var m = $('#gmsg'); if (m) m.textContent = [].concat(msg).join(' '); sayText = msg; if (speakIt) speak(msg); bop(); }
+  function bop(){ var l = $('#glumi'); if (!l) return; l.classList.remove('bop'); void l.offsetWidth; l.classList.add('bop'); }
+
+  /* ---------- Read aloud: recorded clips first, browser voice as a backup ---------- */
+  var sayText = '', player = null, playToken = 0;
+  function clip(text){ var a = window.LL_AUDIO && window.LL_AUDIO[st.lang]; return a ? a[text] : null; }
+  function stopSpeak(){
+    playToken++;
+    if (player) { try { player.pause(); } catch (e) {} player = null; }
+    try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (e) {}
+  }
+  /* parts: a line or a list of lines. onProgress gets 0..1 while the first line plays. */
+  function speak(parts, onProgress, onEnd){
+    if (!st.read || !parts) return;
+    parts = [].concat(parts).filter(Boolean);
+    if (!parts.length) return;
+    stopSpeak();
+    var token = playToken;
+    if (parts.every(clip)) {
+      var i = 0;
+      (function next(){
+        if (token !== playToken) return;
+        if (i >= parts.length) { player = null; if (onEnd) onEnd(); return; }
+        var a = new Audio(clip(parts[i])), first = i === 0;
+        i++; player = a;
+        a.playbackRate = st.rate / 0.85;
+        a.onended = next;
+        a.onerror = next;
+        if (first && onProgress) {
+          a.onplaying = function(){
+            (function tick(){
+              if (token !== playToken || a.ended || a.paused) return;
+              if (a.duration) onProgress(a.currentTime / a.duration);
+              requestAnimationFrame(tick);
+            })();
+          };
+        }
+        var pr = a.play(); if (pr && pr.catch) pr.catch(function(){});
+      })();
+      return;
+    }
+    try {
+      var s = window.speechSynthesis; if (!s) return;
+      var text = parts.join(' '), u = new SpeechSynthesisUtterance(text);
+      u.lang = st.lang === 'es' ? 'es-US' : 'en-US';
+      u.rate = st.rate;
+      if (onProgress) u.onboundary = function(e){ if (e.charIndex < parts[0].length) onProgress(e.charIndex / parts[0].length); };
+      if (onEnd) u.onend = onEnd;
+      s.speak(u);
+    } catch (e) {}
+  }
+
+  /* ---------- Give time: Lumi repeats after 6 s, the right answer glows after 12 s ---------- */
+  var idleT1 = null, idleT2 = null, idlePrompt = '', idleHint = null;
+  function idleStop(){ clearTimeout(idleT1); clearTimeout(idleT2); idleT1 = idleT2 = null; }
+  function idleStart(prompt, hint){ idlePrompt = prompt; idleHint = hint; idleReset(); }
+  function idleReset(){
+    idleStop();
+    if (!idleHint) return;
+    idleT1 = setTimeout(function(){ setMsg(idlePrompt, true); }, 6000);
+    idleT2 = setTimeout(function(){ if (idleHint) idleHint(); }, 12000);
+  }
+  function idleDone(){ idleStop(); idleHint = null; }
+
+  /* ---------- Navigation ---------- */
+  var cur = 'home', lesson = 'share', page = 0, gameStage = 1;
+  var scr = $('#scr');
+  function go(name){
+    stopSpeak(); idleDone(); sayText = '';
+    if (name === 'game') { gameStage = 1; name = L[lesson].game; }
+    cur = name;
+    var r = RENDER[name] || RENDER.home;
+    scr.className = 'scr' + (name === 'parent' ? ' parent' : '') + (st.calm ? ' calm' : '');
+    scr.style.cssText = '--c:' + L[lesson].c + ';--cs:' + L[lesson].cs;
+    scr.innerHTML = r();
+    scr.scrollTop = 0;
+    if (AFTER[name]) AFTER[name]();
+    updateAbout();
+    if (AUTOSAY[name]) { var here = name; setTimeout(function(){ if (cur !== here) return; if (here === 'story') readStory(); else speak(sayText); }, 300); }
+  }
+  function mark(step){ var p = st.lessons[lesson]; if (!p[step]) { p[step] = true; save(); } }
+  function nextStep(id){ var p = st.lessons[id]; for (var i = 0; i < STEP_KEYS.length; i++) if (!p[STEP_KEYS[i]]) return STEP_KEYS[i]; return null; }
+
+  var RENDER = {}, AFTER = {};
+  var AUTOSAY = { path:1, story:1, sign:1, 'g-truth':1, 'g-kind':1, 'g-love':1, 'g-share':1, 'g-order':1, athome:1 };
+
+  /* Home */
+  RENDER.home = function(){
+    sayText = t('pick');
+    var tiles = LESSONS.map(function(id){
+      var d = L[id], p = st.lessons[id], n = p.stickers || 0;
+      var dots = STEP_KEYS.map(function(k){ return '<i' + (p[k] ? ' class="on"' : '') + '></i>'; }).join('');
+      return '<button type="button" class="tile" data-act="lesson" data-id="' + id + '" style="--c:' + d.c + ';--cs:' + d.cs + '">' +
+        use(d.pages[3].art, '0 0 400 260') + '<span class="tile-name">' + esc(d.title[st.lang]) + '</span><span class="steps" aria-hidden="true">' + dots + '</span>' +
+        (n ? '<span class="got">' + ic('lamp') + (n > 1 ? n : '') + '</span>' : '') + '</button>';
+    }).join('');
+    var shelf = LESSONS.map(function(id){
+      var n = st.lessons[id].stickers || 0;
+      return '<i class="stk' + (n ? ' on' : '') + '" style="--c:' + L[id].c + '">' + ic('lamp') + (n > 1 ? '<b>' + n + '</b>' : '') + '</i>';
+    }).join('');
+    return '<header class="abar"><div class="who"><span class="avatar">' + lumiHead() + '</span><span>' + esc(t('hi')) + '</span></div>' + sayBtn() +
+      '<button type="button" class="lockbtn" id="lockbtn"><span class="fill"></span>' + ic('lock') + '<span>' + esc(t('hold')) + '</span></button></header>' +
+      '<h1 class="kid-title">' + esc(t('pick')) + '</h1><div class="tiles">' + tiles + '</div>' +
+      '<div class="shelf"><span>' + esc(t('stickers')) + '</span>' + shelf + '</div>';
+  };
+  AFTER.home = function(){ bindLock(); };
+
+  /* Lesson path */
+  RENDER.path = function(){
+    var d = L[lesson], p = st.lessons[lesson], nx = nextStep(lesson);
+    var steps = STEP_KEYS.map(function(k){
+      var cls = p[k] ? 'done' : (k === nx ? 'now' : '');
+      return '<button type="button" class="step ' + cls + '" data-go="' + STEP_GO[k] + '"><span class="disc">' + ic(STEP_ICON[k]) +
+        (p[k] ? '<span class="tick">' + ic('check') + '</span>' : '') + '</span><span class="lbl">' + esc(t(STEP_LABEL[k])) + '</span></button>';
+    }).join('');
+    var msg = nx ? t('nextUp', { step: t(STEP_LABEL[nx]) }) : t('allDone');
+    sayText = msg;
+    return header('home', d.title[st.lang], d.c) + '<div class="lpath"><div class="lrow">' + steps + '</div></div>' + guide(msg);
+  };
+
+  /* Story */
+  RENDER.story = function(){
+    var d = L[lesson];
+    var dots = d.pages.map(function(_, i){ return '<i' + (i <= page ? ' class="on"' : '') + '></i>'; }).join('');
+    return '<header class="abar"><button type="button" class="ibtn" data-go="path" aria-label="' + esc(t('back')) + '">' + ic('home') + '</button>' +
+      '<h2 class="ttl">' + esc(d.title[st.lang]) + '</h2><div class="dots" aria-hidden="true">' + dots + '</div>' + sayBtn() + '</header>' +
+      '<div class="story"><button type="button" class="navbtn prev" data-act="prev" aria-label="' + esc(t('back')) + '"' + (page === 0 ? ' disabled' : '') + '>' + ic('left') + '</button>' +
+      '<figure class="story-pic">' + use(d.pages[page].art, '0 0 400 260') + '</figure>' +
+      '<button type="button" class="navbtn next" data-act="fwd" aria-label="' + esc(t('next')) + '">' + ic('right') + '</button>' +
+      '<p class="caption" id="cap"></p></div>';
+  };
+  AFTER.story = function(){
+    var text = L[lesson].pages[page][st.lang], cap = $('#cap'), idx = 0;
+    sayText = text;
+    text.split(' ').forEach(function(w, i){
+      if (i) cap.appendChild(document.createTextNode(' '));
+      var sp = document.createElement('span'); sp.className = 'w'; sp.textContent = w; sp.dataset.start = idx; idx += w.length + 1; cap.appendChild(sp);
+    });
+  };
+  function readStory(){
+    var spans = $$('#cap .w');
+    var text = L[lesson].pages[page][st.lang];
+    speak(text, function(f){
+      var ci = Math.floor(f * text.length);
+      spans.forEach(function(s){ var a = +s.dataset.start; s.classList.toggle('on', ci >= a && ci < a + s.textContent.length + 1); });
+    }, function(){ spans.forEach(function(s){ s.classList.remove('on'); }); });
+  }
+
+  /* Word + sign */
+  RENDER.sign = function(){
+    var d = L[lesson], other = st.lang === 'es' ? d.word.en : d.word.es;
+    sayText = [d.word[st.lang].toLowerCase(), d.how[st.lang]];
+    var signArt = '<svg viewBox="0 0 200 230" aria-hidden="true" style="' + d.signVars + '"><use href="#sign-' + lesson + '-base" width="200" height="230"/>' +
+      '<use class="mv mv-' + lesson + '" href="#sign-' + lesson + '-move" width="200" height="230"/><use class="sg-arrow" href="#sign-' + lesson + '-arrow" width="200" height="230"/></svg>';
+    return header('path', t('sign')) +
+      '<div class="signwrap"><div class="wordcard">' + use('sym-' + lesson, '0 0 100 100') + '<b>' + esc(d.word[st.lang]) + '</b><span>' + esc(other) + '</span></div>' +
+      '<div class="signcard"' + (st.signs ? '' : ' hidden') + '><span class="vidtag">' + esc(t('video')) + '</span><div id="signart">' + signArt + '</div><p>' + esc(d.how[st.lang]) + '</p></div></div>' +
+      '<div class="actions"><button type="button" class="kbtn" data-act="replay">' + ic('replay') + esc(t('again')) + '</button>' +
+      '<button type="button" class="kbtn go" data-act="signdone">' + ic('check') + esc(t('did')) + '</button></div>' +
+      guide(t('signhint', { name: d.signer }));
+  };
+
+  /* Game: is it true? */
+  var TRUTH = [
+    { id:'ball', vb:'0 0 30 30', ok:true, en:'This is a ball.', es:'Esto es una pelota.' },
+    { id:'fish', vb:'0 0 46 26', ok:false, en:'This is a bread roll.', es:'Esto es un pan.' },
+    { id:'flower', vb:'0 0 24 40', ok:true, en:'This is a flower.', es:'Esto es una flor.' },
+    { id:'teddy', vb:'0 0 34 34', ok:false, en:'This is a fish.', es:'Esto es un pez.' }
+  ];
+  var KIND = [
+    { id:'sc-a', ok:true, en:'She shares her ball.', es:'Ella comparte su pelota.' },
+    { id:'sc-b', ok:false, en:'He takes the toy away.', es:'Él le quita el juguete.' },
+    { id:'sc-c', ok:true, en:'They carry the box together.', es:'Cargan la caja juntos.' },
+    { id:'sc-d', ok:true, en:'She gives Grandma a flower.', es:'Le da una flor a la abuela.' }
+  ];
+  function rounds(){ return [2, 3, 4][st.level - 1]; }
+  var qi = 0, qdone = false;
+
+  function choiceGame(kind){
+    var isTruth = kind === 'truth', list = isTruth ? TRUTH : KIND, q = list[qi], n = rounds();
+    var pic = isTruth ? '<figure class="pic obj">' + use(q.id, q.vb) + '<figcaption>' + esc(q[st.lang]) + '</figcaption></figure>'
+                      : '<figure class="pic">' + use(q.id, '0 0 220 160') + '<figcaption>' + esc(q[st.lang]) + '</figcaption></figure>';
+    var yesIc = isTruth ? use('thumb', '0 0 40 40') : use('heart', '0 0 32 30', '--heart:#23885C');
+    var noIc = isTruth ? use('thumb', '0 0 40 40', '', 'down') : use('cloud', '0 0 44 32');
+    var dots = ''; for (var i = 0; i < n; i++) dots += '<i' + (i <= qi ? ' class="on"' : '') + '></i>';
+    sayText = [t(isTruth ? 'truthT' : 'kindT'), q[st.lang]];
+    return header('path', t(isTruth ? 'truthT' : 'kindT')) +
+      '<div class="game"><div class="choice2">' + pic + '<div class="answers">' +
+      '<button type="button" class="ans yes" data-act="ans" data-v="1">' + yesIc + '<span>' + esc(t(isTruth ? 'yesTrue' : 'yesKind')) + '</span></button>' +
+      '<button type="button" class="ans no" data-act="ans" data-v="0">' + noIc + '<span>' + esc(t(isTruth ? 'noTrue' : 'noKind')) + '</span></button>' +
+      '</div></div><div class="rdots"><div class="dots" aria-hidden="true">' + dots + '</div></div></div>' +
+      guide(q[st.lang]);
+  }
+  function choiceAfter(kind){
+    qdone = false;
+    var isTruth = kind === 'truth', q = (isTruth ? TRUTH : KIND)[qi];
+    idleStart([t(isTruth ? 'truthT' : 'kindT'), q[st.lang]], function(){ $$('.ans').forEach(function(a){ if ((a.dataset.v === '1') === q.ok) a.classList.add('glowing'); }); });
+  }
+  function answer(btn){
+    if (qdone) return;
+    var isTruth = cur === 'g-truth', q = (isTruth ? TRUTH : KIND)[qi], saysYes = btn.dataset.v === '1', msg;
+    if (saysYes === q.ok) {
+      qdone = true; idleDone();
+      $$('.ans').forEach(function(a){ a.classList.remove('glowing'); a.classList.toggle('dim', a !== btn); });
+      btn.classList.add('right');
+      msg = isTruth ? (q.ok ? t('truthRightT') : t('truthRightN')) : (q.ok ? t('kindRightK') : t('kindRightN'));
+      setMsg(msg, true); showNext();
+    } else {
+      var other = $$('.ans').filter(function(a){ return a !== btn; })[0];
+      btn.classList.add('dim'); other.classList.add('glowing');
+      msg = isTruth ? (q.ok ? t('truthHintT') : t('truthHintN')) : (q.ok ? t('kindHintK') : t('kindHintN'));
+      setMsg(msg, true); idleReset();
+    }
+  }
+  RENDER['g-truth'] = function(){ return choiceGame('truth'); };
+  AFTER['g-truth'] = function(){ choiceAfter('truth'); };
+  RENDER['g-kind'] = function(){ return choiceGame('kind'); };
+  AFTER['g-kind'] = function(){ choiceAfter('kind'); };
+
+  /* Game: everyone is welcome */
+  var LOVE_KIDS = ['Mia', 'Leo', 'Ana', 'Ben', 'Zoe'];
+  RENDER['g-love'] = function(){
+    var n = [3, 4, 5][st.level - 1];
+    var kids = LOVE_KIDS.slice(0, n).map(function(k){ return '<button type="button" class="kidbtn" data-act="welcome" data-k="' + k + '" aria-label="' + k + '">' + kidSvg(k) + '</button>'; }).join('');
+    sayText = t('loveT');
+    return header('path', t('loveT')) +
+      '<div class="game"><div class="welcome"><div class="waiting" id="waiting">' + kids + '</div>' +
+      '<div class="withj"><svg class="jesus" viewBox="-20 0 110 150" aria-hidden="true"><use href="#adult" width="70" height="150" style="--robe:#FFFFFF;--sash:#C8463D;--skin:#C68E62;--hair:#5B3820;--beard:1;--reach:1;--reachL:1"/></svg>' +
+      '<div class="circle" id="circle"></div></div></div></div>' + guide(t('loveGo'));
+  };
+  AFTER['g-love'] = function(){
+    idleStart(t('loveT'), function(){ var b = $('#waiting .kidbtn'); if (b) b.classList.add('glowing'); });
+  };
+  function welcome(btn){
+    if (btn.closest('#circle')) return;
+    var first = btn.getBoundingClientRect();
+    btn.classList.remove('glowing');
+    $('#circle').appendChild(btn);
+    var last = btn.getBoundingClientRect();
+    if (!st.calm && btn.animate) btn.animate([{ transform:'translate(' + (first.left - last.left) + 'px,' + (first.top - last.top) + 'px)' }, { transform:'none' }], { duration:450, easing:'ease-out' });
+    var left = $$('#waiting .kidbtn').length;
+    if (!left) { idleDone(); setMsg(t('loveDone'), true); showNext(); }
+    else { setMsg(t('loveGood', { name: btn.dataset.k }), true); idleReset(); }
+  }
+
+  /* Game: share the food (changes most by level) */
+  var SH = null;
+  function shareSetup(){
+    var lv = st.level;
+    if (lv === 3) return { friends:[{ k:'Mia', want:['bread','bread'] }, { k:'Leo', want:['fish'] }, { k:'Ana', want:['bread','fish'] }], items:['bread','bread','bread','fish','fish'] };
+    return { friends:[{ k:'Mia', want:['bread'] }, { k:'Leo', want:['bread'] }, { k:'Ana', want:['bread'] }], items:['bread','bread','bread'] };
+  }
+  var ITEM_VB = { bread:'0 0 40 26', fish:'0 0 46 26' };
+  RENDER['g-share'] = function(){
+    SH = shareSetup(); SH.sel = null;
+    SH.friends.forEach(function(f){ f.got = f.want.map(function(){ return false; }); });
+    var title = t('shareT' + st.level), go1 = t('shareGo' + st.level);
+    sayText = [title, go1];
+    var friends = SH.friends.map(function(f, fi){
+      var wants = f.want.map(function(w, wi){ return use(w, ITEM_VB[w], '', 'w' + wi); }).join('');
+      return '<div class="friend" data-act="friend" data-f="' + fi + '">' + kidSvg(f.k, 'sad') + '<div class="wants">' + wants + '</div><span class="fname">' + f.k + '</span></div>';
+    }).join('');
+    var items = SH.items.map(function(it, ii){ return '<button type="button" class="item" data-act="item" data-i="' + ii + '" data-t="' + it + '" aria-label="' + it + '">' + use(it, ITEM_VB[it]) + '</button>'; }).join('');
+    return header('path', title) + '<div class="game"><div class="friends">' + friends + '</div><div class="basket" id="basket">' + items + '</div></div>' + guide(go1);
+  };
+  AFTER['g-share'] = function(){
+    $$('.item').forEach(bindDrag);
+    idleStart([t('shareT' + st.level), t('shareGo' + st.level)], function(){
+      var it = $('.item:not(.gone)'); if (it) it.classList.add('glowing');
+      if (st.level > 1 && SH.sel != null) { var f = firstFriendFor(SH.items[SH.sel]); if (f != null) $$('.friend')[f].classList.add('glowing'); }
+    });
+  };
+  function firstFriendFor(type){
+    for (var i = 0; i < SH.friends.length; i++) { var f = SH.friends[i]; for (var j = 0; j < f.want.length; j++) if (f.want[j] === type && !f.got[j]) return i; }
+    return null;
+  }
+  function selectItem(i){
+    $$('.item').forEach(function(b){ b.classList.toggle('sel', +b.dataset.i === i); b.classList.remove('glowing'); });
+    SH.sel = i; setMsg(t('sharePick'), true); idleReset();
+  }
+  function deliver(itemIndex, fi){
+    var type = SH.items[itemIndex], f = SH.friends[fi], el = $$('.friend')[fi];
+    var slot = -1; for (var j = 0; j < f.want.length; j++) if (f.want[j] === type && !f.got[j]) { slot = j; break; }
+    if (slot < 0) {
+      var full = f.got.every(Boolean);
+      el.classList.remove('wiggle'); void el.offsetWidth; el.classList.add('wiggle');
+      var good = firstFriendFor(type); if (good != null) $$('.friend')[good].classList.add('glowing');
+      setMsg(t(full ? 'shareFull' : 'shareWrong', { name: f.k }), true); idleReset();
+      return false;
+    }
+    f.got[slot] = true;
+    var w = $('.wants .w' + slot, el); w.classList.add('got', 'pop');
+    var item = $$('.item')[itemIndex]; item.classList.add('gone'); item.classList.remove('sel');
+    $$('.friend').forEach(function(x){ x.classList.remove('glowing'); });
+    SH.sel = null;
+    if (f.got.every(Boolean)) { var u = $('.kidsvg use', el); u.style.setProperty('--happy', '1'); u.style.setProperty('--sad', '0'); }
+    var done = SH.friends.every(function(x){ return x.got.every(Boolean); });
+    if (done) { idleDone(); setMsg(t('shareDone'), true); showNext(); }
+    else { setMsg(t('shareGood'), true); idleReset(); }
+    return true;
+  }
+  function tapItem(btn){
+    var i = +btn.dataset.i; if (btn.classList.contains('gone')) return;
+    if (st.level === 1) { var f = firstFriendFor(SH.items[i]); if (f != null) deliver(i, f); return; }
+    selectItem(i);
+  }
+  function tapFriend(el){
+    if (SH.sel == null) { var it = $('.item:not(.gone)'); if (it) it.classList.add('glowing'); setMsg(t('shareGo' + st.level), true); return; }
+    deliver(SH.sel, +el.dataset.f);
+  }
+  function bindDrag(btn){
+    var sx = 0, sy = 0, moved = false, down = false;
+    btn.addEventListener('pointerdown', function(e){
+      if (btn.classList.contains('gone')) return;
+      down = true; moved = false; sx = e.clientX; sy = e.clientY;
+      try { btn.setPointerCapture(e.pointerId); } catch (x) {}
+      btn.classList.remove('back');
+    });
+    btn.addEventListener('pointermove', function(e){
+      if (!down || st.level === 1) return;
+      var dx = e.clientX - sx, dy = e.clientY - sy;
+      if (!moved && Math.abs(dx) + Math.abs(dy) > 8) { moved = true; btn.classList.add('dragging'); idleReset(); }
+      if (moved) { btn.style.transform = 'translate(' + dx + 'px,' + dy + 'px)'; $$('.friend').forEach(function(f){ var r = f.getBoundingClientRect(); f.classList.toggle('target', e.clientX > r.left && e.clientX < r.right && e.clientY > r.top && e.clientY < r.bottom); }); }
+    });
+    function end(e){
+      if (!down) return; down = false;
+      $$('.friend').forEach(function(f){ f.classList.remove('target'); });
+      if (!moved) { tapItem(btn); return; }
+      btn.classList.remove('dragging');
+      var hit = document.elementFromPoint(e.clientX, e.clientY), fr = hit && hit.closest ? hit.closest('.friend') : null;
+      var ok = fr ? deliver(+btn.dataset.i, +fr.dataset.f) : false;
+      btn.classList.add('back'); btn.style.transform = '';
+      if (!ok && !fr) setMsg(t('shareGo' + st.level), false);
+    }
+    btn.addEventListener('pointerup', end);
+    btn.addEventListener('pointercancel', function(){ down = false; btn.classList.remove('dragging'); btn.style.transform = ''; });
+  }
+
+  /* Game: put the story in order */
+  var ORD = null;
+  RENDER['g-order'] = function(){
+    var n = [2, 3, 4][st.level - 1], pages = n === 2 ? [0, 3] : (n === 3 ? [0, 1, 2] : [0, 1, 2, 3]);
+    var shuffled = pages.slice().reverse(); if (n === 4) shuffled = [2, 0, 3, 1];
+    ORD = { pages: pages, next: 0 };
+    var d = L[lesson], slots = '', cards = '';
+    pages.forEach(function(_, i){ slots += '<div class="slot" data-s="' + i + '"><b>' + (i + 1) + '</b></div>'; });
+    shuffled.forEach(function(pg){ cards += '<button type="button" class="card" data-act="card" data-p="' + pg + '" aria-label="' + esc(d.pages[pg][st.lang]) + '">' + use(d.pages[pg].art, '0 0 400 260') + '</button>'; });
+    sayText = [t('orderT'), t('orderFirst')];
+    return header('path', t('orderT')) + '<div class="game" style="--n:' + n + '"><div class="slots">' + slots + '</div><div class="cards">' + cards + '</div></div>' + guide(t('orderFirst'));
+  };
+  AFTER['g-order'] = function(){ idleStart(t('orderFirst'), glowNextCard); };
+  function glowNextCard(){ var want = ORD.pages[ORD.next]; $$('.cards .card').forEach(function(c){ if (+c.dataset.p === want) c.classList.add('glowing'); }); }
+  function pickCard(btn){
+    if (btn.closest('.slot') || btn.classList.contains('used')) return;
+    var want = ORD.pages[ORD.next];
+    if (+btn.dataset.p !== want) {
+      btn.classList.remove('wiggle'); void btn.offsetWidth; btn.classList.add('wiggle');
+      glowNextCard(); setMsg(t('orderHint'), true); idleReset(); return;
+    }
+    var slot = $$('.slot')[ORD.next], clone = btn.cloneNode(true);
+    clone.classList.remove('glowing', 'wiggle'); clone.classList.add('pop'); clone.removeAttribute('data-act'); clone.disabled = true;
+    slot.appendChild(clone); btn.classList.add('used'); btn.classList.remove('glowing');
+    speak(L[lesson].pages[want][st.lang]);
+    ORD.next++;
+    if (ORD.next >= ORD.pages.length) { idleDone(); setMsg(t('orderDone'), false); setTimeout(function(){ speak(t('orderDone')); }, 1600); showNext(); }
+    else { var m = $('#gmsg'); if (m) m.textContent = t('orderNext'); sayText = t('orderNext'); idlePrompt = t('orderNext'); idleReset(); }
+  }
+
+  function showNext(){ var b = $('#gnext'); if (b) b.hidden = false; }
+  function gameNext(){
+    if (cur === 'g-order') { mark('play'); go('athome'); }
+    else if (cur === 'g-truth' || cur === 'g-kind') {
+      if (qi < rounds() - 1) { qi++; go(cur); } else { qi = 0; go('g-order'); }
+    }
+    else go('g-order');
+  }
+
+  /* At home */
+  RENDER.athome = function(){
+    var d = L[lesson];
+    sayText = [t('athomeT'), d.home[st.lang]];
+    return header('path', t('athome'), d.c) +
+      '<div class="homecard">' + use('sym-' + lesson, '0 0 100 100') + '<div><h3>' + esc(t('athomeT')) + '</h3><p>' + esc(d.home[st.lang]) + '</p></div></div>' +
+      '<div class="actions"><button type="button" class="kbtn go" data-act="wedid">' + ic('check') + esc(t('wedid')) + '</button></div>' + guide(t('athomeHint'));
+  };
+
+  /* Reward */
+  RENDER.reward = function(){
+    var d = L[lesson];
+    sayText = t('earned');
+    var stars = [[12,14,0],[82,10,.6],[6,60,1.1],[88,56,.3],[4,86,.9],[92,84,1.4]].map(function(s){ return '<svg viewBox="0 0 24 24" style="left:' + s[0] + '%;top:' + s[1] + '%;animation-delay:' + s[2] + 's"><use href="#i-star" width="24" height="24"/></svg>'; }).join('');
+    return '<div class="reward"><div class="burst" aria-hidden="true">' + stars + '</div><div class="big-stk">' + ic('lamp') + '</div>' +
+      '<h3>' + esc(t('earned')) + '</h3><p>' + esc(d.title[st.lang]) + '</p>' +
+      '<div class="actions"><button type="button" class="kbtn go" data-go="home">' + ic('home') + esc(t('moreStories')) + '</button></div></div>';
+  };
+  AFTER.reward = function(){ speak(t('earned')); };
+
+  /* Grown-up corner */
+  var resetArmed = false;
+  RENDER.parent = function(){
+    resetArmed = false;
+    var rows = LESSONS.map(function(id){
+      var p = st.lessons[id], doneN = STEP_KEYS.filter(function(k){ return p[k]; }).length;
+      return '<div class="prow" style="--c:' + L[id].c + '"><i class="dot"></i><span>' + esc(L[id].title[st.lang]) + '</span><span class="meter"><i style="width:' + (doneN * 25) + '%"></i></span><span class="n">' + doneN + '/4 · ' + (p.stickers || 0) + '★</span></div>';
+    }).join('');
+    function sw(id, key, label){ return '<div class="swt"><span>' + esc(label) + '</span><button type="button" class="switch" id="' + id + '" role="switch" aria-checked="' + (st[key] ? 'true' : 'false') + '" data-act="toggle" data-k="' + key + '" aria-label="' + esc(label) + '"></button></div>'; }
+    return '<header class="abar"><button type="button" class="ibtn" data-go="home" aria-label="' + esc(t('home')) + '">' + ic('home') + '</button><h2 class="ttl">' + esc(t('grown')) + '</h2></header>' +
+      '<div class="pgrid">' +
+      '<div class="pcard"><h3>' + esc(t('progress')) + '</h3>' + rows + '</div>' +
+      '<div class="pcard"><h3>' + esc(t('level')) + '</h3><div class="lvl">' + [1, 2, 3].map(function(n){ return '<button type="button" id="pl-' + n + '" data-level="' + n + '" aria-pressed="' + (st.level === n) + '">' + n + '<small>' + esc(t('l' + n)) + '</small></button>'; }).join('') + '</div><p class="pdesc">' + esc(t('l' + st.level + 'd')) + '</p></div>' +
+      '<div class="pcard"><h3>' + esc(t('settings')) + '</h3>' + sw('ps-read', 'read', t('readOn')) +
+      '<div class="swt"><span>' + esc(t('voice')) + '</span><span class="pseg"><button type="button" id="pr-slow" data-act="rate" data-r="0.7" aria-pressed="' + (st.rate < 0.8) + '">' + esc(t('slow')) + '</button><button type="button" id="pr-normal" data-act="rate" data-r="0.85" aria-pressed="' + (st.rate >= 0.8) + '">' + esc(t('normal')) + '</button></span></div>' +
+      '<div class="swt"><span>' + esc(t('language')) + '</span><span class="pseg"><button type="button" id="pg-en" data-lang="en" aria-pressed="' + (st.lang === 'en') + '">EN</button><button type="button" id="pg-es" data-lang="es" aria-pressed="' + (st.lang === 'es') + '">ES</button></span></div>' +
+      sw('ps-signs', 'signs', t('showSigns')) + sw('ps-calm', 'calm', t('calm')) + '</div>' +
+      '<div class="pcard"><button type="button" class="reset" id="reset" data-act="reset">' + esc(t('reset')) + '</button><p class="pdesc" id="reset-msg"></p></div>' +
+      '</div>';
+  };
+
+  /* ---------- Clicks ---------- */
+  scr.addEventListener('click', function(e){
+    var el = e.target.closest('[data-go],[data-act],[data-level],[data-lang]');
+    if (!el || el.disabled) return;
+    if (el.dataset.go) { if (el.dataset.go === 'story') page = 0; go(el.dataset.go); return; }
+    if (el.dataset.level) { setLevel(+el.dataset.level); return; }
+    if (el.dataset.lang) { setLang(el.dataset.lang); return; }
+    var a = el.dataset.act;
+    if (a === 'say') { if (cur === 'story') readStory(); else speak(sayText); }
+    else if (a === 'lesson') { lesson = el.dataset.id; qi = 0; go('path'); }
+    else if (a === 'prev') { if (page > 0) { page--; go('story'); } }
+    else if (a === 'fwd') { if (page < L[lesson].pages.length - 1) { page++; go('story'); } else { mark('watch'); go('sign'); } }
+    else if (a === 'replay') { var art = $('#signart'); if (art) art.innerHTML = art.innerHTML; speak(sayText); }
+    else if (a === 'signdone') { mark('sign'); qi = 0; go('game'); }
+    else if (a === 'ans') answer(el);
+    else if (a === 'welcome') welcome(el);
+    else if (a === 'item') { if (e.detail === 0) tapItem(el); }
+    else if (a === 'friend') tapFriend(el);
+    else if (a === 'card') pickCard(el);
+    else if (a === 'next') gameNext();
+    else if (a === 'wedid') { mark('home'); st.lessons[lesson].stickers = (st.lessons[lesson].stickers || 0) + 1; save(); go('reward'); }
+    else if (a === 'toggle') {
+      var k = el.dataset.k; st[k] = !st[k]; save(); el.setAttribute('aria-checked', st[k] ? 'true' : 'false');
+      if (k === 'read' && !st.read) stopSpeak();
+      if (k === 'calm') scr.classList.toggle('calm', st.calm);
+    }
+    else if (a === 'rate') { st.rate = parseFloat(el.dataset.r); save(); $$('[data-act="rate"]').forEach(function(b){ b.setAttribute('aria-pressed', b === el ? 'true' : 'false'); }); }
+    else if (a === 'reset') {
+      if (!resetArmed) { resetArmed = true; el.classList.add('armed'); el.textContent = t('resetSure'); }
+      else { var keep = { level: st.level, lang: st.lang, read: st.read, rate: st.rate, calm: st.calm, signs: st.signs }; st = fresh(); Object.assign(st, keep); save(); go('parent'); $('#reset-msg').textContent = t('resetDone'); }
+    }
+  });
+  scr.addEventListener('pointerdown', function(){ if (idleHint) idleReset(); });
+
+  /* ---------- Hold to open the grown-up corner ---------- */
+  function bindLock(){
+    var lock = $('#lockbtn'), timer = null;
+    if (!lock) return;
+    function start(e){ if (e && e.cancelable) e.preventDefault(); if (timer) return; lock.classList.add('holding'); timer = setTimeout(function(){ timer = null; go('parent'); }, 1000); }
+    function stop(){ clearTimeout(timer); timer = null; lock.classList.remove('holding'); }
+    lock.addEventListener('pointerdown', start);
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach(function(ev){ lock.addEventListener(ev, stop); });
+    lock.addEventListener('keydown', function(e){ if ((e.key === 'Enter' || e.key === ' ') && !e.repeat) start(e); });
+    lock.addEventListener('keyup', function(e){ if (e.key === 'Enter' || e.key === ' ') stop(); });
+  }
+
+  /* ---------- Level and language (demo bar and grown-up corner) ---------- */
+  function syncBar(){
+    $$('.demo [data-level]').forEach(function(b){ b.setAttribute('aria-pressed', +b.dataset.level === st.level ? 'true' : 'false'); });
+    $$('.demo [data-lang]').forEach(function(b){ b.setAttribute('aria-pressed', b.dataset.lang === st.lang ? 'true' : 'false'); });
+    document.documentElement.lang = st.lang;
+  }
+  function setLevel(n){ st.level = n; save(); syncBar(); qi = 0; go(cur.indexOf('g-') === 0 ? (cur === 'g-order' ? 'g-order' : cur) : cur); }
+  function setLang(l){ st.lang = l; save(); syncBar(); go(cur); }
+  $$('.demo [data-level]').forEach(function(b){ b.addEventListener('click', function(){ setLevel(+b.dataset.level); }); });
+  $$('.demo [data-lang]').forEach(function(b){ b.addEventListener('click', function(){ setLang(b.dataset.lang); }); });
+
+  /* ---------- About drawer ---------- */
+  var NOTES = {
+    home:   ['Pick a story', 'Each lesson keeps one color everywhere, so kids find it by color and picture. The dots show which of the 4 steps are done. Stickers stack up each time a family finishes the at-home step.', 'Try: press and hold the dashed Grown-ups button for 1 second.'],
+    path:   ['Lesson path', 'The same four steps, in the same order, every lesson. The next step glows and Lumi says it out loud. Kids can still tap any step.', 'Try: tap Watch.'],
+    story:  ['Story', 'One picture and one short sentence per page. Words light up as they are read. Nothing turns the page by itself.', 'Try: tap the yellow speaker, then the big arrow.'],
+    sign:   ['Word + sign', 'The word, its picture symbol, the word in the other language, and the sign. The moving hand and yellow arrows stand in for the short video a real child will sign in the app.', 'Try: tap Show me again.'],
+    'g-truth': ['Is it true?', 'A picture and a sentence. Thumbs up if it is true, thumbs down if it is not. Level 1 has 2 rounds, Level 2 has 3, Level 3 has 4.', 'Try: answer wrong on purpose. Nothing buzzes.'],
+    'g-kind':  ['Kind or not kind?', 'Errorless learning. A wrong tap fades a little, the right answer glows, and Lumi says why. Every round ends in success.', 'Try: wait 6 seconds and listen, then wait 6 more.'],
+    'g-love':  ['Everyone is welcome', 'Every tap is right. Each friend walks over to Jesus. Level 1 has 3 friends, Level 3 has 5, including Ben in his wheelchair.', 'Try: tap the friends one by one.'],
+    'g-share': ['Share the food', 'Level 1: tap the bread and it goes to the next friend. Level 2: drag the bread, or tap the bread and then a friend. Level 3: each friend wants something different, shown in their picture bubble.', 'Try: switch to Level 3 in the bar above.'],
+    'g-order': ['Put the story in order', 'Level 1 asks what happened first and last. Level 2 uses 3 pictures. Level 3 uses all 4. A wrong pick wiggles and the right one glows.', 'Try: switch levels to see the number of cards change.'],
+    athome: ['At home', 'Every lesson ends with something to do for real. A grown-up taps the button when it is done, and the child earns a sticker.', ''],
+    reward: ['Sticker', 'A short, calm celebration in the lesson color. The sticker shows up on the home screen.', ''],
+    parent: ['Grown-up corner', 'Set the level, language, voice speed, signs, and gentle motion. See progress and stickers. Reset clears this browser only.', 'Try: tap Reset twice.']
+  };
+  var aboutBtn = $('#about-btn'), about = $('#about');
+  function updateAbout(){
+    var n = NOTES[cur] || NOTES.home;
+    $('#about-title').textContent = 'On this screen: ' + n[0];
+    $('#about-text').textContent = n[1];
+    $('#about-try').textContent = n[2]; $('#about-try').hidden = !n[2];
+  }
+  function toggleAbout(open){ about.hidden = !open; aboutBtn.setAttribute('aria-expanded', open ? 'true' : 'false'); if (open) $('#about-close').focus(); }
+  aboutBtn.addEventListener('click', function(){ toggleAbout(about.hidden); });
+  $('#about-close').addEventListener('click', function(){ toggleAbout(false); aboutBtn.focus(); });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && !about.hidden) { toggleAbout(false); aboutBtn.focus(); } });
+
+  function allPhrases(){
+    var out = {}, keep = st.lang;
+    ['en', 'es'].forEach(function(lg){
+      st.lang = lg;
+      var seen = {}, list = [];
+      function add(x){ if (x && !seen[x]) { seen[x] = 1; list.push(x); } }
+      ['pick','allDone','truthT','truthRightT','truthRightN','truthHintT','truthHintN','kindT','kindRightK','kindRightN','kindHintK','kindHintN',
+       'loveT','loveGo','loveDone','shareT1','shareT2','shareT3','shareGo1','shareGo2','shareGo3','shareGood','sharePick','shareDone',
+       'orderT','orderFirst','orderNext','orderHint','orderDone','athomeT','athomeHint','earned'].forEach(function(k){ add(t(k)); });
+      STEP_KEYS.forEach(function(k){ add(t('nextUp', { step: t(STEP_LABEL[k]) })); });
+      LOVE_KIDS.forEach(function(n){ add(t('loveGood', { name: n })); });
+      ['Mia', 'Leo', 'Ana'].forEach(function(n){ add(t('shareFull', { name: n })); add(t('shareWrong', { name: n })); });
+      LESSONS.forEach(function(id){
+        var d = L[id];
+        add(d.word[lg].toLowerCase()); add(d.how[lg]); add(d.home[lg]); add(t('signhint', { name: d.signer }));
+        d.pages.forEach(function(p){ add(p[lg]); });
+      });
+      TRUTH.concat(KIND).forEach(function(q){ add(q[lg]); });
+      out[lg] = list;
+    });
+    st.lang = keep;
+    return out;
+  }
+  if (/[?&]phrases/.test(location.search)) {
+    var pre = document.createElement('pre'); pre.id = 'phrases'; pre.textContent = JSON.stringify(allPhrases()); document.body.appendChild(pre);
+  }
+
+  syncBar();
+  go('home');
+})();
+</script>
+</body>
+</html>
