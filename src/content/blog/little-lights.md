@@ -53,7 +53,7 @@ Claude wrote the code and drew every picture as code. There are no image files i
 
 The best fixes came from playing it like a kid would. The share game's kids were too small. A story picture had blank bands above and below it. One step said "Home" when it meant "At home." Each took a minute to fix, and each would have been easy to miss without tapping through it.
 
-One more thing came from that care. The private version reads every line in a Mac voice. Apple's license doesn't allow those voices to be shared in public, so this demo uses your browser's own voice instead. The real app will use recorded human voices.
+One more thing came from that care. My first version read every line in a Mac voice, but Apple's license doesn't allow those voices to be shared in public. The demo now uses Kokoro, a free and open voice model. Heart reads the English, and Dora reads the Spanish. Out of the box, Dora had an accent from Spain and said "corazón" with a "th" sound. One setting gave her a Latin American accent, which fits the families this is for. The real app will use recorded human voices.
 
 ## Try it, then tell me
 
@@ -71,4 +71,4 @@ I'm looking for feedback from parents, teachers, therapists, and people who sign
 
 Little Lights is a work in progress. The name, the characters, the art, the lessons, and the demo are © 2026 Luis Rodriguez Cosme. All rights reserved. They're shared here for review and feedback only. Please don't copy, share, or adapt them without written permission.
 
-The 1918 sign manual used for reference is in the public domain. The Bible stories are simple retellings for young learners.
+The 1918 sign manual used for reference is in the public domain. The Bible stories are simple retellings for young learners. Voices made with Kokoro-82M by hexgrad (Apache 2.0).
