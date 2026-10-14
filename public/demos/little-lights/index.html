@@ -17,6 +17,7 @@
   --bg:#F7F9FF; --surface:#FFFFFF; --sunk:#ECEFF7; --ink:#1C2340; --muted:#5A6283; --line:#DCE2F0;
   --glow:#F6B93B; --glow-soft:#FFE7A3; --go:#1C2340; --yes:#23885C; --yes-soft:#DFF2E8;
   --truth:#2F74B5; --truth-soft:#E2EDF9; --kind:#23885C; --kind-soft:#DFF2E8; --love:#D2405D; --love-soft:#FBE3E8; --share:#D9741A; --share-soft:#FCEBDB;
+  --thanks:#7B5CC4; --thanks-soft:#EEE8FA; --help:#12897F; --help-soft:#DDF3F1; --sorry:#C77D12; --sorry-soft:#FBF0DC;
   --font-display:"Baloo 2", "Arial Rounded MT Bold", "Trebuchet MS", system-ui, sans-serif;
   --font-body:"Atkinson Hyperlegible", Verdana, system-ui, sans-serif;
   --font-mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
@@ -76,6 +77,30 @@ svg{display:block}
 @keyframes wiggle{0%,100%{transform:none}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
 .pop{animation:pop .45s cubic-bezier(.2,1.5,.4,1)}
 @keyframes pop{from{transform:scale(.3)}to{transform:scale(1)}}
+
+/* First / Then strip */
+.ft{display:flex;align-items:center;gap:.4em;align-self:center;background:var(--surface);border:2px solid var(--line);border-radius:999px;padding:.2em .35em;cursor:pointer;flex:none;max-width:100%}
+.ftc{display:flex;align-items:center;gap:.35em;padding:.2em .75em;border-radius:999px;opacity:.6;min-width:0}
+.ftc.now{background:var(--cs);opacity:1}
+.ftc svg{width:1.3em;height:1.3em;flex:none}
+.ftc small{font-family:var(--font-mono);font-size:.68em;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.ftc b{font-family:var(--font-display);font-weight:800;white-space:nowrap}
+.ftarrow svg{width:1.1em;height:1.1em;color:var(--muted)}
+@container stage (max-width:640px){.ftc small{display:none}}
+
+/* Night sky */
+.sky{margin:0;display:flex;flex-direction:column;align-items:center;gap:.6em;flex:1;min-height:0}
+.sky svg{width:min(100%, 62em, calc((100cqh - 10em) * 4 / 3));height:auto;border-radius:1.2em;border:3px solid var(--ink)}
+.sky figcaption{font-family:var(--font-display);font-weight:800;font-size:1.5em;text-align:center}
+.sky.mini{flex:none}
+.sky.mini svg{width:min(100%, 64cqh, 32em)}
+.skystar{transform-box:fill-box;transform-origin:center;animation:twinkle 3s ease-in-out infinite}
+@keyframes twinkle{0%,100%{opacity:1}50%{opacity:.75}}
+.skystar.newstar{animation:newstar 1.2s cubic-bezier(.2,1.4,.4,1) .3s both, twinkle 3s ease-in-out 1.5s infinite}
+@keyframes newstar{0%{transform:scale(0);opacity:0}60%{transform:scale(1.6);opacity:1}100%{transform:scale(1)}}
+.skybtn{display:inline-flex;align-items:center;gap:.5em;border:3px solid var(--ink);border-radius:999px;background:var(--night);color:#FFFFFF;padding:.4em 1.1em;cursor:pointer;font-family:var(--font-display);font-weight:800;font-size:1.05em}
+.skybtn svg{width:1.3em;height:1.3em;color:var(--glow)}
+.skybtn b{font-family:var(--font-mono);font-weight:500;font-size:.85em;color:var(--night-muted)}
 
 /* Home */
 .who{display:flex;align-items:center;gap:.5em;font-family:var(--font-display);font-weight:800;font-size:1.45em;flex:1;min-width:0}
@@ -165,6 +190,11 @@ svg{display:block}
 .mv-love{transform-origin:100px 60px;animation:mvLove 1.6s ease-in-out infinite}
 @keyframes mvLove{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
 .mv-share{animation:mvShare 1.4s ease-in-out infinite}
+.mv-thanks{transform-origin:44px 214px;animation:mvTrue 1.8s ease-in-out infinite}
+.mv-help{animation:mvHelp 1.6s ease-in-out infinite}
+@keyframes mvHelp{0%,20%,100%{transform:translateY(0)}55%,75%{transform:translateY(-16px)}}
+.mv-sorry{animation:mvSorry 1.6s linear infinite}
+@keyframes mvSorry{0%,100%{transform:translate(0,0)}25%{transform:translate(7px,7px)}50%{transform:translate(0,14px)}75%{transform:translate(-7px,7px)}}
 @keyframes mvShare{0%,100%{transform:translateX(-10px)}50%{transform:translateX(10px)}}
 .sg-arrow{animation:sgArrow 1.6s ease-in-out infinite}
 @keyframes sgArrow{0%,100%{opacity:.4}50%{opacity:1}}
@@ -186,6 +216,18 @@ svg{display:block}
 .ans.right{box-shadow:0 0 0 .3em var(--glow);transform:scale(1.03)}
 .ans.dim{opacity:.45}
 .rdots{display:flex;justify-content:center}
+
+/* Pick game */
+.pickwrap{display:grid;gap:1em;align-items:center;max-width:56em;width:100%;margin:0 auto}
+.pickwrap.has-prompt{grid-template-columns:minmax(0,1fr) minmax(0,1.5fr);max-width:none}
+@container stage (max-width:640px){.pickwrap.has-prompt{grid-template-columns:1fr}}
+.pic.prompt > svg{border-color:var(--c)}
+.pick2{display:grid;grid-template-columns:1fr 1fr;gap:.9em}
+.pickcard{display:flex;flex-direction:column;gap:.4em;align-items:stretch;border:3px solid var(--ink);border-radius:1em;background:var(--surface);padding:.4em .4em .6em;cursor:pointer;transition:transform .2s, box-shadow .2s, opacity .2s}
+.pickcard svg{width:100%;height:auto;border-radius:.7em}
+.pickcard span{font-weight:700;font-size:1.15em;text-align:center;line-height:1.2}
+.pickcard.right{box-shadow:0 0 0 .3em var(--glow);transform:scale(1.03)}
+.pickcard.dim{opacity:.45}
 
 /* Share game */
 .friends{display:flex;justify-content:space-around;align-items:flex-end;gap:.6em}
@@ -409,6 +451,7 @@ svg{display:block}
       <g style="opacity:calc(1 - var(--reach,0))"><rect x="42.5" y="44" width="9.5" height="27" rx="4.75" style="fill:var(--shirt,#F2B33D)"/><circle cx="47.25" cy="72" r="5" style="fill:var(--skin,#F1C7A5)"/></g>
       <g transform="rotate(-60 47 46)" style="opacity:var(--reach,0)"><rect x="42.5" y="44" width="9.5" height="27" rx="4.75" style="fill:var(--shirt,#F2B33D)"/><circle cx="47.25" cy="72" r="5" style="fill:var(--skin,#F1C7A5)"/></g>
       <rect x="15" y="40" width="30" height="37" rx="10" style="fill:var(--shirt,#F2B33D)"/>
+      <g style="opacity:var(--aid,0)"><rect x="8.5" y="18" width="4.5" height="10" rx="2.2" fill="#12897F"/><rect x="47" y="18" width="4.5" height="10" rx="2.2" fill="#12897F"/></g>
       <circle cx="13.5" cy="24" r="3.6" style="fill:var(--skin,#F1C7A5)"/>
       <circle cx="46.5" cy="24" r="3.6" style="fill:var(--skin,#F1C7A5)"/>
       <circle cx="30" cy="23" r="16.5" style="fill:var(--skin,#F1C7A5)"/>
@@ -506,6 +549,7 @@ svg{display:block}
       <path d="M28 230c0-50 30-74 72-74s72 24 72 74z" style="fill:var(--shirt,#2F74B5)"/>
       <rect x="89" y="126" width="22" height="36" rx="6" style="fill:var(--skin,#F3CFB0)"/>
       <path d="M85 157q15 16 30 0z" style="fill:var(--skin,#F3CFB0)"/>
+      <g style="opacity:var(--aid,0)"><rect x="40" y="80" width="10" height="22" rx="5" fill="#12897F"/><rect x="150" y="80" width="10" height="22" rx="5" fill="#12897F"/></g>
       <circle cx="55" cy="94" r="9" style="fill:var(--skin,#F3CFB0)"/><circle cx="145" cy="94" r="9" style="fill:var(--skin,#F3CFB0)"/>
       <circle cx="100" cy="90" r="46" style="fill:var(--skin,#F3CFB0)"/>
       <path d="M54 88C50 30 150 30 146 88c-8-20-26-28-46-20-20-8-38 0-46 20z" style="fill:var(--hair,#4A2E1C)"/>
@@ -858,6 +902,352 @@ svg{display:block}
     <use href="#kid" x="24" y="26" width="62" height="114" style="--long:1;--skin:#C68E62;--hair:#1F140D;--shirt:#F07C94;--reach:1"/>
     <use href="#flower" x="92" y="54" width="22" height="36"/>
   </symbol>
+  <!-- ===== Round 2: objects ===== -->
+  <symbol id="gift" viewBox="0 0 40 40">
+    <rect x="4" y="16" width="32" height="22" rx="3" fill="#7B5CC4" stroke="#1C2340" stroke-width="2.4"/>
+    <rect x="2" y="10" width="36" height="9" rx="2" fill="#9B7FDB" stroke="#1C2340" stroke-width="2.4"/>
+    <path d="M20 10v28" stroke="#F6B93B" stroke-width="5"/>
+    <path d="M20 10c-6-10-14-6-10 0zM20 10c6-10 14-6 10 0z" fill="#F6B93B" stroke="#1C2340" stroke-width="2"/>
+  </symbol>
+  <symbol id="pig" viewBox="0 0 64 44">
+    <g stroke="#1C2340" stroke-width="2.2" fill="#F4A9B8">
+      <rect x="12" y="30" width="7" height="12" rx="3"/><rect x="38" y="30" width="7" height="12" rx="3"/>
+      <ellipse cx="30" cy="24" rx="22" ry="15"/>
+      <path d="M44 9l2-8 6 6z"/>
+      <circle cx="50" cy="19" r="11"/>
+    </g>
+    <ellipse cx="57" cy="21" rx="5" ry="4" fill="#E98AA0" stroke="#1C2340" stroke-width="2"/>
+    <circle cx="49" cy="15" r="1.7" fill="#1C2340"/>
+    <path d="M8 21q-7-1-4 5" fill="none" stroke="#1C2340" stroke-width="2.2" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="coins" viewBox="0 0 32 36">
+    <path d="M10 8h12l-3 5c8 3 11 10 10 15-1 6-7 7-13 7S4 34 3 28c-1-5 2-12 10-15z" fill="#D9B26A" stroke="#1C2340" stroke-width="2.2" stroke-linejoin="round"/>
+    <path d="M11 13h10" stroke="#1C2340" stroke-width="2"/>
+    <circle cx="16" cy="25" r="5" fill="#F6B93B" stroke="#1C2340" stroke-width="1.8"/>
+  </symbol>
+  <symbol id="boat" viewBox="0 0 130 50">
+    <path d="M3 10h124l-16 36H19z" fill="#A8743F" stroke="#1C2340" stroke-width="2.6" stroke-linejoin="round"/>
+    <path d="M8 21h114" stroke="#7A5230" stroke-width="2.4"/>
+  </symbol>
+  <symbol id="towel" viewBox="0 0 36 26">
+    <rect x="2" y="2" width="32" height="22" rx="4" fill="#12897F" stroke="#1C2340" stroke-width="2.2"/>
+    <path d="M2 9h32M2 17h32" stroke="#DDF3F1" stroke-width="2.4"/>
+  </symbol>
+  <symbol id="book" viewBox="0 0 34 24">
+    <path d="M17 5C12 2 6 2 2 4v17c4-2 10-2 15 1 5-3 11-3 15-1V4c-4-2-10-2-15 1z" fill="#FFFFFF" stroke="#1C2340" stroke-width="2.2" stroke-linejoin="round"/>
+    <path d="M17 5v17M6 9h7M6 13h7M21 9h7M21 13h7" stroke="#8C98D0" stroke-width="1.6"/>
+  </symbol>
+  <symbol id="block" viewBox="0 0 20 20">
+    <rect x="1.5" y="1.5" width="17" height="17" rx="3" style="fill:var(--block,#F6B93B)" stroke="#1C2340" stroke-width="2.2"/>
+  </symbol>
+  <symbol id="sparkle" viewBox="0 0 20 20">
+    <path d="M10 1l2.4 6.6L19 10l-6.6 2.4L10 19l-2.4-6.6L1 10l6.6-2.4z" fill="#FFD866" stroke="#1C2340" stroke-width="1.4" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="hand-thumb" viewBox="0 0 38 56" overflow="visible">
+    <g style="fill:var(--skin,#F3CFB0)" stroke="#1C2340" stroke-width="2.6" stroke-linejoin="round">
+      <rect x="7" y="2" width="10" height="28" rx="5"/>
+      <rect x="4" y="22" width="30" height="30" rx="10"/>
+    </g>
+    <path d="M12 31h18M12 38h19M13 45h17" stroke="#1C2340" stroke-width="2" stroke-linecap="round" opacity=".45"/>
+  </symbol>
+  <symbol id="bubble" viewBox="0 0 90 66">
+    <path d="M12 2h66a10 10 0 0 1 10 10v30a10 10 0 0 1-10 10H34L16 64l4-12h-8A10 10 0 0 1 2 42V12A10 10 0 0 1 12 2z" fill="#FFFFFF" stroke="#1C2340" stroke-width="2.4" stroke-linejoin="round"/>
+  </symbol>
+
+  <!-- ===== Round 2: picture symbols ===== -->
+  <symbol id="sym-thanks" viewBox="0 0 100 100">
+    <path d="M18 16h64a8 8 0 0 1 8 8v38a8 8 0 0 1-8 8H46L28 86V70H18a8 8 0 0 1-8-8V24a8 8 0 0 1 8-8z" fill="#FFFFFF" stroke="#1C2340" stroke-width="4" stroke-linejoin="round"/>
+    <use href="#heart" x="31" y="25" width="38" height="36" style="--heart:#7B5CC4"/>
+  </symbol>
+  <symbol id="sym-help" viewBox="0 0 100 100">
+    <rect x="8" y="62" width="70" height="20" rx="10" fill="#F3CFB0" stroke="#1C2340" stroke-width="4"/>
+    <rect x="33" y="18" width="12" height="32" rx="6" fill="#C68E62" stroke="#1C2340" stroke-width="4"/>
+    <rect x="29" y="36" width="36" height="30" rx="10" fill="#C68E62" stroke="#1C2340" stroke-width="4"/>
+    <path d="M37 47h22M37 55h22" stroke="#1C2340" stroke-width="2.5" stroke-linecap="round" opacity=".45"/>
+    <path d="M88 74V22M77 34l11-13 11 13" fill="none" stroke="#12897F" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="sym-sorry" viewBox="0 0 100 100">
+    <use href="#heart" x="14" y="16" width="72" height="68" style="--heart:#E9A23B"/>
+    <path d="M50 30l-7 12 9 8-7 13" fill="none" stroke="#1C2340" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"/>
+    <rect x="28" y="44" width="44" height="15" rx="7.5" transform="rotate(-28 50 51.5)" fill="#FFFFFF" stroke="#1C2340" stroke-width="3"/>
+    <g fill="#C9CFDF"><circle cx="44" cy="53" r="1.6"/><circle cx="50" cy="50" r="1.6"/><circle cx="56" cy="47" r="1.6"/></g>
+  </symbol>
+
+  <!-- ===== Round 2: signs (same build as the first four) ===== -->
+  <!-- THANK YOU / GRACIAS (Zoe): flat hand at the chin, then out and down -->
+  <symbol id="sign-thanks-base" viewBox="0 0 200 230" overflow="visible">
+    <use href="#bust" width="200" height="230"/>
+    <g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M148 186l8 46" stroke="#1C2340" stroke-width="19"/><path d="M148 186l8 46" style="stroke:var(--skin,#F3CFB0)" stroke-width="13"/><path d="M52 186l-8 28" stroke="#1C2340" stroke-width="19"/><path d="M52 186l-8 28" style="stroke:var(--skin,#F3CFB0)" stroke-width="13"/></g>
+    <ellipse cx="148" cy="182" rx="17" ry="15" style="fill:var(--shirt,#2F74B5)" stroke="#1C2340" stroke-width="3"/>
+    <ellipse cx="52" cy="182" rx="17" ry="15" style="fill:var(--shirt,#2F74B5)" stroke="#1C2340" stroke-width="3"/>
+  </symbol>
+  <symbol id="sign-thanks-move" viewBox="0 0 200 230" overflow="visible">
+    <g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M44 214l52-22" stroke="#1C2340" stroke-width="19"/><path d="M44 214l52-22" style="stroke:var(--skin,#F3CFB0)" stroke-width="13"/></g>
+    <g transform="translate(98 196) rotate(-8) translate(-23 -66)"><use href="#hand-flat" width="44" height="70"/></g>
+  </symbol>
+  <symbol id="sign-thanks-arrow" viewBox="0 0 200 230" overflow="visible">
+    <path d="M126 140q30 4 32 32" fill="none" stroke="#1C2340" stroke-width="10" stroke-linecap="round"/>
+    <path d="M126 140q30 4 32 32" fill="none" stroke="#FFC93C" stroke-width="5" stroke-linecap="round"/>
+    <path d="M148 170h20l-10 14z" fill="#FFC93C" stroke="#1C2340" stroke-width="2.6" stroke-linejoin="round"/>
+  </symbol>
+  <!-- HELP / AYUDA (Leo): fist with thumb up on a flat hand, lift both -->
+  <symbol id="sign-help-base" viewBox="0 0 200 230" overflow="visible">
+    <use href="#bust" width="200" height="230"/>
+    <g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M148 186l14 30" stroke="#1C2340" stroke-width="19"/><path d="M148 186l14 30" style="stroke:var(--skin,#F3CFB0)" stroke-width="13"/><path d="M52 186l-12 28" stroke="#1C2340" stroke-width="19"/><path d="M52 186l-12 28" style="stroke:var(--skin,#F3CFB0)" stroke-width="13"/></g>
+    <ellipse cx="148" cy="182" rx="17" ry="15" style="fill:var(--shirt,#2F74B5)" stroke="#1C2340" stroke-width="3"/>
+    <ellipse cx="52" cy="182" rx="17" ry="15" style="fill:var(--shirt,#2F74B5)" stroke="#1C2340" stroke-width="3"/>
+  </symbol>
+  <symbol id="sign-help-move" viewBox="0 0 200 230" overflow="visible">
+    <g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M40 214l58-12" stroke="#1C2340" stroke-width="19"/><path d="M40 214l58-12" style="stroke:var(--skin,#F3CFB0)" stroke-width="13"/><path d="M162 216l-14-6" stroke="#1C2340" stroke-width="19"/><path d="M162 216l-14-6" style="stroke:var(--skin,#F3CFB0)" stroke-width="13"/></g>
+    <g transform="translate(150 212) rotate(-90) scale(-1 1) translate(-23 -66)"><use href="#hand-flat" width="44" height="70"/></g>
+    <use href="#hand-thumb" x="92" y="150" width="38" height="56"/>
+  </symbol>
+  <symbol id="sign-help-arrow" viewBox="0 0 200 230" overflow="visible">
+    <g fill="none" stroke-linecap="round"><path d="M64 200v-34M170 196v-34" stroke="#1C2340" stroke-width="10"/><path d="M64 200v-34M170 196v-34" stroke="#FFC93C" stroke-width="5"/></g>
+    <path d="M54 168l10-14 10 14zM160 164l10-14 10 14z" fill="#FFC93C" stroke="#1C2340" stroke-width="2.6" stroke-linejoin="round"/>
+  </symbol>
+  <!-- SORRY / PERDÓN (Noah, hearing aids): fist rubs a circle on the chest -->
+  <symbol id="sign-sorry-base" viewBox="0 0 200 230" overflow="visible">
+    <use href="#bust" width="200" height="230"/>
+    <g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M148 186l8 46" stroke="#1C2340" stroke-width="19"/><path d="M148 186l8 46" style="stroke:var(--skin,#F3CFB0)" stroke-width="13"/><path d="M52 186l-8 28" stroke="#1C2340" stroke-width="19"/><path d="M52 186l-8 28" style="stroke:var(--skin,#F3CFB0)" stroke-width="13"/></g>
+    <ellipse cx="148" cy="182" rx="17" ry="15" style="fill:var(--shirt,#2F74B5)" stroke="#1C2340" stroke-width="3"/>
+    <ellipse cx="52" cy="182" rx="17" ry="15" style="fill:var(--shirt,#2F74B5)" stroke="#1C2340" stroke-width="3"/>
+  </symbol>
+  <symbol id="sign-sorry-move" viewBox="0 0 200 230" overflow="visible">
+    <g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M44 214l56-22" stroke="#1C2340" stroke-width="19"/><path d="M44 214l56-22" style="stroke:var(--skin,#F3CFB0)" stroke-width="13"/></g>
+    <use href="#hand-fist" x="96" y="172" width="38" height="36"/>
+  </symbol>
+  <symbol id="sign-sorry-arrow" viewBox="0 0 200 230" overflow="visible">
+    <path d="M150 188A36 28 0 1 1 132 164" fill="none" stroke="#1C2340" stroke-width="10" stroke-linecap="round"/>
+    <path d="M150 188A36 28 0 1 1 132 164" fill="none" stroke="#FFC93C" stroke-width="5" stroke-linecap="round"/>
+    <path d="M128 154l18 10-16 10z" fill="#FFC93C" stroke="#1C2340" stroke-width="2.6" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="sign-thanks" viewBox="0 0 200 230" overflow="visible"><g style="--skin:#C68E62;--hair:#3B2618;--shirt:#7B5CC4;--long:1"><use href="#sign-thanks-base" width="200" height="230"/><use href="#sign-thanks-move" width="200" height="230"/><use href="#sign-thanks-arrow" width="200" height="230"/></g></symbol>
+  <symbol id="sign-help" viewBox="0 0 200 230" overflow="visible"><g style="--skin:#D9A57B;--hair:#4A2E1C;--shirt:#12897F;--almond:1"><use href="#sign-help-base" width="200" height="230"/><use href="#sign-help-move" width="200" height="230"/><use href="#sign-help-arrow" width="200" height="230"/></g></symbol>
+  <symbol id="sign-sorry" viewBox="0 0 200 230" overflow="visible"><g style="--skin:#E7B992;--hair:#2A1B12;--shirt:#C77D12;--aid:1"><use href="#sign-sorry-base" width="200" height="230"/><use href="#sign-sorry-move" width="200" height="230"/><use href="#sign-sorry-arrow" width="200" height="230"/></g></symbol>
+
+  <!-- ===== Say thank you: one man comes back (Luke 17:11-19) ===== -->
+  <symbol id="scene-thanks-1" viewBox="0 0 400 260">
+    <rect width="400" height="260" fill="#F2EAF9"/>
+    <path d="M0 178q200-20 400 2v80H0z" fill="#CFE5B0" stroke="#1C2340" stroke-width="2.4"/>
+    <use href="#adult" x="300" y="48" width="70" height="150" style="--robe:#FFFFFF;--sash:#C8463D;--skin:#C68E62;--hair:#5B3820;--beard:1"/>
+    <use href="#adult" x="24" y="72" width="54" height="116" style="--robe:#A9A3BA;--skin:#A86B48;--hair:#1F140D;--beard:1;--bandage:1;--happy:0;--sad:1"/>
+    <use href="#adult" x="84" y="66" width="56" height="120" style="--robe:#B9B0A2;--skin:#E2B48C;--hair:#5A3A22;--headcloth:1;--cloth:#E8DCC4;--bandage:1;--happy:0;--sad:1"/>
+    <use href="#adult" x="146" y="74" width="52" height="112" style="--robe:#9FA9B8;--skin:#8D5A3B;--hair:#1F140D;--beard:1;--bandage:1;--happy:0;--sad:1"/>
+    <use href="#adult" x="52" y="96" width="56" height="120" style="--robe:#C2B8A3;--skin:#C68E62;--hair:#2A1B12;--beard:1;--bandage:1;--happy:0;--sad:1;--reach:1"/>
+    <use href="#adult" x="118" y="100" width="54" height="116" style="--robe:#A7B4A0;--skin:#F1C7A5;--hair:#B5651D;--bandage:1;--happy:0;--sad:1"/>
+    <use href="#bubble" x="186" y="14" width="80" height="58"/>
+    <use href="#sym-help" x="207" y="18" width="38" height="38"/>
+  </symbol>
+  <symbol id="scene-thanks-2" viewBox="0 0 400 260">
+    <rect width="400" height="260" fill="#F2EAF9"/>
+    <circle cx="58" cy="44" r="20" fill="#FFD866" stroke="#1C2340" stroke-width="2.4"/>
+    <path d="M0 160q200-24 400-4v104H0z" fill="#CFE5B0" stroke="#1C2340" stroke-width="2.4"/>
+    <path d="M0 214q120-30 260-46t140-10" fill="none" stroke="#E9D3A6" stroke-width="20" stroke-linecap="round"/>
+    <use href="#adult" x="300" y="56" width="66" height="141" style="--robe:#FFFFFF;--sash:#C8463D;--skin:#C68E62;--hair:#5B3820;--beard:1;--reachL:1"/>
+    <use href="#adult" x="36" y="122" width="38" height="82" style="--robe:#A9A3BA;--skin:#A86B48;--hair:#1F140D;--beard:1"/>
+    <use href="#adult" x="76" y="114" width="38" height="82" style="--robe:#B9B0A2;--skin:#E2B48C;--hair:#5A3A22;--headcloth:1;--cloth:#E8DCC4"/>
+    <use href="#adult" x="116" y="108" width="36" height="78" style="--robe:#9FA9B8;--skin:#8D5A3B;--hair:#1F140D;--beard:1"/>
+    <use href="#adult" x="154" y="104" width="36" height="78" style="--robe:#C2B8A3;--skin:#C68E62;--hair:#2A1B12;--beard:1"/>
+    <use href="#sparkle" x="40" y="96" width="18" height="18"/><use href="#sparkle" x="100" y="86" width="22" height="22"/>
+    <use href="#sparkle" x="150" y="80" width="16" height="16"/><use href="#sparkle" x="190" y="96" width="20" height="20"/>
+  </symbol>
+  <symbol id="scene-thanks-3" viewBox="0 0 400 260">
+    <rect width="400" height="260" fill="#F2EAF9"/>
+    <path d="M0 176q200-22 400 0v84H0z" fill="#CFE5B0" stroke="#1C2340" stroke-width="2.4"/>
+    <use href="#adult" x="14" y="128" width="26" height="56" style="--robe:#B9B0A2;--skin:#E2B48C;--hair:#5A3A22"/>
+    <use href="#adult" x="40" y="132" width="24" height="52" style="--robe:#9FA9B8;--skin:#8D5A3B;--hair:#1F140D"/>
+    <use href="#adult" x="266" y="50" width="70" height="150" style="--robe:#FFFFFF;--sash:#C8463D;--skin:#C68E62;--hair:#5B3820;--beard:1"/>
+    <use href="#adult" x="136" y="56" width="70" height="150" style="--robe:#C2B8A3;--skin:#C68E62;--hair:#2A1B12;--beard:1;--reach:1"/>
+    <use href="#bubble" x="92" y="6" width="84" height="62"/>
+    <use href="#heart" x="117" y="14" width="34" height="32" style="--heart:#7B5CC4"/>
+  </symbol>
+  <symbol id="scene-thanks-4" viewBox="0 0 400 260">
+    <rect width="400" height="260" fill="#F2EAF9"/>
+    <circle cx="344" cy="44" r="20" fill="#FFD866" stroke="#1C2340" stroke-width="2.4"/>
+    <path d="M0 176q200-22 400 0v84H0z" fill="#CFE5B0" stroke="#1C2340" stroke-width="2.4"/>
+    <use href="#adult" x="216" y="48" width="70" height="150" style="--robe:#FFFFFF;--sash:#C8463D;--skin:#C68E62;--hair:#5B3820;--beard:1;--reachL:1"/>
+    <use href="#adult" x="98" y="52" width="70" height="150" style="--robe:#C2B8A3;--skin:#C68E62;--hair:#2A1B12;--beard:1;--reach:1"/>
+    <use href="#heart" x="170" y="22" width="44" height="41" style="--heart:#7B5CC4"/>
+    <use href="#heart" x="132" y="8" width="22" height="20" style="--heart:#B9A2EA"/>
+    <use href="#heart" x="232" y="10" width="20" height="19" style="--heart:#B9A2EA"/>
+  </symbol>
+
+  <!-- ===== Ask for help: Peter on the water (Matthew 14:22-33) ===== -->
+  <symbol id="scene-help-1" viewBox="0 0 400 260">
+    <rect width="400" height="260" fill="#DCEFFB"/>
+    <circle cx="346" cy="40" r="20" fill="#FFD866" stroke="#1C2340" stroke-width="2.4"/>
+    <use href="#adult" x="22" y="104" width="34" height="74" style="--robe:#B57BB0;--skin:#A86B48;--hair:#1F140D;--beard:1"/>
+    <use href="#adult" x="62" y="100" width="34" height="74" style="--robe:#7DB38A;--skin:#E2B48C;--hair:#5A3A22;--beard:1"/>
+    <use href="#boat" x="6" y="148" width="124" height="48"/>
+    <path d="M0 184q25-10 50 0t50 0 50 0 50 0 50 0 50 0 50 0 50 0V260H0z" fill="#5FA8D8" stroke="#1C2340" stroke-width="2.4"/>
+    <use href="#adult" x="168" y="44" width="66" height="141" style="--robe:#6C9BC9;--skin:#E2B48C;--hair:#5A3A22;--beard:1;--reach:1"/>
+    <use href="#adult" x="290" y="40" width="70" height="150" style="--robe:#FFFFFF;--sash:#C8463D;--skin:#C68E62;--hair:#5B3820;--beard:1;--reachL:1"/>
+    <path d="M0 214q25-8 50 0t50 0 50 0 50 0 50 0 50 0 50 0 50 0" fill="none" stroke="#FFFFFF" stroke-width="3" opacity=".7"/>
+  </symbol>
+  <symbol id="scene-help-2" viewBox="0 0 400 260">
+    <rect width="400" height="260" fill="#9FB3CC"/>
+    <g fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" opacity=".85"><path d="M40 40q40-14 80 0"/><path d="M90 66q40-14 80 0"/><path d="M250 30q40-14 80 0"/><path d="M220 84q30-10 60 0"/></g>
+    <path d="M0 180q20-22 40 0t40 0 40 0 40 0 40 0 40 0 40 0 40 0 40 0 40 0V260H0z" fill="#3E86BC" stroke="#1C2340" stroke-width="2.4"/>
+    <use href="#adult" x="150" y="46" width="66" height="141" style="--robe:#6C9BC9;--skin:#E2B48C;--hair:#5A3A22;--beard:1;--happy:0;--sad:1"/>
+    <use href="#adult" x="296" y="40" width="70" height="150" style="--robe:#FFFFFF;--sash:#C8463D;--skin:#C68E62;--hair:#5B3820;--beard:1"/>
+    <path d="M0 212q20-18 40 0t40 0 40 0 40 0 40 0 40 0 40 0 40 0 40 0 40 0" fill="none" stroke="#FFFFFF" stroke-width="3" opacity=".7"/>
+  </symbol>
+  <symbol id="scene-help-3" viewBox="0 0 400 260">
+    <rect width="400" height="260" fill="#9FB3CC"/>
+    <g fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" opacity=".85"><path d="M40 40q40-14 80 0"/><path d="M270 30q40-14 80 0"/></g>
+    <use href="#adult" x="132" y="92" width="66" height="141" style="--robe:#6C9BC9;--skin:#E2B48C;--hair:#5A3A22;--beard:1;--happy:0;--sad:1;--reach:1;--reachL:1"/>
+    <path d="M0 176q20-22 40 0t40 0 40 0 40 0 40 0 40 0 40 0 40 0 40 0 40 0V260H0z" fill="#3E86BC" stroke="#1C2340" stroke-width="2.4"/>
+    <use href="#adult" x="296" y="40" width="70" height="150" style="--robe:#FFFFFF;--sash:#C8463D;--skin:#C68E62;--hair:#5B3820;--beard:1;--reachL:1"/>
+    <use href="#bubble" x="186" y="20" width="84" height="62"/>
+    <use href="#sym-help" x="208" y="24" width="40" height="40"/>
+  </symbol>
+  <symbol id="scene-help-4" viewBox="0 0 400 260">
+    <rect width="400" height="260" fill="#DCEFFB"/>
+    <circle cx="346" cy="40" r="20" fill="#FFD866" stroke="#1C2340" stroke-width="2.4"/>
+    <path d="M0 186q25-10 50 0t50 0 50 0 50 0 50 0 50 0 50 0 50 0V260H0z" fill="#5FA8D8" stroke="#1C2340" stroke-width="2.4"/>
+    <use href="#adult" x="108" y="56" width="64" height="137" style="--robe:#6C9BC9;--skin:#E2B48C;--hair:#5A3A22;--beard:1;--reach:1"/>
+    <use href="#adult" x="220" y="50" width="70" height="150" style="--robe:#FFFFFF;--sash:#C8463D;--skin:#C68E62;--hair:#5B3820;--beard:1;--reachL:1"/>
+    <use href="#heart" x="178" y="40" width="34" height="32" style="--heart:#12897F"/>
+    <path d="M0 214q25-8 50 0t50 0 50 0 50 0 50 0 50 0 50 0 50 0" fill="none" stroke="#FFFFFF" stroke-width="3" opacity=".7"/>
+  </symbol>
+
+  <!-- ===== Say sorry: the lost son comes home (Luke 15:11-32) ===== -->
+  <symbol id="scene-sorry-1" viewBox="0 0 400 260">
+    <rect width="400" height="260" fill="#FBF0DC"/>
+    <path d="M0 178q200-20 400 0v82H0z" fill="#CDE3A6" stroke="#1C2340" stroke-width="2.4"/>
+    <use href="#inn" x="248" y="66" width="140" height="118"/>
+    <use href="#adult" x="232" y="64" width="62" height="133" style="--robe:#8A6A48;--skin:#C68E62;--hair:#BDBDBD;--beard:1;--happy:0;--sad:1"/>
+    <use href="#adult" x="74" y="60" width="62" height="133" style="--robe:#3E8E68;--skin:#C68E62;--hair:#2A1B12;--reachL:1"/>
+    <use href="#coins" x="34" y="112" width="28" height="32"/>
+    <path d="M70 216h-46M34 208l-12 8 12 8" fill="none" stroke="#C77D12" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="scene-sorry-2" viewBox="0 0 400 260">
+    <rect width="400" height="260" fill="#EADFCB"/>
+    <path d="M0 172q200-14 400 0v88H0z" fill="#B99B72" stroke="#1C2340" stroke-width="2.4"/>
+    <g stroke="#7A5230" stroke-width="5" stroke-linecap="round"><path d="M20 120v60M90 120v60M300 120v60M370 120v60"/><path d="M14 136h362M14 160h362"/></g>
+    <use href="#adult" x="150" y="54" width="66" height="141" style="--robe:#3E8E68;--skin:#C68E62;--hair:#2A1B12;--happy:0;--sad:1"/>
+    <use href="#pig" x="30" y="178" width="70" height="48"/>
+    <use href="#pig" x="250" y="186" width="64" height="44"/>
+    <use href="#pig" x="310" y="174" width="56" height="38"/>
+    <use href="#coins" x="232" y="160" width="22" height="25"/>
+  </symbol>
+  <symbol id="scene-sorry-3" viewBox="0 0 400 260">
+    <rect width="400" height="260" fill="#FBF0DC"/>
+    <path d="M0 178q200-20 400 0v82H0z" fill="#CDE3A6" stroke="#1C2340" stroke-width="2.4"/>
+    <use href="#inn" x="262" y="66" width="130" height="110"/>
+    <use href="#adult" x="232" y="62" width="64" height="137" style="--robe:#8A6A48;--skin:#C68E62;--hair:#BDBDBD;--beard:1;--reachL:1"/>
+    <use href="#adult" x="102" y="64" width="62" height="133" style="--robe:#3E8E68;--skin:#C68E62;--hair:#2A1B12;--happy:0;--sad:1"/>
+    <use href="#bubble" x="40" y="8" width="84" height="62"/>
+    <use href="#sym-sorry" x="62" y="12" width="40" height="40"/>
+  </symbol>
+  <symbol id="scene-sorry-4" viewBox="0 0 400 260">
+    <rect width="400" height="260" fill="#FBF0DC"/>
+    <path d="M0 178q200-20 400 0v82H0z" fill="#CDE3A6" stroke="#1C2340" stroke-width="2.4"/>
+    <use href="#inn" x="262" y="66" width="130" height="110"/>
+    <use href="#adult" x="186" y="56" width="62" height="133" style="--robe:#3E8E68;--skin:#C68E62;--hair:#2A1B12;--reachL:1"/>
+    <use href="#adult" x="136" y="50" width="66" height="141" style="--robe:#8A6A48;--skin:#C68E62;--hair:#BDBDBD;--beard:1;--reach:1"/>
+    <use href="#heart" x="170" y="10" width="40" height="37" style="--heart:#E9A23B"/>
+    <use href="#heart" x="132" y="24" width="20" height="19" style="--heart:#F6C77A"/>
+    <use href="#heart" x="230" y="20" width="22" height="21" style="--heart:#F6C77A"/>
+  </symbol>
+
+  <!-- ===== Round 2: game cards (220x160) ===== -->
+  <symbol id="sc-ty-a" viewBox="0 0 220 160">
+    <rect width="220" height="160" fill="#F3F7FD"/><rect y="138" width="220" height="22" fill="#E3EBD3"/>
+    <use href="#adult" x="132" y="10" width="64" height="137" style="--robe:#9B7BC0;--hair:#D0D0D0;--skin:#E7B992;--sash:#F6B93B;--reachL:1"/>
+    <use href="#kid" x="24" y="26" width="62" height="114" style="--skin:#8D5A3B;--hair:#1F140D;--shirt:#F6B93B;--reach:1"/>
+    <use href="#gift" x="94" y="62" width="30" height="30"/>
+  </symbol>
+  <symbol id="sc-ty-b" viewBox="0 0 220 160">
+    <rect width="220" height="160" fill="#F3F7FD"/><rect y="138" width="220" height="22" fill="#E3EBD3"/>
+    <use href="#adult" x="132" y="10" width="64" height="137" style="--robe:#3B6E8F;--hair:#2A1B12;--skin:#C68E62;--beard:1;--sash:#C9D1E8;--reachL:1"/>
+    <use href="#kid" x="24" y="26" width="62" height="114" style="--long:1;--skin:#C68E62;--hair:#2A1B12;--shirt:#7BC4A4;--reach:1"/>
+    <use href="#bread" x="94" y="70" width="34" height="22"/>
+  </symbol>
+  <symbol id="sc-help-a" viewBox="0 0 220 160">
+    <rect width="220" height="160" fill="#F3F7FD"/>
+    <use href="#kid" x="78" y="58" width="62" height="114" style="--skin:#E7B992;--hair:#5A3A22;--shirt:#2F74B5;--happy:0;--sad:1"/>
+    <rect y="134" width="220" height="26" fill="#E3EBD3"/>
+    <use href="#ball" x="168" y="114" width="24" height="24"/>
+  </symbol>
+  <symbol id="sc-ok-a" viewBox="0 0 220 160">
+    <rect width="220" height="160" fill="#F3F7FD"/><rect y="138" width="220" height="22" fill="#E3EBD3"/>
+    <use href="#kid" x="60" y="26" width="62" height="114" style="--skin:#E7B992;--hair:#5A3A22;--shirt:#2F74B5;--reach:1"/>
+    <use href="#ball" x="122" y="74" width="26" height="26"/>
+  </symbol>
+  <symbol id="sc-help-b" viewBox="0 0 220 160">
+    <rect width="220" height="160" fill="#F3F7FD"/><rect y="138" width="220" height="22" fill="#E3EBD3"/>
+    <rect x="142" y="34" width="70" height="7" rx="2" fill="#A0784E" stroke="#1C2340" stroke-width="2.2"/>
+    <path d="M150 41v10M204 41v10" stroke="#1C2340" stroke-width="2.4"/>
+    <use href="#teddy" x="164" y="6" width="30" height="30"/>
+    <use href="#kid" x="62" y="26" width="62" height="114" style="--long:1;--skin:#F1C7A5;--hair:#B5651D;--shirt:#B57BB0;--happy:0;--sad:1"/>
+  </symbol>
+  <symbol id="sc-ok-b" viewBox="0 0 220 160">
+    <rect width="220" height="160" fill="#F3F7FD"/><rect y="138" width="220" height="22" fill="#E3EBD3"/>
+    <use href="#kid" x="62" y="26" width="62" height="114" style="--long:1;--skin:#F1C7A5;--hair:#B5651D;--shirt:#B57BB0;--reach:1"/>
+    <use href="#teddy" x="120" y="70" width="30" height="30"/>
+  </symbol>
+  <symbol id="sc-help-c" viewBox="0 0 220 160">
+    <rect width="220" height="160" fill="#F3F7FD"/><rect y="138" width="220" height="22" fill="#E3EBD3"/>
+    <use href="#adult" x="70" y="8" width="64" height="137" style="--robe:#9B7BC0;--hair:#D0D0D0;--skin:#8D5A3B;--sash:#F6B93B;--happy:0;--sad:1"/>
+    <g transform="rotate(-14 150 140)"><use href="#book" x="136" y="128" width="30" height="20"/></g>
+    <g transform="rotate(10 40 142)"><use href="#book" x="22" y="132" width="30" height="20"/></g>
+    <use href="#book" x="164" y="138" width="28" height="19"/>
+  </symbol>
+  <symbol id="sc-ok-c" viewBox="0 0 220 160">
+    <rect width="220" height="160" fill="#F3F7FD"/><rect y="138" width="220" height="22" fill="#E3EBD3"/>
+    <use href="#adult" x="70" y="8" width="64" height="137" style="--robe:#9B7BC0;--hair:#D0D0D0;--skin:#8D5A3B;--sash:#F6B93B;--reach:1"/>
+    <use href="#book" x="146" y="66" width="34" height="24"/>
+  </symbol>
+  <symbol id="sc-sorry-a" viewBox="0 0 220 160">
+    <rect width="220" height="160" fill="#F3F7FD"/><rect y="138" width="220" height="22" fill="#E3EBD3"/>
+    <use href="#kid" x="30" y="26" width="62" height="114" style="--skin:#E7B992;--hair:#2A1B12;--shirt:#C77D12;--aid:1;--happy:0;--sad:1"/>
+    <ellipse cx="160" cy="142" rx="44" ry="9" fill="#FFFFFF" stroke="#1C2340" stroke-width="2"/>
+    <g transform="rotate(-80 128 128)"><rect x="118" y="112" width="20" height="28" rx="3" fill="#BFE4FA" stroke="#1C2340" stroke-width="2.2"/></g>
+  </symbol>
+  <symbol id="sc-fix-a" viewBox="0 0 220 160">
+    <rect width="220" height="160" fill="#F3F7FD"/><rect y="138" width="220" height="22" fill="#E3EBD3"/>
+    <use href="#kid" x="30" y="26" width="62" height="114" style="--skin:#E7B992;--hair:#2A1B12;--shirt:#C77D12;--aid:1;--reach:1"/>
+    <use href="#towel" x="96" y="74" width="34" height="24"/>
+    <ellipse cx="162" cy="144" rx="18" ry="4" fill="#FFFFFF" stroke="#1C2340" stroke-width="1.6"/>
+    <use href="#sparkle" x="150" y="112" width="18" height="18"/><use href="#sparkle" x="178" y="122" width="14" height="14"/>
+  </symbol>
+  <symbol id="sc-sorry-b" viewBox="0 0 220 160">
+    <rect width="220" height="160" fill="#F3F7FD"/><rect y="138" width="220" height="22" fill="#E3EBD3"/>
+    <use href="#kid" x="20" y="26" width="62" height="114" style="--skin:#E7B992;--hair:#2A1B12;--shirt:#C77D12;--aid:1;--happy:0;--sad:1"/>
+    <use href="#kid" x="138" y="26" width="62" height="114" style="--long:1;--skin:#8D5A3B;--hair:#1F140D;--shirt:#E0516B;--happy:0;--sad:1"/>
+    <use href="#block" x="84" y="126" width="18" height="18" style="--block:#E0516B"/>
+    <g transform="rotate(20 116 132)"><use href="#block" x="106" y="122" width="18" height="18" style="--block:#2F74B5"/></g>
+    <g transform="rotate(-15 100 112)"><use href="#block" x="92" y="104" width="18" height="18" style="--block:#F6B93B"/></g>
+  </symbol>
+  <symbol id="sc-fix-b" viewBox="0 0 220 160">
+    <rect width="220" height="160" fill="#F3F7FD"/><rect y="138" width="220" height="22" fill="#E3EBD3"/>
+    <use href="#kid" x="20" y="26" width="62" height="114" style="--skin:#E7B992;--hair:#2A1B12;--shirt:#C77D12;--aid:1;--reach:1"/>
+    <use href="#kid" x="138" y="26" width="62" height="114" style="--long:1;--skin:#8D5A3B;--hair:#1F140D;--shirt:#E0516B;--reachL:1"/>
+    <use href="#block" x="101" y="118" width="20" height="20" style="--block:#E0516B"/>
+    <use href="#block" x="101" y="98" width="20" height="20" style="--block:#2F74B5"/>
+    <use href="#block" x="101" y="78" width="20" height="20" style="--block:#F6B93B"/>
+  </symbol>
+  <symbol id="sc-sorry-c" viewBox="0 0 220 160">
+    <rect width="220" height="160" fill="#F3F7FD"/>
+    <use href="#kid" x="24" y="26" width="62" height="114" style="--skin:#E7B992;--hair:#2A1B12;--shirt:#C77D12;--aid:1;--happy:0"/>
+    <use href="#kid" x="122" y="58" width="62" height="114" style="--glasses:1;--skin:#F1C7A5;--hair:#C98A3A;--shirt:#7BC4A4;--happy:0;--sad:1"/>
+    <rect y="134" width="220" height="26" fill="#E3EBD3"/>
+    <path d="M98 50l8 8M112 44v12M120 50l-8 8" stroke="#C77D12" stroke-width="3" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="sc-fix-c" viewBox="0 0 220 160">
+    <rect width="220" height="160" fill="#F3F7FD"/><rect y="138" width="220" height="22" fill="#E3EBD3"/>
+    <use href="#kid" x="44" y="26" width="62" height="114" style="--skin:#E7B992;--hair:#2A1B12;--shirt:#C77D12;--aid:1;--reach:1"/>
+    <use href="#kid" x="108" y="26" width="62" height="114" style="--glasses:1;--skin:#F1C7A5;--hair:#C98A3A;--shirt:#7BC4A4;--reachL:1"/>
+    <use href="#heart" x="94" y="2" width="30" height="28" style="--heart:#E9A23B"/>
+  </symbol>
+  <symbol id="sc-away" viewBox="0 0 220 160">
+    <rect width="220" height="160" fill="#F3F7FD"/><rect y="138" width="220" height="22" fill="#E3EBD3"/>
+    <use href="#kid" x="52" y="26" width="62" height="114" style="--skin:#E7B992;--hair:#2A1B12;--shirt:#C77D12;--aid:1;--happy:0"/>
+    <path d="M128 92h54M170 82l12 10-12 10" fill="none" stroke="#7D86A3" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <use href="#cloud" x="150" y="24" width="48" height="35"/>
+  </symbol>
 <!-- ART:END -->
 </defs>
 </svg>
@@ -907,7 +1297,7 @@ svg{display:block}
 </main>
 
 <!-- AUDIO:START (public copy: clips are separate files in audio/) -->
-<script>window.LL_AUDIO = {"en":{"Pick a story":"audio/en-82a6b594e289.m4a","You did every step! Play again any time.":"audio/en-934300905a5a.m4a","Is it true?":"audio/en-76225fe030ba.m4a","Yes! That is true.":"audio/en-6e470f237243.m4a","Yes! That is not true.":"audio/en-546792e59d8c.m4a","Look again. That is true.":"audio/en-5f037affefc5.m4a","Look again. That is not true.":"audio/en-e3df41269e44.m4a","Is this kind?":"audio/en-d8557416d769.m4a","Yes! That is kind.":"audio/en-8f9fa3e5d16e.m4a","Yes. Taking is not kind.":"audio/en-2d59bf0cb09b.m4a","Look again. That is kind. Tap the heart.":"audio/en-20b4d97f1d93.m4a","Look again. Taking is not kind. Tap the cloud.":"audio/en-f4a4584e4082.m4a","Bring everyone to Jesus.":"audio/en-61fa1bdc1c81.m4a","Tap a friend.":"audio/en-e265ec585f72.m4a","Jesus loves everyone!":"audio/en-ee4a3d96ea4b.m4a","Give each friend a bread roll.":"audio/en-1a8f92175189.m4a","Give each friend what they want.":"audio/en-1cf5c4a1a2c7.m4a","Tap the bread.":"audio/en-e6fca34ce0fe.m4a","Drag the bread to a friend.":"audio/en-b60ce1664e9a.m4a","Tap the food. Then tap a friend.":"audio/en-f30c785ef11e.m4a","Yum! Thank you!":"audio/en-90f191e2d837.m4a","Now tap a friend.":"audio/en-c81daac07470.m4a","You shared! Everyone has food.":"audio/en-03b4aebe8125.m4a","Put the story in order.":"audio/en-90333ca489a6.m4a","What happened first?":"audio/en-d618c32ad044.m4a","What happened next?":"audio/en-6d61972a9f36.m4a","Look again. This one comes next.":"audio/en-25eaf8b08548.m4a","You told the whole story!":"audio/en-2111ba8a03b1.m4a","Tonight at home":"audio/en-5792cb96a201.m4a","Do this with a grown-up. Then tap the button.":"audio/en-9d21a19add7b.m4a","You earned a sticker!":"audio/en-15527503a097.m4a","Next: Watch!":"audio/en-f9edab5b75de.m4a","Next: Word + Sign!":"audio/en-20ce3b4a07da.m4a","Next: Play!":"audio/en-89227e462ec7.m4a","Next: At home!":"audio/en-3e36e08e5f14.m4a","Welcome, Mia!":"audio/en-fa3b42d26701.m4a","Welcome, Leo!":"audio/en-97cf1cb423c8.m4a","Welcome, Ana!":"audio/en-c1b97ed289d3.m4a","Welcome, Ben!":"audio/en-d0062f32b6c4.m4a","Welcome, Zoe!":"audio/en-290f0950df5b.m4a","Mia has enough. Try another friend.":"audio/en-fe40a34b2c54.m4a","Mia wants something else. Look at the picture.":"audio/en-253167f9dbc2.m4a","Leo has enough. Try another friend.":"audio/en-82e8d1f2af32.m4a","Leo wants something else. Look at the picture.":"audio/en-ad04d5cd6588.m4a","Ana has enough. Try another friend.":"audio/en-1eed36da17cf.m4a","Ana wants something else. Look at the picture.":"audio/en-45bb7f5d91c6.m4a","true":"audio/en-5ffe533b830f.m4a","Pointer finger on your lips. Move it straight out.":"audio/en-12880c13cb46.m4a","Thumbs up, thumbs down. A grown-up says silly things and true things. Show a thumbs up when it is true!":"audio/en-ebdee6bbc038.m4a","Watch Mia. Now you try!":"audio/en-2a01838dc63f.m4a","God called young Samuel in the night.":"audio/en-445ba3405e91.m4a","Samuel ran to Eli. “Here I am!”":"audio/en-ca8a4dc185f9.m4a","In the morning, Eli asked, “What did God say?”":"audio/en-30eab8687f28.m4a","Samuel was scared. But he told the truth.":"audio/en-7b062865e7ca.m4a","kind":"audio/en-0ef25ae00f40.m4a","One flat hand circles around the other.":"audio/en-146e92267599.m4a","Bandage helper. When someone in your family is kind, give them a sticker and sign “kind.”":"audio/en-ec8a703b5423.m4a","Watch Ana. Now you try!":"audio/en-aa0a89ee7ae3.m4a","A man was hurt by the road.":"audio/en-b4d889c04c49.m4a","Two people saw him. They walked past.":"audio/en-932c4d481ddc.m4a","A Samaritan man stopped. He helped him.":"audio/en-575f1f7021b3.m4a","He took care of the man until he was well.":"audio/en-9273ecf90e83.m4a","love":"audio/en-9f2feb0f1ef4.m4a","Make two fists. Cross your arms over your heart.":"audio/en-0e121b2f9590.m4a","Love list. Pick one person you love. Give them a hug, a drawing, or a phone call.":"audio/en-cd0d214c09e3.m4a","Watch Sam. Now you try!":"audio/en-382647e344fa.m4a","Families brought their children to Jesus.":"audio/en-f7b13d936185.m4a","Some grown-ups said, “Go away!”":"audio/en-7f73c824f490.m4a","Jesus said, “Let the children come to me.”":"audio/en-2b8f16c24999.m4a","He hugged them and blessed them.":"audio/en-c81d63e5b1de.m4a","share":"audio/en-aab90dfe8c6f.m4a","Stand one flat hand on the other. Slide it back and forth.":"audio/en-170297e45b5d.m4a","Snack share. Cut a snack into pieces. Take turns: one for you, one for me.":"audio/en-16664913a592.m4a","Watch Ben. Now you try!":"audio/en-842b0f81afc3.m4a","Many people came to see Jesus. They were hungry.":"audio/en-fb5f28787c8c.m4a","A boy had 5 bread rolls and 2 fish.":"audio/en-95a6e502481b.m4a","He gave his lunch to Jesus.":"audio/en-a1941e72c725.m4a","Jesus fed everyone. There was food left over!":"audio/en-300dccc61f22.m4a","This is a ball.":"audio/en-3d84aa533f75.m4a","This is a bread roll.":"audio/en-92af684bd808.m4a","This is a flower.":"audio/en-90fd94a0d4fc.m4a","This is a fish.":"audio/en-4275d517ec7f.m4a","She shares her ball.":"audio/en-a15cea6db08f.m4a","He takes the toy away.":"audio/en-a830c81985fd.m4a","They carry the box together.":"audio/en-d273f63c87c4.m4a","She gives Grandma a flower.":"audio/en-f472a010da1f.m4a"},"es":{"Elige una historia":"audio/es-b25237b849d4.m4a","¡Hiciste todos los pasos! Juega otra vez cuando quieras.":"audio/es-63266dab08de.m4a","¿Es verdad?":"audio/es-03d0a33da980.m4a","¡Sí! Eso es verdad.":"audio/es-db896ba83ce2.m4a","¡Sí! Eso no es verdad.":"audio/es-1bc596b255f6.m4a","Mira otra vez. Eso es verdad.":"audio/es-11efedb96fb1.m4a","Mira otra vez. Eso no es verdad.":"audio/es-0dfd4cd2598f.m4a","¿Es amable?":"audio/es-4ef110e06d38.m4a","¡Sí! Eso es amable.":"audio/es-e4fcb6c5fb7c.m4a","Sí. Quitar no es amable.":"audio/es-25157d50f9c9.m4a","Mira otra vez. Eso es amable. Toca el corazón.":"audio/es-82950f994532.m4a","Mira otra vez. Quitar no es amable. Toca la nube.":"audio/es-d24b570624fb.m4a","Lleva a todos con Jesús.":"audio/es-8dc2ac15a10b.m4a","Toca a un amigo.":"audio/es-eeff5b411c07.m4a","¡Jesús ama a todos!":"audio/es-8655815a03e9.m4a","Dale un pan a cada amigo.":"audio/es-1712695bf598.m4a","Dale a cada amigo lo que quiere.":"audio/es-28e5aabdc0dd.m4a","Toca el pan.":"audio/es-04a9f0b720c7.m4a","Arrastra el pan hasta un amigo.":"audio/es-1c37e6e184c6.m4a","Toca la comida. Luego toca a un amigo.":"audio/es-fbb8ab39e947.m4a","¡Qué rico! ¡Gracias!":"audio/es-b5a578bb28c9.m4a","Ahora toca a un amigo.":"audio/es-c535c9a3c966.m4a","¡Compartiste! Todos tienen comida.":"audio/es-592b719918cf.m4a","Pon la historia en orden.":"audio/es-615a683127dd.m4a","¿Qué pasó primero?":"audio/es-e44ca620d294.m4a","¿Qué pasó después?":"audio/es-936a2aa32486.m4a","Mira otra vez. Esta va después.":"audio/es-5517e0404f44.m4a","¡Contaste toda la historia!":"audio/es-c143e07a404d.m4a","Esta noche en casa":"audio/es-8d3c098f5bef.m4a","Hazlo con un adulto. Luego toca el botón.":"audio/es-4c33d35437a4.m4a","¡Ganaste una calcomanía!":"audio/es-d90618e1c739.m4a","Ahora: ¡Mira!":"audio/es-42a8a3df96d5.m4a","Ahora: ¡Palabra + seña!":"audio/es-dbcc43ebd2b6.m4a","Ahora: ¡Juega!":"audio/es-9ce389bbe8ac.m4a","Ahora: ¡En casa!":"audio/es-920fefce31cf.m4a","¡Qué bueno que viniste, Mia!":"audio/es-6c0e4ea0cd15.m4a","¡Qué bueno que viniste, Leo!":"audio/es-8575181f500c.m4a","¡Qué bueno que viniste, Ana!":"audio/es-60c829ba4c7f.m4a","¡Qué bueno que viniste, Ben!":"audio/es-25542c9970ae.m4a","¡Qué bueno que viniste, Zoe!":"audio/es-bfc1d1160190.m4a","Mia ya tiene suficiente. Prueba con otro amigo.":"audio/es-2998a4922d09.m4a","Mia quiere otra cosa. Mira el dibujo.":"audio/es-3e6dba88c8cb.m4a","Leo ya tiene suficiente. Prueba con otro amigo.":"audio/es-38d4452b72f4.m4a","Leo quiere otra cosa. Mira el dibujo.":"audio/es-2b541f541588.m4a","Ana ya tiene suficiente. Prueba con otro amigo.":"audio/es-be34374a3763.m4a","Ana quiere otra cosa. Mira el dibujo.":"audio/es-6410a22b7d0d.m4a","verdad":"audio/es-762ba43a5db9.m4a","Dedo índice en los labios. Muévelo hacia adelante.":"audio/es-c948972ada28.m4a","Pulgar arriba, pulgar abajo. Un adulto dice cosas tontas y cosas verdaderas. ¡Pulgar arriba si es verdad!":"audio/es-27b9ae856741.m4a","Mira a Mia. ¡Ahora tú!":"audio/es-27bd459eaa0a.m4a","Dios llamó al niño Samuel en la noche.":"audio/es-bab881d6fb41.m4a","Samuel corrió a ver a Elí. “¡Aquí estoy!”":"audio/es-e9363e1d1806.m4a","En la mañana, Elí preguntó: “¿Qué te dijo Dios?”":"audio/es-e1e3ea22a9b4.m4a","Samuel tenía miedo. Pero dijo la verdad.":"audio/es-aff4a8a9c980.m4a","amable":"audio/es-e033aff4209e.m4a","Una mano plana da vueltas alrededor de la otra.":"audio/es-d63ffed10af7.m4a","Ayudante de curitas. Cuando alguien de tu familia sea amable, dale una calcomanía y haz la seña de “amable”.":"audio/es-6fcf672af1be.m4a","Mira a Ana. ¡Ahora tú!":"audio/es-64601a4abc00.m4a","Un hombre estaba herido junto al camino.":"audio/es-38ecdf4231e0.m4a","Dos personas lo vieron. Pasaron de largo.":"audio/es-fc1e2b489a7d.m4a","Un samaritano se detuvo. Lo ayudó.":"audio/es-ba0f97e7c33a.m4a","Lo cuidó hasta que estuvo bien.":"audio/es-e561aeeabfc8.m4a","amor":"audio/es-f56fe68c0a0a.m4a","Haz dos puños. Cruza los brazos sobre tu corazón.":"audio/es-7034cde99b3c.m4a","Lista de amor. Elige a una persona que amas. Dale un abrazo, un dibujo o llámala.":"audio/es-4e13c7c8d02a.m4a","Mira a Sam. ¡Ahora tú!":"audio/es-7271b1c43785.m4a","Las familias llevaron a sus niños a Jesús.":"audio/es-1e958ed3cf50.m4a","Algunos adultos dijeron: “¡Váyanse!”":"audio/es-4e9b4e094d4e.m4a","Jesús dijo: “Dejen que los niños vengan a mí.”":"audio/es-47d44b07f455.m4a","Los abrazó y los bendijo.":"audio/es-2cec036906a8.m4a","compartir":"audio/es-e2b2561f16ac.m4a","Para una mano plana sobre la otra. Deslízala adelante y atrás.":"audio/es-44eec696d9d1.m4a","Compartir la merienda. Corta una merienda en pedazos. Túrnense: uno para ti, uno para mí.":"audio/es-5344383a9757.m4a","Mira a Ben. ¡Ahora tú!":"audio/es-ed98b0a71747.m4a","Mucha gente vino a ver a Jesús. Tenían hambre.":"audio/es-bcb13eb9d61f.m4a","Un niño tenía 5 panes y 2 peces.":"audio/es-8a8da1c46d96.m4a","Le dio su almuerzo a Jesús.":"audio/es-a511e4539f9e.m4a","Jesús dio de comer a todos. ¡Sobró comida!":"audio/es-50f4a7fef4e3.m4a","Esto es una pelota.":"audio/es-f35071ac0c49.m4a","Esto es un pan.":"audio/es-53ad4046652b.m4a","Esto es una flor.":"audio/es-7a0eb27c228a.m4a","Esto es un pez.":"audio/es-6147d0d9d5c3.m4a","Ella comparte su pelota.":"audio/es-55424db98d45.m4a","Él le quita el juguete.":"audio/es-c08107e9c07a.m4a","Cargan la caja juntos.":"audio/es-390fa36f9221.m4a","Le da una flor a la abuela.":"audio/es-d12bce72b659.m4a"}};</script>
+<script>window.LL_AUDIO = {"en":{"Pick a story":"audio/en-82a6b594e289.m4a","You did every step! Play again any time.":"audio/en-934300905a5a.m4a","Is it true?":"audio/en-76225fe030ba.m4a","Yes! That is true.":"audio/en-6e470f237243.m4a","Yes! That is not true.":"audio/en-546792e59d8c.m4a","Look again. That is true.":"audio/en-5f037affefc5.m4a","Look again. That is not true.":"audio/en-e3df41269e44.m4a","Is this kind?":"audio/en-d8557416d769.m4a","Yes! That is kind.":"audio/en-8f9fa3e5d16e.m4a","Yes. Taking is not kind.":"audio/en-2d59bf0cb09b.m4a","Look again. That is kind. Tap the heart.":"audio/en-20b4d97f1d93.m4a","Look again. Taking is not kind. Tap the cloud.":"audio/en-f4a4584e4082.m4a","Bring everyone to Jesus.":"audio/en-61fa1bdc1c81.m4a","Tap a friend.":"audio/en-e265ec585f72.m4a","Jesus loves everyone!":"audio/en-ee4a3d96ea4b.m4a","Give each friend a bread roll.":"audio/en-1a8f92175189.m4a","Give each friend what they want.":"audio/en-1cf5c4a1a2c7.m4a","Tap the bread.":"audio/en-e6fca34ce0fe.m4a","Drag the bread to a friend.":"audio/en-b60ce1664e9a.m4a","Tap the food. Then tap a friend.":"audio/en-f30c785ef11e.m4a","Yum! Thank you!":"audio/en-90f191e2d837.m4a","Now tap a friend.":"audio/en-c81daac07470.m4a","You shared! Everyone has food.":"audio/en-03b4aebe8125.m4a","Put the story in order.":"audio/en-90333ca489a6.m4a","What happened first?":"audio/en-d618c32ad044.m4a","What happened next?":"audio/en-6d61972a9f36.m4a","Look again. This one comes next.":"audio/en-25eaf8b08548.m4a","You told the whole story!":"audio/en-2111ba8a03b1.m4a","Tonight at home":"audio/en-5792cb96a201.m4a","Do this with a grown-up. Then tap the button.":"audio/en-9d21a19add7b.m4a","First, watch the story. Then, learn the sign.":"audio/en-be2cc32ca279.m4a","First, learn the sign. Then, play.":"audio/en-7a082b136ebb.m4a","First, play. Then, do it at home.":"audio/en-72d9fbcbbeea.m4a","First, do it at home. Then, get a star!":"audio/en-4e8d914698ba.m4a","A new star is shining!":"audio/en-d8eda996a480.m4a","Your sky is full! A new sky is ready.":"audio/en-6862beae4127.m4a","Your sky is waiting for stars.":"audio/en-8acbbd408037.m4a","1 star is shining!":"audio/en-1ed091630916.m4a","2 stars are shining!":"audio/en-f2cf0916cbae.m4a","3 stars are shining!":"audio/en-5f7cb42a579d.m4a","4 stars are shining!":"audio/en-2de8f891239d.m4a","5 stars are shining!":"audio/en-a786959176a2.m4a","6 stars are shining!":"audio/en-19120131fe7c.m4a","7 stars are shining!":"audio/en-c25e36ae726c.m4a","8 stars are shining!":"audio/en-3064ab80b2fd.m4a","9 stars are shining!":"audio/en-a2f75441aed5.m4a","10 stars are shining!":"audio/en-d37600bc3f36.m4a","11 stars are shining!":"audio/en-b2e4901ec59c.m4a","Next: Watch!":"audio/en-f9edab5b75de.m4a","Next: Word + Sign!":"audio/en-20ce3b4a07da.m4a","Next: Play!":"audio/en-89227e462ec7.m4a","Next: At home!":"audio/en-3e36e08e5f14.m4a","Welcome, Mia!":"audio/en-fa3b42d26701.m4a","Welcome, Leo!":"audio/en-97cf1cb423c8.m4a","Welcome, Ana!":"audio/en-c1b97ed289d3.m4a","Welcome, Ben!":"audio/en-d0062f32b6c4.m4a","Welcome, Zoe!":"audio/en-290f0950df5b.m4a","Mia has enough. Try another friend.":"audio/en-fe40a34b2c54.m4a","Mia wants something else. Look at the picture.":"audio/en-253167f9dbc2.m4a","Leo has enough. Try another friend.":"audio/en-82e8d1f2af32.m4a","Leo wants something else. Look at the picture.":"audio/en-ad04d5cd6588.m4a","Ana has enough. Try another friend.":"audio/en-1eed36da17cf.m4a","Ana wants something else. Look at the picture.":"audio/en-45bb7f5d91c6.m4a","true":"audio/en-5ffe533b830f.m4a","Pointer finger on your lips. Move it straight out.":"audio/en-12880c13cb46.m4a","Thumbs up, thumbs down. A grown-up says silly things and true things. Show a thumbs up when it is true!":"audio/en-ebdee6bbc038.m4a","Watch Mia. Now you try!":"audio/en-2a01838dc63f.m4a","God called young Samuel in the night.":"audio/en-445ba3405e91.m4a","Samuel ran to Eli. “Here I am!”":"audio/en-ca8a4dc185f9.m4a","In the morning, Eli asked, “What did God say?”":"audio/en-30eab8687f28.m4a","Samuel was scared. But he told the truth.":"audio/en-7b062865e7ca.m4a","kind":"audio/en-0ef25ae00f40.m4a","One flat hand circles around the other.":"audio/en-146e92267599.m4a","Bandage helper. When someone in your family is kind, give them a sticker and sign “kind.”":"audio/en-ec8a703b5423.m4a","Watch Ana. Now you try!":"audio/en-aa0a89ee7ae3.m4a","A man was hurt by the road.":"audio/en-b4d889c04c49.m4a","Two people saw him. They walked past.":"audio/en-932c4d481ddc.m4a","A Samaritan man stopped. He helped him.":"audio/en-575f1f7021b3.m4a","He took care of the man until he was well.":"audio/en-9273ecf90e83.m4a","love":"audio/en-9f2feb0f1ef4.m4a","Make two fists. Cross your arms over your heart.":"audio/en-0e121b2f9590.m4a","Love list. Pick one person you love. Give them a hug, a drawing, or a phone call.":"audio/en-cd0d214c09e3.m4a","Watch Sam. Now you try!":"audio/en-382647e344fa.m4a","Families brought their children to Jesus.":"audio/en-f7b13d936185.m4a","Some grown-ups said, “Go away!”":"audio/en-7f73c824f490.m4a","Jesus said, “Let the children come to me.”":"audio/en-2b8f16c24999.m4a","He hugged them and blessed them.":"audio/en-c81d63e5b1de.m4a","share":"audio/en-aab90dfe8c6f.m4a","Stand one flat hand on the other. Slide it back and forth.":"audio/en-170297e45b5d.m4a","Snack share. Cut a snack into pieces. Take turns: one for you, one for me.":"audio/en-16664913a592.m4a","Watch Ben. Now you try!":"audio/en-842b0f81afc3.m4a","Many people came to see Jesus. They were hungry.":"audio/en-fb5f28787c8c.m4a","A boy had 5 bread rolls and 2 fish.":"audio/en-95a6e502481b.m4a","He gave his lunch to Jesus.":"audio/en-a1941e72c725.m4a","Jesus fed everyone. There was food left over!":"audio/en-300dccc61f22.m4a","thank you":"audio/en-897a1c598764.m4a","Flat hand at your chin. Move it out and down.":"audio/en-bd8a1b170048.m4a","Thank-you time. At every meal today, say or sign “thank you” for one thing.":"audio/en-bc09575ff2e1.m4a","Watch Zoe. Now you try!":"audio/en-a9511716a393.m4a","Ten sick men called, “Jesus, help us!”":"audio/en-6e07ec7186a6.m4a","Jesus said, “Go.” On the way, they were healed!":"audio/en-823f5576c765.m4a","One man came back. He said, “Thank you!”":"audio/en-58c13cf26f1b.m4a","Jesus was glad he said thank you.":"audio/en-93953c5054d0.m4a","help":"audio/en-92005ecf3788.m4a","Fist on a flat hand. Lift both hands up.":"audio/en-e30772d783f3.m4a","Ask for help. Pick one hard thing, like opening a jar. Your child signs “help,” and you do it together.":"audio/en-6df9079967fb.m4a","Watch Leo. Now you try!":"audio/en-293a222a1bf0.m4a","Peter walked on the water to Jesus.":"audio/en-55a28cee62c8.m4a","The wind blew. Peter was scared.":"audio/en-d88de0cd07fb.m4a","Peter called, “Jesus, help me!”":"audio/en-0c29f5ad0e9f.m4a","Jesus took his hand. Jesus helps us.":"audio/en-49687d889bbd.m4a","sorry":"audio/en-dd7b1d0288f0.m4a","Make a fist. Rub a circle on your chest.":"audio/en-e9cb6b984a3c.m4a","Sorry and a hug. When something goes wrong today, practice: say or sign “sorry,” then hug.":"audio/en-1dfebbd3d156.m4a","Watch Noah. Now you try!":"audio/en-f359f41dbbaa.m4a","A son left home with his dad’s money.":"audio/en-24e720b92679.m4a","He spent it all. He was hungry and sad.":"audio/en-f27c9811606b.m4a","He went home and said, “I am sorry.”":"audio/en-9df489826ad7.m4a","His dad hugged him. “I forgive you!”":"audio/en-74a92dd8c6ce.m4a","This is a ball.":"audio/en-3d84aa533f75.m4a","This is a bread roll.":"audio/en-92af684bd808.m4a","This is a flower.":"audio/en-90fd94a0d4fc.m4a","This is a fish.":"audio/en-4275d517ec7f.m4a","She shares her ball.":"audio/en-a15cea6db08f.m4a","He takes the toy away.":"audio/en-a830c81985fd.m4a","They carry the box together.":"audio/en-d273f63c87c4.m4a","She gives Grandma a flower.":"audio/en-f472a010da1f.m4a","Grandma gives you a gift.":"audio/en-62a6ceebf03b.m4a","Dad gives you bread.":"audio/en-31d9124f74e2.m4a","Is it a thank-you time?":"audio/en-e1f68d9068cc.m4a","Yes! Say thank you!":"audio/en-75e31d030175.m4a","Right. Taking is not a gift.":"audio/en-00ff7bf5a71d.m4a","Look again. Someone gave you something. Tap Thank you.":"audio/en-051588833678.m4a","Look again. He took the toy. Tap the cloud.":"audio/en-a515eeb84e69.m4a","Who needs help?":"audio/en-4c515f590798.m4a","Yes! Let’s help!":"audio/en-877f0375be6c.m4a","Look again. Who looks sad?":"audio/en-1b69d1ce8413.m4a","How can we make it right?":"audio/en-c1db1bb23935.m4a","Yes! Say sorry and make it right.":"audio/en-16f646ab0917.m4a","Look again. Which one helps?":"audio/en-1c6aeda82e96.m4a","He fell down.":"audio/en-e8ff3638741f.m4a","He is playing.":"audio/en-22caae368106.m4a","She has her teddy.":"audio/en-e012618cda0f.m4a","She can't reach her teddy.":"audio/en-6e768e8c0255.m4a","Grandma dropped her books.":"audio/en-2da887bcf738.m4a","Grandma is reading.":"audio/en-37b83e3ba46c.m4a","Oops! The milk spilled.":"audio/en-29495036f092.m4a","Help clean it up.":"audio/en-2160f83c4604.m4a","Walk away.":"audio/en-9f1b8012f96a.m4a","Oops! The tower fell.":"audio/en-3fadb0ab58f0.m4a","Build it again together.":"audio/en-4e034e9c48f3.m4a","Oops! You bumped a friend.":"audio/en-5348719336d8.m4a","Say sorry and give a hug.":"audio/en-30dca008e2e5.m4a"},"es":{"Elige una historia":"audio/es-b25237b849d4.m4a","¡Hiciste todos los pasos! Juega otra vez cuando quieras.":"audio/es-63266dab08de.m4a","¿Es verdad?":"audio/es-03d0a33da980.m4a","¡Sí! Eso es verdad.":"audio/es-db896ba83ce2.m4a","¡Sí! Eso no es verdad.":"audio/es-1bc596b255f6.m4a","Mira otra vez. Eso es verdad.":"audio/es-11efedb96fb1.m4a","Mira otra vez. Eso no es verdad.":"audio/es-0dfd4cd2598f.m4a","¿Es amable?":"audio/es-4ef110e06d38.m4a","¡Sí! Eso es amable.":"audio/es-e4fcb6c5fb7c.m4a","Sí. Quitar no es amable.":"audio/es-25157d50f9c9.m4a","Mira otra vez. Eso es amable. Toca el corazón.":"audio/es-82950f994532.m4a","Mira otra vez. Quitar no es amable. Toca la nube.":"audio/es-d24b570624fb.m4a","Lleva a todos con Jesús.":"audio/es-8dc2ac15a10b.m4a","Toca a un amigo.":"audio/es-eeff5b411c07.m4a","¡Jesús ama a todos!":"audio/es-8655815a03e9.m4a","Dale un pan a cada amigo.":"audio/es-1712695bf598.m4a","Dale a cada amigo lo que quiere.":"audio/es-28e5aabdc0dd.m4a","Toca el pan.":"audio/es-04a9f0b720c7.m4a","Arrastra el pan hasta un amigo.":"audio/es-1c37e6e184c6.m4a","Toca la comida. Luego toca a un amigo.":"audio/es-fbb8ab39e947.m4a","¡Qué rico! ¡Gracias!":"audio/es-b5a578bb28c9.m4a","Ahora toca a un amigo.":"audio/es-c535c9a3c966.m4a","¡Compartiste! Todos tienen comida.":"audio/es-592b719918cf.m4a","Pon la historia en orden.":"audio/es-615a683127dd.m4a","¿Qué pasó primero?":"audio/es-e44ca620d294.m4a","¿Qué pasó después?":"audio/es-936a2aa32486.m4a","Mira otra vez. Esta va después.":"audio/es-5517e0404f44.m4a","¡Contaste toda la historia!":"audio/es-c143e07a404d.m4a","Esta noche en casa":"audio/es-8d3c098f5bef.m4a","Hazlo con un adulto. Luego toca el botón.":"audio/es-4c33d35437a4.m4a","Primero, mira la historia. Después, aprende la seña.":"audio/es-cfa434865a38.m4a","Primero, aprende la seña. Después, juega.":"audio/es-40a8f19361fb.m4a","Primero, juega. Después, hazlo en casa.":"audio/es-cf5fbe95fa5c.m4a","Primero, hazlo en casa. Después, ¡gana una estrella!":"audio/es-4297acdb9715.m4a","¡Brilla una estrella nueva!":"audio/es-a0d441ae0728.m4a","¡Tu cielo está lleno! Hay un cielo nuevo.":"audio/es-1125fd8c39ec.m4a","Tu cielo espera estrellas.":"audio/es-3f1c536bbfba.m4a","¡Brilla 1 estrella!":"audio/es-d450fb0cdda9.m4a","¡Brillan 2 estrellas!":"audio/es-5825c5bfd0a8.m4a","¡Brillan 3 estrellas!":"audio/es-3b7f941bcdd1.m4a","¡Brillan 4 estrellas!":"audio/es-57331e37aa1d.m4a","¡Brillan 5 estrellas!":"audio/es-e104e780ebb5.m4a","¡Brillan 6 estrellas!":"audio/es-c9729b9bfc93.m4a","¡Brillan 7 estrellas!":"audio/es-e87594f29bce.m4a","¡Brillan 8 estrellas!":"audio/es-688c9364e30d.m4a","¡Brillan 9 estrellas!":"audio/es-de651e7e097b.m4a","¡Brillan 10 estrellas!":"audio/es-8c8debf3b3cb.m4a","¡Brillan 11 estrellas!":"audio/es-3907ab41fac6.m4a","Ahora: ¡Mira!":"audio/es-42a8a3df96d5.m4a","Ahora: ¡Palabra + seña!":"audio/es-dbcc43ebd2b6.m4a","Ahora: ¡Juega!":"audio/es-9ce389bbe8ac.m4a","Ahora: ¡En casa!":"audio/es-920fefce31cf.m4a","¡Qué bueno que viniste, Mia!":"audio/es-6c0e4ea0cd15.m4a","¡Qué bueno que viniste, Leo!":"audio/es-8575181f500c.m4a","¡Qué bueno que viniste, Ana!":"audio/es-60c829ba4c7f.m4a","¡Qué bueno que viniste, Ben!":"audio/es-25542c9970ae.m4a","¡Qué bueno que viniste, Zoe!":"audio/es-bfc1d1160190.m4a","Mia ya tiene suficiente. Prueba con otro amigo.":"audio/es-2998a4922d09.m4a","Mia quiere otra cosa. Mira el dibujo.":"audio/es-3e6dba88c8cb.m4a","Leo ya tiene suficiente. Prueba con otro amigo.":"audio/es-38d4452b72f4.m4a","Leo quiere otra cosa. Mira el dibujo.":"audio/es-2b541f541588.m4a","Ana ya tiene suficiente. Prueba con otro amigo.":"audio/es-be34374a3763.m4a","Ana quiere otra cosa. Mira el dibujo.":"audio/es-6410a22b7d0d.m4a","verdad":"audio/es-762ba43a5db9.m4a","Dedo índice en los labios. Muévelo hacia adelante.":"audio/es-c948972ada28.m4a","Pulgar arriba, pulgar abajo. Un adulto dice cosas tontas y cosas verdaderas. ¡Pulgar arriba si es verdad!":"audio/es-27b9ae856741.m4a","Mira a Mia. ¡Ahora tú!":"audio/es-27bd459eaa0a.m4a","Dios llamó al niño Samuel en la noche.":"audio/es-bab881d6fb41.m4a","Samuel corrió a ver a Elí. “¡Aquí estoy!”":"audio/es-e9363e1d1806.m4a","En la mañana, Elí preguntó: “¿Qué te dijo Dios?”":"audio/es-e1e3ea22a9b4.m4a","Samuel tenía miedo. Pero dijo la verdad.":"audio/es-aff4a8a9c980.m4a","amable":"audio/es-e033aff4209e.m4a","Una mano plana da vueltas alrededor de la otra.":"audio/es-d63ffed10af7.m4a","Ayudante de curitas. Cuando alguien de tu familia sea amable, dale una calcomanía y haz la seña de “amable”.":"audio/es-6fcf672af1be.m4a","Mira a Ana. ¡Ahora tú!":"audio/es-64601a4abc00.m4a","Un hombre estaba herido junto al camino.":"audio/es-38ecdf4231e0.m4a","Dos personas lo vieron. Pasaron de largo.":"audio/es-fc1e2b489a7d.m4a","Un samaritano se detuvo. Lo ayudó.":"audio/es-ba0f97e7c33a.m4a","Lo cuidó hasta que estuvo bien.":"audio/es-e561aeeabfc8.m4a","amor":"audio/es-f56fe68c0a0a.m4a","Haz dos puños. Cruza los brazos sobre tu corazón.":"audio/es-7034cde99b3c.m4a","Lista de amor. Elige a una persona que amas. Dale un abrazo, un dibujo o llámala.":"audio/es-4e13c7c8d02a.m4a","Mira a Sam. ¡Ahora tú!":"audio/es-7271b1c43785.m4a","Las familias llevaron a sus niños a Jesús.":"audio/es-1e958ed3cf50.m4a","Algunos adultos dijeron: “¡Váyanse!”":"audio/es-4e9b4e094d4e.m4a","Jesús dijo: “Dejen que los niños vengan a mí.”":"audio/es-47d44b07f455.m4a","Los abrazó y los bendijo.":"audio/es-2cec036906a8.m4a","compartir":"audio/es-e2b2561f16ac.m4a","Para una mano plana sobre la otra. Deslízala adelante y atrás.":"audio/es-44eec696d9d1.m4a","Compartir la merienda. Corta una merienda en pedazos. Túrnense: uno para ti, uno para mí.":"audio/es-5344383a9757.m4a","Mira a Ben. ¡Ahora tú!":"audio/es-ed98b0a71747.m4a","Mucha gente vino a ver a Jesús. Tenían hambre.":"audio/es-bcb13eb9d61f.m4a","Un niño tenía 5 panes y 2 peces.":"audio/es-8a8da1c46d96.m4a","Le dio su almuerzo a Jesús.":"audio/es-a511e4539f9e.m4a","Jesús dio de comer a todos. ¡Sobró comida!":"audio/es-50f4a7fef4e3.m4a","gracias":"audio/es-a30b3970f3a5.m4a","Mano plana en la barbilla. Muévela hacia adelante y abajo.":"audio/es-4955dcd13d4d.m4a","Hora de dar gracias. En cada comida de hoy, di o haz la seña de “gracias” por algo.":"audio/es-67d0d8ba7ef1.m4a","Mira a Zoe. ¡Ahora tú!":"audio/es-198969434df4.m4a","Diez hombres enfermos gritaron: “¡Jesús, ayúdanos!”":"audio/es-57188eced808.m4a","Jesús dijo: “Vayan.” ¡En el camino, fueron sanados!":"audio/es-e99753f24855.m4a","Un hombre regresó. Dijo: “¡Gracias!”":"audio/es-da5b5112b787.m4a","Jesús se alegró de que diera las gracias.":"audio/es-3b532244cbbc.m4a","ayuda":"audio/es-39b97647a7c5.m4a","Puño sobre la mano plana. Sube las dos manos.":"audio/es-0ae27c570a10.m4a","Pide ayuda. Elige algo difícil, como abrir un frasco. Tu niño hace la seña de “ayuda” y lo hacen juntos.":"audio/es-36e784d9bf53.m4a","Mira a Leo. ¡Ahora tú!":"audio/es-a80f8039e7a3.m4a","Pedro caminó sobre el agua hacia Jesús.":"audio/es-61d75b036609.m4a","Sopló el viento. Pedro tuvo miedo.":"audio/es-c4c05c1be767.m4a","Pedro gritó: “¡Jesús, ayúdame!”":"audio/es-f2dc784ddb1c.m4a","Jesús le tomó la mano. Jesús nos ayuda.":"audio/es-d6659afae20f.m4a","perdón":"audio/es-e2b4cc30bbd6.m4a","Haz un puño. Haz un círculo en tu pecho.":"audio/es-96ec12055e53.m4a","Perdón y un abrazo. Cuando algo salga mal hoy, practiquen: digan o hagan la seña de “perdón” y abrácense.":"audio/es-119a2b8107e4.m4a","Mira a Noah. ¡Ahora tú!":"audio/es-a6d0b96c401f.m4a","Un hijo se fue de casa con el dinero de su papá.":"audio/es-585fbceef0b9.m4a","Lo gastó todo. Tenía hambre y estaba triste.":"audio/es-c365bfa25b76.m4a","Volvió a casa y dijo: “Perdóname.”":"audio/es-62e91e941222.m4a","Su papá lo abrazó. “¡Te perdono!”":"audio/es-e2f3531c11dd.m4a","Esto es una pelota.":"audio/es-f35071ac0c49.m4a","Esto es un pan.":"audio/es-53ad4046652b.m4a","Esto es una flor.":"audio/es-7a0eb27c228a.m4a","Esto es un pez.":"audio/es-6147d0d9d5c3.m4a","Ella comparte su pelota.":"audio/es-55424db98d45.m4a","Él le quita el juguete.":"audio/es-c08107e9c07a.m4a","Cargan la caja juntos.":"audio/es-390fa36f9221.m4a","Le da una flor a la abuela.":"audio/es-d12bce72b659.m4a","La abuela te da un regalo.":"audio/es-6f5ea393c7f3.m4a","Papá te da pan.":"audio/es-68c110c0fdd1.m4a","¿Es momento de dar gracias?":"audio/es-97fcd909f281.m4a","¡Sí! ¡Di gracias!":"audio/es-387200238946.m4a","Así es. Quitar no es regalar.":"audio/es-ce7d5d5bcbd7.m4a","Mira otra vez. Alguien te dio algo. Toca Gracias.":"audio/es-a9dc1cc10b8c.m4a","Mira otra vez. Él quitó el juguete. Toca la nube.":"audio/es-0490d4f739d3.m4a","¿Quién necesita ayuda?":"audio/es-3768f94db900.m4a","¡Sí! ¡Vamos a ayudar!":"audio/es-625dc002c055.m4a","Mira otra vez. ¿Quién se ve triste?":"audio/es-f5306a0366e7.m4a","¿Cómo lo arreglamos?":"audio/es-5a3a34182e5f.m4a","¡Sí! Pide perdón y arréglalo.":"audio/es-67414bfefefa.m4a","Mira otra vez. ¿Cuál ayuda?":"audio/es-b39125718ea6.m4a","Se cayó.":"audio/es-61bb91781625.m4a","Él está jugando.":"audio/es-b89f1cfdd795.m4a","Ella tiene su osito.":"audio/es-884d3e94bb25.m4a","No alcanza su osito.":"audio/es-661e84f983de.m4a","A la abuela se le cayeron los libros.":"audio/es-15b8beec002a.m4a","La abuela está leyendo.":"audio/es-b0a812b9178d.m4a","¡Ay! Se cayó la leche.":"audio/es-79f101512554.m4a","Ayuda a limpiar.":"audio/es-842a0d16f98d.m4a","Irse.":"audio/es-3d5e7289c002.m4a","¡Ay! Se cayó la torre.":"audio/es-c9c9307288dc.m4a","Constrúyanla juntos otra vez.":"audio/es-f8e70b5f77d0.m4a","¡Ay! Chocaste con un amigo.":"audio/es-267d5b3c4ef8.m4a","Pide perdón y da un abrazo.":"audio/es-78e881d50a6e.m4a"}};</script>
 <!-- AUDIO:END -->
 <script>
 (function(){
@@ -915,10 +1305,10 @@ svg{display:block}
   var $ = function(s, r){ return (r || document).querySelector(s); };
   var $$ = function(s, r){ return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var KEY = 'littleLights.play.v1';
-  var LESSONS = ['truth', 'kind', 'love', 'share'];
+  var LESSONS = ['truth', 'kind', 'love', 'share', 'thanks', 'help', 'sorry'];
 
   /* ---------- Saved state (this browser only) ---------- */
-  function fresh(){ return { level:1, lang:'en', read:true, rate:0.85, calm:false, signs:true, lessons:{ truth:{}, kind:{}, love:{}, share:{} } }; }
+  function fresh(){ return { level:1, lang:'en', read:true, rate:0.85, calm:false, signs:true, stars:[], lessons:LESSONS.reduce(function(o, id){ o[id] = {}; return o; }, {}) }; }
   var st = fresh();
   try {
     var saved = JSON.parse(localStorage.getItem(KEY) || 'null');
@@ -927,6 +1317,8 @@ svg{display:block}
       if (saved.lessons) LESSONS.forEach(function(id){ if (saved.lessons[id]) st.lessons[id] = saved.lessons[id]; });
     }
   } catch (e) {}
+  if (!Array.isArray(st.stars)) st.stars = [];
+  if (!st.stars.length) LESSONS.forEach(function(id){ for (var n = st.lessons[id].stickers || 0; n > 0; n--) st.stars.push(id); });
   function save(){ try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} }
 
   /* ---------- Words ---------- */
@@ -944,9 +1336,16 @@ svg{display:block}
       shareT1:'Give each friend a bread roll.', shareT2:'Give each friend a bread roll.', shareT3:'Give each friend what they want.',
       shareGo1:'Tap the bread.', shareGo2:'Drag the bread to a friend.', shareGo3:'Tap the food. Then tap a friend.',
       shareGood:'Yum! Thank you!', shareFull:'{name} has enough. Try another friend.', shareWrong:'{name} wants something else. Look at the picture.', sharePick:'Now tap a friend.', shareDone:'You shared! Everyone has food.',
+      thanksT:'Is it a thank-you time?', yesThanks:'Thank you!', noThanks:'Not now',
+      thanksRightY:'Yes! Say thank you!', thanksRightN:'Right. Taking is not a gift.', thanksHintY:'Look again. Someone gave you something. Tap Thank you.', thanksHintN:'Look again. He took the toy. Tap the cloud.',
+      helpT:'Who needs help?', helpRight:'Yes! Let’s help!', helpHint:'Look again. Who looks sad?',
+      sorryT:'How can we make it right?', sorryRight:'Yes! Say sorry and make it right.', sorryHint:'Look again. Which one helps?',
       orderT:'Put the story in order.', orderFirst:'What happened first?', orderNext:'What happened next?', orderHint:'Look again. This one comes next.', orderDone:'You told the whole story!',
       athomeT:'Tonight at home', athomeHint:'Do this with a grown-up. Then tap the button.', wedid:'We did it!',
-      earned:'You earned a sticker!', moreStories:'Pick another story',
+      moreStories:'Pick another story', againBtn:'Again!',
+      first:'First', then:'Then', starStep:'Star',
+      ftWatch:'First, watch the story. Then, learn the sign.', ftSign:'First, learn the sign. Then, play.', ftPlay:'First, play. Then, do it at home.', ftHome:'First, do it at home. Then, get a star!',
+      mySky:'My sky', newStar:'A new star is shining!', skyFull:'Your sky is full! A new sky is ready.', sky0:'Your sky is waiting for stars.', sky1:'1 star is shining!', skyN:'{n} stars are shining!',
       grown:'Grown-up corner', progress:'Progress', steps:'steps', level:'Level', settings:'Settings',
       l1:'Look and Tap', l2:'Choose', l3:'Tell and Do',
       l1d:'1 or 2 big choices. Tap only. Short games.', l2d:'2 or 3 choices. Tap or drag. Put 3 pictures in order.', l3d:'3 or 4 choices. Follow numbers. Put all 4 pictures in order.',
@@ -966,9 +1365,16 @@ svg{display:block}
       shareT1:'Dale un pan a cada amigo.', shareT2:'Dale un pan a cada amigo.', shareT3:'Dale a cada amigo lo que quiere.',
       shareGo1:'Toca el pan.', shareGo2:'Arrastra el pan hasta un amigo.', shareGo3:'Toca la comida. Luego toca a un amigo.',
       shareGood:'¡Qué rico! ¡Gracias!', shareFull:'{name} ya tiene suficiente. Prueba con otro amigo.', shareWrong:'{name} quiere otra cosa. Mira el dibujo.', sharePick:'Ahora toca a un amigo.', shareDone:'¡Compartiste! Todos tienen comida.',
+      thanksT:'¿Es momento de dar gracias?', yesThanks:'¡Gracias!', noThanks:'Ahora no',
+      thanksRightY:'¡Sí! ¡Di gracias!', thanksRightN:'Así es. Quitar no es regalar.', thanksHintY:'Mira otra vez. Alguien te dio algo. Toca Gracias.', thanksHintN:'Mira otra vez. Él quitó el juguete. Toca la nube.',
+      helpT:'¿Quién necesita ayuda?', helpRight:'¡Sí! ¡Vamos a ayudar!', helpHint:'Mira otra vez. ¿Quién se ve triste?',
+      sorryT:'¿Cómo lo arreglamos?', sorryRight:'¡Sí! Pide perdón y arréglalo.', sorryHint:'Mira otra vez. ¿Cuál ayuda?',
       orderT:'Pon la historia en orden.', orderFirst:'¿Qué pasó primero?', orderNext:'¿Qué pasó después?', orderHint:'Mira otra vez. Esta va después.', orderDone:'¡Contaste toda la historia!',
       athomeT:'Esta noche en casa', athomeHint:'Hazlo con un adulto. Luego toca el botón.', wedid:'¡Lo hicimos!',
-      earned:'¡Ganaste una calcomanía!', moreStories:'Elige otra historia',
+      moreStories:'Elige otra historia', againBtn:'¡Otra vez!',
+      first:'Primero', then:'Después', starStep:'Estrella',
+      ftWatch:'Primero, mira la historia. Después, aprende la seña.', ftSign:'Primero, aprende la seña. Después, juega.', ftPlay:'Primero, juega. Después, hazlo en casa.', ftHome:'Primero, hazlo en casa. Después, ¡gana una estrella!',
+      mySky:'Mi cielo', newStar:'¡Brilla una estrella nueva!', skyFull:'¡Tu cielo está lleno! Hay un cielo nuevo.', sky0:'Tu cielo espera estrellas.', sky1:'¡Brilla 1 estrella!', skyN:'¡Brillan {n} estrellas!',
       grown:'Rincón de adultos', progress:'Progreso', steps:'pasos', level:'Nivel', settings:'Ajustes',
       l1:'Mira y toca', l2:'Elige', l3:'Cuenta y haz',
       l1d:'1 o 2 opciones grandes. Solo tocar. Juegos cortos.', l2d:'2 o 3 opciones. Tocar o arrastrar. Ordenar 3 dibujos.', l3d:'3 o 4 opciones. Seguir números. Ordenar los 4 dibujos.',
@@ -1036,10 +1442,49 @@ svg{display:block}
       ],
       game:'g-share',
       home:{ en:'Snack share. Cut a snack into pieces. Take turns: one for you, one for me.', es:'Compartir la merienda. Corta una merienda en pedazos. Túrnense: uno para ti, uno para mí.' }
+    },
+    thanks: {
+      c:'var(--thanks)', cs:'var(--thanks-soft)', title:{ en:'Say thank you', es:'Dar las gracias' }, word:{ en:'THANK YOU', es:'GRACIAS' },
+      signer:'Zoe', signVars:'--skin:#C68E62;--hair:#3B2618;--shirt:#7B5CC4;--long:1',
+      how:{ en:'Flat hand at your chin. Move it out and down.', es:'Mano plana en la barbilla. Muévela hacia adelante y abajo.' },
+      pages:[
+        { art:'scene-thanks-1', en:'Ten sick men called, “Jesus, help us!”', es:'Diez hombres enfermos gritaron: “¡Jesús, ayúdanos!”' },
+        { art:'scene-thanks-2', en:'Jesus said, “Go.” On the way, they were healed!', es:'Jesús dijo: “Vayan.” ¡En el camino, fueron sanados!' },
+        { art:'scene-thanks-3', en:'One man came back. He said, “Thank you!”', es:'Un hombre regresó. Dijo: “¡Gracias!”' },
+        { art:'scene-thanks-4', en:'Jesus was glad he said thank you.', es:'Jesús se alegró de que diera las gracias.' }
+      ],
+      game:'g-thanks',
+      home:{ en:'Thank-you time. At every meal today, say or sign “thank you” for one thing.', es:'Hora de dar gracias. En cada comida de hoy, di o haz la seña de “gracias” por algo.' }
+    },
+    help: {
+      c:'var(--help)', cs:'var(--help-soft)', title:{ en:'Ask for help', es:'Pedir ayuda' }, word:{ en:'HELP', es:'AYUDA' },
+      signer:'Leo', signVars:'--skin:#D9A57B;--hair:#4A2E1C;--shirt:#12897F;--almond:1',
+      how:{ en:'Fist on a flat hand. Lift both hands up.', es:'Puño sobre la mano plana. Sube las dos manos.' },
+      pages:[
+        { art:'scene-help-1', en:'Peter walked on the water to Jesus.', es:'Pedro caminó sobre el agua hacia Jesús.' },
+        { art:'scene-help-2', en:'The wind blew. Peter was scared.', es:'Sopló el viento. Pedro tuvo miedo.' },
+        { art:'scene-help-3', en:'Peter called, “Jesus, help me!”', es:'Pedro gritó: “¡Jesús, ayúdame!”' },
+        { art:'scene-help-4', en:'Jesus took his hand. Jesus helps us.', es:'Jesús le tomó la mano. Jesús nos ayuda.' }
+      ],
+      game:'g-help',
+      home:{ en:'Ask for help. Pick one hard thing, like opening a jar. Your child signs “help,” and you do it together.', es:'Pide ayuda. Elige algo difícil, como abrir un frasco. Tu niño hace la seña de “ayuda” y lo hacen juntos.' }
+    },
+    sorry: {
+      c:'var(--sorry)', cs:'var(--sorry-soft)', title:{ en:'Say sorry', es:'Pedir perdón' }, word:{ en:'SORRY', es:'PERDÓN' },
+      signer:'Noah', signVars:'--skin:#E7B992;--hair:#2A1B12;--shirt:#C77D12;--aid:1',
+      how:{ en:'Make a fist. Rub a circle on your chest.', es:'Haz un puño. Haz un círculo en tu pecho.' },
+      pages:[
+        { art:'scene-sorry-1', en:'A son left home with his dad’s money.', es:'Un hijo se fue de casa con el dinero de su papá.' },
+        { art:'scene-sorry-2', en:'He spent it all. He was hungry and sad.', es:'Lo gastó todo. Tenía hambre y estaba triste.' },
+        { art:'scene-sorry-3', en:'He went home and said, “I am sorry.”', es:'Volvió a casa y dijo: “Perdóname.”' },
+        { art:'scene-sorry-4', en:'His dad hugged him. “I forgive you!”', es:'Su papá lo abrazó. “¡Te perdono!”' }
+      ],
+      game:'g-sorry',
+      home:{ en:'Sorry and a hug. When something goes wrong today, practice: say or sign “sorry,” then hug.', es:'Perdón y un abrazo. Cuando algo salga mal hoy, practiquen: digan o hagan la seña de “perdón” y abrácense.' }
     }
   };
   /* Art names use the key word, so the Truth lesson's pictures are sign-true and sym-true */
-  var ART = { truth:'true', kind:'kind', love:'love', share:'share' };
+  var ART = { truth:'true', kind:'kind', love:'love', share:'share', thanks:'thanks', help:'help', sorry:'sorry' };
   var STEP_KEYS = ['watch', 'sign', 'play', 'home'];
   var STEP_ICON = { watch:'book', sign:'hand', play:'star', home:'hearthome' };
   var STEP_GO = { watch:'story', sign:'sign', play:'game', home:'athome' };
@@ -1047,7 +1492,7 @@ svg{display:block}
 
   var KIDS = {
     Mia:{ v:'--long:1;--skin:#8D5A3B;--hair:#1F140D;--shirt:#E0516B' },
-    Leo:{ v:'--almond:1;--skin:#F3CFB0;--hair:#8B5A2B;--shirt:#2F74B5' },
+    Leo:{ v:'--almond:1;--skin:#D9A57B;--hair:#4A2E1C;--shirt:#2F74B5' },
     Ana:{ v:'--long:1;--glasses:1;--skin:#E7B992;--hair:#C98A3A;--shirt:#23885C' },
     Ben:{ v:'--skin:#6B4430;--hair:#1F140D;--shirt:#D9741A', chair:true },
     Zoe:{ v:'--long:1;--skin:#C68E62;--hair:#3B2618;--shirt:#8C7BC0' }
@@ -1066,10 +1511,16 @@ svg{display:block}
     return '<svg viewBox="-8 0 76 112" aria-hidden="true" class="' + (cls || 'kidsvg') + '"><use href="#kid" width="60" height="110" style="' + v + '"/>' + chair + '</svg>';
   }
   function sayBtn(){ return '<button type="button" class="ibtn say" data-act="say" aria-label="' + esc(t('readaloud')) + '">' + ic('speaker') + '</button>'; }
-  function header(back, title, color){
+  var FT = { watch:['watch', 'sign', 'ftWatch'], sign:['sign', 'play', 'ftSign'], play:['play', 'home', 'ftPlay'], home:['home', 'star', 'ftHome'] };
+  function firstThen(step){
+    var f = FT[step];
+    function chip(k, word, now){ return '<span class="ftc' + (now ? ' now' : '') + '">' + ic(k === 'star' ? 'star' : STEP_ICON[k]) + '<small>' + esc(t(word)) + '</small><b>' + esc(k === 'star' ? t('starStep') : t(STEP_LABEL[k])) + '</b></span>'; }
+    return '<button type="button" class="ft" data-act="ft" data-k="' + f[2] + '" aria-label="' + esc(t(f[2])) + '">' + chip(f[0], 'first', true) + '<span class="ftarrow">' + ic('right') + '</span>' + chip(f[1], 'then', false) + '</button>';
+  }
+  function header(back, title, color, step){
     return '<header class="abar">' +
       (back ? '<button type="button" class="ibtn" data-go="' + back + '" aria-label="' + esc(back === 'home' ? t('home') : t('back')) + '">' + ic('home') + '</button>' : '') +
-      '<h2 class="ttl"' + (color ? ' style="color:' + color + '"' : '') + '>' + esc(title) + '</h2>' + sayBtn() + '</header>';
+      '<h2 class="ttl"' + (color ? ' style="color:' + color + '"' : '') + '>' + esc(title) + '</h2>' + sayBtn() + '</header>' + (step ? firstThen(step) : '');
   }
   function guide(msg){
     return '<footer class="guide"><span class="lumi" id="glumi">' + lumiHead() + '</span><p class="bubble" id="gmsg">' + esc(msg) + '</p>' +
@@ -1159,7 +1610,7 @@ svg{display:block}
   function nextStep(id){ var p = st.lessons[id]; for (var i = 0; i < STEP_KEYS.length; i++) if (!p[STEP_KEYS[i]]) return STEP_KEYS[i]; return null; }
 
   var RENDER = {}, AFTER = {};
-  var AUTOSAY = { path:1, story:1, sign:1, 'g-truth':1, 'g-kind':1, 'g-love':1, 'g-share':1, 'g-order':1, athome:1 };
+  var AUTOSAY = { path:1, story:1, sign:1, 'g-truth':1, 'g-kind':1, 'g-love':1, 'g-share':1, 'g-order':1, 'g-thanks':1, 'g-help':1, 'g-sorry':1, athome:1, sky:1 };
 
   /* Home */
   RENDER.home = function(){
@@ -1169,16 +1620,13 @@ svg{display:block}
       var dots = STEP_KEYS.map(function(k){ return '<i' + (p[k] ? ' class="on"' : '') + '></i>'; }).join('');
       return '<button type="button" class="tile" data-act="lesson" data-id="' + id + '" style="--c:' + d.c + ';--cs:' + d.cs + '">' +
         use(d.pages[3].art, '0 0 400 260') + '<span class="tile-name">' + esc(d.title[st.lang]) + '</span><span class="steps" aria-hidden="true">' + dots + '</span>' +
-        (n ? '<span class="got">' + ic('lamp') + (n > 1 ? n : '') + '</span>' : '') + '</button>';
+        (n ? '<span class="got">' + ic('star') + (n > 1 ? n : '') + '</span>' : '') + '</button>';
     }).join('');
-    var shelf = LESSONS.map(function(id){
-      var n = st.lessons[id].stickers || 0;
-      return '<i class="stk' + (n ? ' on' : '') + '" style="--c:' + L[id].c + '">' + ic('lamp') + (n > 1 ? '<b>' + n + '</b>' : '') + '</i>';
-    }).join('');
+    var shelf = '<button type="button" class="skybtn" data-go="sky">' + ic('star') + '<span>' + esc(t('mySky')) + '</span><b>' + skyNow().count + '/12</b></button>';
     return '<header class="abar"><div class="who"><span class="avatar">' + lumiHead() + '</span><span>' + esc(t('hi')) + '</span></div>' + sayBtn() +
       '<button type="button" class="lockbtn" id="lockbtn"><span class="fill"></span>' + ic('lock') + '<span>' + esc(t('hold')) + '</span></button></header>' +
       '<h1 class="kid-title">' + esc(t('pick')) + '</h1><div class="tiles">' + tiles + '</div>' +
-      '<div class="shelf"><span>' + esc(t('stickers')) + '</span>' + shelf + '</div>';
+      '<div class="shelf">' + shelf + '</div>';
   };
   AFTER.home = function(){ bindLock(); };
 
@@ -1200,11 +1648,12 @@ svg{display:block}
     var d = L[lesson];
     var dots = d.pages.map(function(_, i){ return '<i' + (i <= page ? ' class="on"' : '') + '></i>'; }).join('');
     return '<header class="abar"><button type="button" class="ibtn" data-go="path" aria-label="' + esc(t('back')) + '">' + ic('home') + '</button>' +
-      '<h2 class="ttl">' + esc(d.title[st.lang]) + '</h2><div class="dots" aria-hidden="true">' + dots + '</div>' + sayBtn() + '</header>' +
+      '<h2 class="ttl">' + esc(d.title[st.lang]) + '</h2><div class="dots" aria-hidden="true">' + dots + '</div>' + sayBtn() + '</header>' + firstThen('watch') +
       '<div class="story"><button type="button" class="navbtn prev" data-act="prev" aria-label="' + esc(t('back')) + '"' + (page === 0 ? ' disabled' : '') + '>' + ic('left') + '</button>' +
       '<figure class="story-pic">' + use(d.pages[page].art, '0 0 400 260') + '</figure>' +
       '<button type="button" class="navbtn next" data-act="fwd" aria-label="' + esc(t('next')) + '">' + ic('right') + '</button>' +
-      '<p class="caption" id="cap"></p></div>';
+      '<p class="caption" id="cap"></p></div>' +
+      (page === d.pages.length - 1 ? '<div class="actions"><button type="button" class="kbtn" data-act="again-story">' + ic('replay') + esc(t('againBtn')) + '</button></div>' : '');
   };
   AFTER.story = function(){
     var text = L[lesson].pages[page][st.lang], cap = $('#cap'), idx = 0;
@@ -1229,7 +1678,7 @@ svg{display:block}
     sayText = [d.word[st.lang].toLowerCase(), d.how[st.lang]];
     var signArt = '<svg viewBox="0 0 200 230" aria-hidden="true" style="' + d.signVars + '"><use href="#sign-' + ART[lesson] + '-base" width="200" height="230"/>' +
       '<use class="mv mv-' + ART[lesson] + '" href="#sign-' + ART[lesson] + '-move" width="200" height="230"/><use class="sg-arrow" href="#sign-' + ART[lesson] + '-arrow" width="200" height="230"/></svg>';
-    return header('path', t('sign')) +
+    return header('path', t('sign'), null, 'sign') +
       '<div class="signwrap"><div class="wordcard">' + use('sym-' + ART[lesson], '0 0 100 100') + '<b>' + esc(d.word[st.lang]) + '</b><span>' + esc(other) + '</span></div>' +
       '<div class="signcard"' + (st.signs ? '' : ' hidden') + '><span class="vidtag">' + esc(t('video')) + '</span><div id="signart">' + signArt + '</div><p>' + esc(d.how[st.lang]) + '</p></div></div>' +
       '<div class="actions"><button type="button" class="kbtn" data-act="replay">' + ic('replay') + esc(t('again')) + '</button>' +
@@ -1253,46 +1702,117 @@ svg{display:block}
   function rounds(){ return [2, 3, 4][st.level - 1]; }
   var qi = 0, qdone = false;
 
+  var THANKS = [
+    { id:'sc-ty-a', ok:true,  en:'Grandma gives you a gift.', es:'La abuela te da un regalo.' },
+    { id:'sc-b',    ok:false, en:'He takes the toy away.', es:'Él le quita el juguete.' },
+    { id:'sc-ty-b', ok:true,  en:'Dad gives you bread.', es:'Papá te da pan.' },
+    { id:'sc-a',    ok:true,  en:'She shares her ball.', es:'Ella comparte su pelota.' }
+  ];
+  var CHOICE = {
+    truth:  { list: TRUTH, obj: true, title: 'truthT', yes: 'yesTrue', no: 'noTrue',
+              yesIc: function(){ return use('thumb', '0 0 40 40'); }, noIc: function(){ return use('thumb', '0 0 40 40', '', 'down'); },
+              rightY: 'truthRightT', rightN: 'truthRightN', hintY: 'truthHintT', hintN: 'truthHintN' },
+    kind:   { list: KIND, title: 'kindT', yes: 'yesKind', no: 'noKind',
+              yesIc: function(){ return use('heart', '0 0 32 30', '--heart:#23885C'); }, noIc: function(){ return use('cloud', '0 0 44 32'); },
+              rightY: 'kindRightK', rightN: 'kindRightN', hintY: 'kindHintK', hintN: 'kindHintN' },
+    thanks: { list: THANKS, title: 'thanksT', yes: 'yesThanks', no: 'noThanks',
+              yesIc: function(){ return use('sym-thanks', '0 0 100 100'); }, noIc: function(){ return use('cloud', '0 0 44 32'); },
+              rightY: 'thanksRightY', rightN: 'thanksRightN', hintY: 'thanksHintY', hintN: 'thanksHintN' }
+  };
   function choiceGame(kind){
-    var isTruth = kind === 'truth', list = isTruth ? TRUTH : KIND, q = list[qi], n = rounds();
-    var pic = isTruth ? '<figure class="pic obj">' + use(q.id, q.vb) + '<figcaption>' + esc(q[st.lang]) + '</figcaption></figure>'
-                      : '<figure class="pic">' + use(q.id, '0 0 220 160') + '<figcaption>' + esc(q[st.lang]) + '</figcaption></figure>';
-    var yesIc = isTruth ? use('thumb', '0 0 40 40') : use('heart', '0 0 32 30', '--heart:#23885C');
-    var noIc = isTruth ? use('thumb', '0 0 40 40', '', 'down') : use('cloud', '0 0 44 32');
+    var c = CHOICE[kind], q = c.list[qi], n = Math.min(rounds(), c.list.length);
+    var pic = c.obj ? '<figure class="pic obj">' + use(q.id, q.vb) + '<figcaption>' + esc(q[st.lang]) + '</figcaption></figure>'
+                    : '<figure class="pic">' + use(q.id, '0 0 220 160') + '<figcaption>' + esc(q[st.lang]) + '</figcaption></figure>';
     var dots = ''; for (var i = 0; i < n; i++) dots += '<i' + (i <= qi ? ' class="on"' : '') + '></i>';
-    sayText = [t(isTruth ? 'truthT' : 'kindT'), q[st.lang]];
-    return header('path', t(isTruth ? 'truthT' : 'kindT')) +
+    sayText = [t(c.title), q[st.lang]];
+    return header('path', t(c.title), null, 'play') +
       '<div class="game"><div class="choice2">' + pic + '<div class="answers">' +
-      '<button type="button" class="ans yes" data-act="ans" data-v="1">' + yesIc + '<span>' + esc(t(isTruth ? 'yesTrue' : 'yesKind')) + '</span></button>' +
-      '<button type="button" class="ans no" data-act="ans" data-v="0">' + noIc + '<span>' + esc(t(isTruth ? 'noTrue' : 'noKind')) + '</span></button>' +
+      '<button type="button" class="ans yes" data-act="ans" data-v="1">' + c.yesIc() + '<span>' + esc(t(c.yes)) + '</span></button>' +
+      '<button type="button" class="ans no" data-act="ans" data-v="0">' + c.noIc() + '<span>' + esc(t(c.no)) + '</span></button>' +
       '</div></div><div class="rdots"><div class="dots" aria-hidden="true">' + dots + '</div></div></div>' +
       guide(q[st.lang]);
   }
   function choiceAfter(kind){
     qdone = false;
-    var isTruth = kind === 'truth', q = (isTruth ? TRUTH : KIND)[qi];
-    idleStart([t(isTruth ? 'truthT' : 'kindT'), q[st.lang]], function(){ $$('.ans').forEach(function(a){ if ((a.dataset.v === '1') === q.ok) a.classList.add('glowing'); }); });
+    var c = CHOICE[kind], q = c.list[qi];
+    idleStart([t(c.title), q[st.lang]], function(){ $$('.ans').forEach(function(a){ if ((a.dataset.v === '1') === q.ok) a.classList.add('glowing'); }); });
   }
   function answer(btn){
     if (qdone) return;
-    var isTruth = cur === 'g-truth', q = (isTruth ? TRUTH : KIND)[qi], saysYes = btn.dataset.v === '1', msg;
+    var c = CHOICE[cur.slice(2)], q = c.list[qi], saysYes = btn.dataset.v === '1', msg;
     if (saysYes === q.ok) {
       qdone = true; idleDone();
       $$('.ans').forEach(function(a){ a.classList.remove('glowing'); a.classList.toggle('dim', a !== btn); });
       btn.classList.add('right');
-      msg = isTruth ? (q.ok ? t('truthRightT') : t('truthRightN')) : (q.ok ? t('kindRightK') : t('kindRightN'));
+      msg = t(q.ok ? c.rightY : c.rightN);
       setMsg(msg, true); showNext();
     } else {
       var other = $$('.ans').filter(function(a){ return a !== btn; })[0];
       btn.classList.add('dim'); other.classList.add('glowing');
-      msg = isTruth ? (q.ok ? t('truthHintT') : t('truthHintN')) : (q.ok ? t('kindHintK') : t('kindHintN'));
+      msg = t(q.ok ? c.hintY : c.hintN);
       setMsg(msg, true); idleReset();
     }
   }
-  RENDER['g-truth'] = function(){ return choiceGame('truth'); };
-  AFTER['g-truth'] = function(){ choiceAfter('truth'); };
-  RENDER['g-kind'] = function(){ return choiceGame('kind'); };
-  AFTER['g-kind'] = function(){ choiceAfter('kind'); };
+  ['truth', 'kind', 'thanks'].forEach(function(k){
+    RENDER['g-' + k] = function(){ return choiceGame(k); };
+    AFTER['g-' + k] = function(){ choiceAfter(k); };
+  });
+
+  /* Game: pick the picture (Who needs help? / Make it right) */
+  var AWAY = { id:'sc-away', en:'Walk away.', es:'Irse.' };
+  var PICK = {
+    help: { title: 'helpT', right: 'helpRight', hint: 'helpHint', items: [
+      { choices: [ { id:'sc-help-a', ok:true, en:'He fell down.', es:'Se cayó.' }, { id:'sc-ok-a', en:'He is playing.', es:'Él está jugando.' } ] },
+      { choices: [ { id:'sc-ok-b', en:'She has her teddy.', es:'Ella tiene su osito.' }, { id:'sc-help-b', ok:true, en:"She can't reach her teddy.", es:'No alcanza su osito.' } ] },
+      { choices: [ { id:'sc-help-c', ok:true, en:'Grandma dropped her books.', es:'A la abuela se le cayeron los libros.' }, { id:'sc-ok-c', en:'Grandma is reading.', es:'La abuela está leyendo.' } ] }
+    ] },
+    sorry: { title: 'sorryT', right: 'sorryRight', hint: 'sorryHint', items: [
+      { prompt: { id:'sc-sorry-a', en:'Oops! The milk spilled.', es:'¡Ay! Se cayó la leche.' },
+        choices: [ { id:'sc-fix-a', ok:true, en:'Help clean it up.', es:'Ayuda a limpiar.' }, AWAY ] },
+      { prompt: { id:'sc-sorry-b', en:'Oops! The tower fell.', es:'¡Ay! Se cayó la torre.' },
+        choices: [ AWAY, { id:'sc-fix-b', ok:true, en:'Build it again together.', es:'Constrúyanla juntos otra vez.' } ] },
+      { prompt: { id:'sc-sorry-c', en:'Oops! You bumped a friend.', es:'¡Ay! Chocaste con un amigo.' },
+        choices: [ { id:'sc-fix-c', ok:true, en:'Say sorry and give a hug.', es:'Pide perdón y da un abrazo.' }, AWAY ] }
+    ] }
+  };
+  function pickGame(kind){
+    var g = PICK[kind], it = g.items[qi], n = Math.min(rounds(), g.items.length);
+    var dots = ''; for (var i = 0; i < n; i++) dots += '<i' + (i <= qi ? ' class="on"' : '') + '></i>';
+    var cards = it.choices.map(function(ch, ci){
+      return '<button type="button" class="pickcard" data-act="pick" data-i="' + ci + '">' + use(ch.id, '0 0 220 160') + '<span>' + esc(ch[st.lang]) + '</span></button>';
+    }).join('');
+    var prompt = it.prompt ? '<figure class="pic prompt">' + use(it.prompt.id, '0 0 220 160') + '<figcaption>' + esc(it.prompt[st.lang]) + '</figcaption></figure>' : '';
+    sayText = it.prompt ? [it.prompt[st.lang], t(g.title)] : [t(g.title)];
+    return header('path', t(g.title), null, 'play') +
+      '<div class="game"><div class="pickwrap' + (it.prompt ? ' has-prompt' : '') + '">' + prompt + '<div class="pick2">' + cards + '</div></div>' +
+      '<div class="rdots"><div class="dots" aria-hidden="true">' + dots + '</div></div></div>' +
+      guide(it.prompt ? it.prompt[st.lang] : t(g.title));
+  }
+  function pickAfter(kind){
+    qdone = false;
+    var g = PICK[kind], it = g.items[qi];
+    idleStart(it.prompt ? [it.prompt[st.lang], t(g.title)] : [t(g.title)], function(){
+      $$('.pickcard').forEach(function(b){ if (it.choices[+b.dataset.i].ok) b.classList.add('glowing'); });
+    });
+  }
+  function pick(btn){
+    if (qdone) return;
+    var g = PICK[cur.slice(2)], it = g.items[qi], ch = it.choices[+btn.dataset.i];
+    if (ch.ok) {
+      qdone = true; idleDone();
+      $$('.pickcard').forEach(function(b){ b.classList.remove('glowing'); b.classList.toggle('dim', b !== btn); });
+      btn.classList.add('right');
+      setMsg([ch[st.lang], t(g.right)], true); showNext();
+    } else {
+      btn.classList.add('dim');
+      $$('.pickcard').forEach(function(b){ if (b !== btn) b.classList.add('glowing'); });
+      setMsg(t(g.hint), true); idleReset();
+    }
+  }
+  ['help', 'sorry'].forEach(function(k){
+    RENDER['g-' + k] = function(){ return pickGame(k); };
+    AFTER['g-' + k] = function(){ pickAfter(k); };
+  });
 
   /* Game: everyone is welcome */
   var LOVE_KIDS = ['Mia', 'Leo', 'Ana', 'Ben', 'Zoe'];
@@ -1300,7 +1820,7 @@ svg{display:block}
     var n = [3, 4, 5][st.level - 1];
     var kids = LOVE_KIDS.slice(0, n).map(function(k){ return '<button type="button" class="kidbtn" data-act="welcome" data-k="' + k + '" aria-label="' + k + '">' + kidSvg(k) + '</button>'; }).join('');
     sayText = t('loveT');
-    return header('path', t('loveT')) +
+    return header('path', t('loveT'), null, 'play') +
       '<div class="game"><div class="welcome"><div class="waiting" id="waiting">' + kids + '</div>' +
       '<div class="withj"><svg class="jesus" viewBox="-20 0 110 150" aria-hidden="true"><use href="#adult" width="70" height="150" style="--robe:#FFFFFF;--sash:#C8463D;--skin:#C68E62;--hair:#5B3820;--beard:1;--reach:1;--reachL:1"/></svg>' +
       '<div class="circle" id="circle"></div></div></div></div>' + guide(t('loveGo'));
@@ -1338,7 +1858,7 @@ svg{display:block}
       return '<div class="friend" data-act="friend" data-f="' + fi + '">' + kidSvg(f.k, 'sad') + '<div class="wants">' + wants + '</div><span class="fname">' + f.k + '</span></div>';
     }).join('');
     var items = SH.items.map(function(it, ii){ return '<button type="button" class="item" data-act="item" data-i="' + ii + '" data-t="' + it + '" aria-label="' + it + '">' + use(it, ITEM_VB[it]) + '</button>'; }).join('');
-    return header('path', title) + '<div class="game"><div class="friends">' + friends + '</div><div class="basket" id="basket">' + items + '</div></div>' + guide(go1);
+    return header('path', title, null, 'play') + '<div class="game"><div class="friends">' + friends + '</div><div class="basket" id="basket">' + items + '</div></div>' + guide(go1);
   };
   AFTER['g-share'] = function(){
     $$('.item').forEach(bindDrag);
@@ -1423,7 +1943,7 @@ svg{display:block}
     pages.forEach(function(_, i){ slots += '<div class="slot" data-s="' + i + '"><b>' + (i + 1) + '</b></div>'; });
     shuffled.forEach(function(pg){ cards += '<button type="button" class="card" data-act="card" data-p="' + pg + '" aria-label="' + esc(d.pages[pg][st.lang]) + '">' + use(d.pages[pg].art, '0 0 400 260') + '</button>'; });
     sayText = [t('orderT'), t('orderFirst')];
-    return header('path', t('orderT')) + '<div class="game" style="--n:' + n + '"><div class="slots">' + slots + '</div><div class="cards">' + cards + '</div></div>' + guide(t('orderFirst'));
+    return header('path', t('orderT'), null, 'play') + '<div class="game" style="--n:' + n + '"><div class="slots">' + slots + '</div><div class="cards">' + cards + '</div></div>' + guide(t('orderFirst'));
   };
   AFTER['g-order'] = function(){ idleStart(t('orderFirst'), glowNextCard); };
   function glowNextCard(){ var want = ORD.pages[ORD.next]; $$('.cards .card').forEach(function(c){ if (+c.dataset.p === want) c.classList.add('glowing'); }); }
@@ -1446,8 +1966,9 @@ svg{display:block}
   function showNext(){ var b = $('#gnext'); if (b) b.hidden = false; }
   function gameNext(){
     if (cur === 'g-order') { mark('play'); go('athome'); }
-    else if (cur === 'g-truth' || cur === 'g-kind') {
-      if (qi < rounds() - 1) { qi++; go(cur); } else { qi = 0; go('g-order'); }
+    else if (CHOICE[cur.slice(2)] || PICK[cur.slice(2)]) {
+      var total = (CHOICE[cur.slice(2)] ? CHOICE[cur.slice(2)].list : PICK[cur.slice(2)].items).length;
+      if (qi < Math.min(rounds(), total) - 1) { qi++; go(cur); } else { qi = 0; go('g-order'); }
     }
     else go('g-order');
   }
@@ -1456,21 +1977,66 @@ svg{display:block}
   RENDER.athome = function(){
     var d = L[lesson];
     sayText = [t('athomeT'), d.home[st.lang]];
-    return header('path', t('athome'), d.c) +
+    return header('path', t('athome'), d.c, 'home') +
       '<div class="homecard">' + use('sym-' + ART[lesson], '0 0 100 100') + '<div><h3>' + esc(t('athomeT')) + '</h3><p>' + esc(d.home[st.lang]) + '</p></div></div>' +
       '<div class="actions"><button type="button" class="kbtn go" data-act="wedid">' + ic('check') + esc(t('wedid')) + '</button></div>' + guide(t('athomeHint'));
+  };
+
+  /* Night sky: every finished lesson lights one star; 12 stars make a heart, then a new sky starts */
+  var SKY = (function(){
+    var pts = [];
+    for (var i = 0; i < 12; i++) {
+      var a = Math.PI * 2 * i / 12, sn = Math.sin(a);
+      var x = 16 * sn * sn * sn, y = 13 * Math.cos(a) - 5 * Math.cos(2 * a) - 2 * Math.cos(3 * a) - Math.cos(4 * a);
+      pts.push([200 + 9 * x, 120 - 8 * y]);
+    }
+    return pts;
+  })();
+  var STAR_PATH = 'M0-13l3.8 7.6 8.4 1.2-6.1 5.9 1.4 8.4L0 6.2l-7.5 3.9 1.4-8.4-6.1-5.9 8.4-1.2z';
+  function skyNow(){
+    var n = st.stars.length, inSky = n % 12;
+    if (n && !inSky) inSky = 12;
+    return { n: n, count: inSky, list: st.stars.slice(n - inSky) };
+  }
+  function skyLine(c){ return c === 12 ? t('skyFull') : (c === 0 ? t('sky0') : (c === 1 ? t('sky1') : t('skyN', { n: c }))); }
+  function skySvg(newest){
+    var sky = skyNow(), dots = '', slots = '';
+    [[30,40],[80,120],[120,20],[260,110],[330,180],[370,120],[40,200],[150,280],[300,270],[240,20],[60,90],[380,260]].forEach(function(d){ dots += '<circle cx="' + d[0] + '" cy="' + d[1] + '" r="1.6" fill="#FFE7A3" opacity=".6"/>'; });
+    var line = SKY.map(function(p){ return p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join(' ');
+    SKY.forEach(function(p, i){
+      var id = sky.list[i];
+      if (id) {
+        var isNew = newest && i === sky.count - 1;
+        slots += '<g transform="translate(' + p[0].toFixed(1) + ' ' + p[1].toFixed(1) + ')"><g class="skystar' + (isNew ? ' newstar' : '') + '" style="animation-delay:' + (i * 0.25) + 's">' +
+          '<circle r="17" fill="url(#g-glow)" opacity=".7"/><path d="' + STAR_PATH + '" style="fill:' + L[id].c + '" stroke="#FFE7A3" stroke-width="2" stroke-linejoin="round"/></g></g>';
+      } else {
+        slots += '<circle cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" r="6" fill="none" stroke="#8C98D0" stroke-width="2" stroke-dasharray="2 3"/>';
+      }
+    });
+    return '<svg viewBox="0 0 400 300" role="img" aria-label="' + esc(skyLine(sky.count)) + '"><defs><linearGradient id="g-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#121A42"/><stop offset="1" stop-color="#2C3C80"/></linearGradient></defs>' +
+      '<rect width="400" height="300" rx="18" fill="url(#g-sky)"/>' + dots +
+      '<circle cx="352" cy="48" r="18" fill="#FFE59A"/><circle cx="360" cy="42" r="15" fill="#18214D"/>' +
+      '<polygon points="' + line + '" fill="none" stroke="#B8C1EA" stroke-width="1.5" stroke-dasharray="3 6" opacity=".45"/>' + slots +
+      '<use href="#lumi" x="4" y="206" width="92" height="92"/><use href="#lamp" x="84" y="252" width="46" height="40"/></svg>';
+  }
+  RENDER.sky = function(){
+    var sky = skyNow();
+    sayText = skyLine(sky.count);
+    return header('home', t('mySky')) + '<figure class="sky">' + skySvg(false) + '<figcaption>' + esc(skyLine(sky.count)) + '</figcaption></figure>';
   };
 
   /* Reward */
   RENDER.reward = function(){
     var d = L[lesson];
-    sayText = t('earned');
+    var full = skyNow().count === 12;
+    sayText = full ? t('skyFull') : t('newStar');
     var stars = [[12,14,0],[82,10,.6],[6,60,1.1],[88,56,.3],[4,86,.9],[92,84,1.4]].map(function(s){ return '<svg viewBox="0 0 24 24" style="left:' + s[0] + '%;top:' + s[1] + '%;animation-delay:' + s[2] + 's"><use href="#i-star" width="24" height="24"/></svg>'; }).join('');
-    return '<div class="reward"><div class="burst" aria-hidden="true">' + stars + '</div><div class="big-stk">' + ic('lamp') + '</div>' +
-      '<h3>' + esc(t('earned')) + '</h3><p>' + esc(d.title[st.lang]) + '</p>' +
-      '<div class="actions"><button type="button" class="kbtn go" data-go="home">' + ic('home') + esc(t('moreStories')) + '</button></div></div>';
+    return '<div class="reward">' + (full ? '<div class="burst" aria-hidden="true">' + stars + '</div>' : '') + '<figure class="sky mini">' + skySvg(true) + '</figure>' +
+      '<h3>' + esc(sayText) + '</h3><p>' + esc(d.title[st.lang]) + '</p>' +
+      '<div class="actions"><button type="button" class="kbtn" data-act="again-lesson">' + ic('replay') + esc(t('againBtn')) + '</button>' +
+      '<button type="button" class="kbtn go" data-go="home">' + ic('home') + esc(t('moreStories')) + '</button></div></div>';
   };
-  AFTER.reward = function(){ speak(t('earned')); };
+  AFTER.reward = function(){ speak(sayText); };
 
   /* Grown-up corner */
   var resetArmed = false;
@@ -1508,12 +2074,16 @@ svg{display:block}
     else if (a === 'replay') { var art = $('#signart'); if (art) art.innerHTML = art.innerHTML; speak(sayText); }
     else if (a === 'signdone') { mark('sign'); qi = 0; go('game'); }
     else if (a === 'ans') answer(el);
+    else if (a === 'pick') pick(el);
     else if (a === 'welcome') welcome(el);
     else if (a === 'item') { if (e.detail === 0) tapItem(el); }
     else if (a === 'friend') tapFriend(el);
     else if (a === 'card') pickCard(el);
     else if (a === 'next') gameNext();
-    else if (a === 'wedid') { mark('home'); st.lessons[lesson].stickers = (st.lessons[lesson].stickers || 0) + 1; save(); go('reward'); }
+    else if (a === 'wedid') { mark('home'); st.lessons[lesson].stickers = (st.lessons[lesson].stickers || 0) + 1; st.stars.push(lesson); save(); go('reward'); }
+    else if (a === 'ft') speak(t(el.dataset.k));
+    else if (a === 'again-story') { page = 0; go('story'); }
+    else if (a === 'again-lesson') { page = 0; qi = 0; go('story'); }
     else if (a === 'toggle') {
       var k = el.dataset.k; st[k] = !st[k]; save(); el.setAttribute('aria-checked', st[k] ? 'true' : 'false');
       if (k === 'read' && !st.read) stopSpeak();
@@ -1552,17 +2122,21 @@ svg{display:block}
 
   /* ---------- About drawer ---------- */
   var NOTES = {
-    home:   ['Pick a story', 'Each lesson keeps one color everywhere, so kids find it by color and picture. The dots show which of the 4 steps are done. Stickers stack up each time a family finishes the at-home step.', 'Try: press and hold the dashed Grown-ups button for 1 second.'],
+    home: ['Pick a story', 'Each lesson keeps one color everywhere, so kids find it by color and picture. The dots show which of the 4 steps are done. My sky shows the stars a child has earned.', 'Try: press and hold the dashed Grown-ups button for 1 second.'],
     path:   ['Lesson path', 'The same four steps, in the same order, every lesson. The next step glows and Lumi says it out loud. Kids can still tap any step.', 'Try: tap Watch.'],
-    story:  ['Story', 'One picture and one short sentence per page. Words light up as they are read. Nothing turns the page by itself.', 'Try: tap the yellow speaker, then the big arrow.'],
+    story:  ['Story', 'One picture and one short sentence per page. Words light up as they are read. Nothing turns the page by itself. The First / Then strip shows what comes next; tap it to hear it. The last page has an Again! button.', 'Try: tap the yellow speaker, then the big arrow.'],
     sign:   ['Word + sign', 'The word, its picture symbol, the word in the other language, and the sign. The moving hand and yellow arrows stand in for the short video a real child will sign in the app.', 'Try: tap Show me again.'],
     'g-truth': ['Is it true?', 'A picture and a sentence. Thumbs up if it is true, thumbs down if it is not. Level 1 has 2 rounds, Level 2 has 3, Level 3 has 4.', 'Try: answer wrong on purpose. Nothing buzzes.'],
     'g-kind':  ['Kind or not kind?', 'Errorless learning. A wrong tap fades a little, the right answer glows, and Lumi says why. Every round ends in success.', 'Try: wait 6 seconds and listen, then wait 6 more.'],
     'g-love':  ['Everyone is welcome', 'Every tap is right. Each friend walks over to Jesus. Level 1 has 3 friends, Level 3 has 5, including Ben in his wheelchair.', 'Try: tap the friends one by one.'],
     'g-share': ['Share the food', 'Level 1: tap the bread and it goes to the next friend. Level 2: drag the bread, or tap the bread and then a friend. Level 3: each friend wants something different, shown in their picture bubble.', 'Try: switch to Level 3 in the bar above.'],
+    'g-thanks': ['Is it a thank-you time?', 'A picture and a sentence. The child taps Thank you! when someone gives something, or the cloud when someone takes. Same errorless rules as every game.', 'Try: answer wrong on purpose.'],
+    'g-help':   ['Who needs help?', 'Two pictures. The child taps the one where someone needs help, and Lumi reads what is happening. Practices noticing and asking for help.', 'Try: wait 12 seconds to see the hint.'],
+    'g-sorry':  ['Make it right', 'A small mistake, then two choices: a way to make it right, or walking away. Lumi reads the choice and praises making it right.', 'Try: pick Walk away first.'],
     'g-order': ['Put the story in order', 'Level 1 asks what happened first and last. Level 2 uses 3 pictures. Level 3 uses all 4. A wrong pick wiggles and the right one glows.', 'Try: switch levels to see the number of cards change.'],
     athome: ['At home', 'Every lesson ends with something to do for real. A grown-up taps the button when it is done, and the child earns a sticker.', ''],
-    reward: ['Sticker', 'A short, calm celebration in the lesson color. The sticker shows up on the home screen.', ''],
+    reward: ['A new star', 'Finishing the at-home step lights one star in Lumi\'s sky, in the lesson color. Twelve stars make a heart, then a new sky starts. Again! replays the lesson.', ''],
+    sky:    ['My sky', 'Every star is one lesson done at home. No scores and nothing to lose. A full heart of 12 stars gets a small celebration.', 'Try: finish a lesson, then come back here.'],
     parent: ['Grown-up corner', 'Set the level, language, voice speed, signs, and gentle motion. See progress and stickers. Reset clears this browser only.', 'Try: tap Reset twice.']
   };
   var aboutBtn = $('#about-btn'), about = $('#about');
@@ -1585,7 +2159,9 @@ svg{display:block}
       function add(x){ if (x && !seen[x]) { seen[x] = 1; list.push(x); } }
       ['pick','allDone','truthT','truthRightT','truthRightN','truthHintT','truthHintN','kindT','kindRightK','kindRightN','kindHintK','kindHintN',
        'loveT','loveGo','loveDone','shareT1','shareT2','shareT3','shareGo1','shareGo2','shareGo3','shareGood','sharePick','shareDone',
-       'orderT','orderFirst','orderNext','orderHint','orderDone','athomeT','athomeHint','earned'].forEach(function(k){ add(t(k)); });
+       'orderT','orderFirst','orderNext','orderHint','orderDone','athomeT','athomeHint',
+       'ftWatch','ftSign','ftPlay','ftHome','newStar','skyFull','sky0','sky1'].forEach(function(k){ add(t(k)); });
+      for (var c = 2; c < 12; c++) add(t('skyN', { n: c }));
       STEP_KEYS.forEach(function(k){ add(t('nextUp', { step: t(STEP_LABEL[k]) })); });
       LOVE_KIDS.forEach(function(n){ add(t('loveGood', { name: n })); });
       ['Mia', 'Leo', 'Ana'].forEach(function(n){ add(t('shareFull', { name: n })); add(t('shareWrong', { name: n })); });
@@ -1594,7 +2170,9 @@ svg{display:block}
         add(d.word[lg].toLowerCase()); add(d.how[lg]); add(d.home[lg]); add(t('signhint', { name: d.signer }));
         d.pages.forEach(function(p){ add(p[lg]); });
       });
-      TRUTH.concat(KIND).forEach(function(q){ add(q[lg]); });
+      TRUTH.concat(KIND, THANKS).forEach(function(q){ add(q[lg]); });
+      ['thanksT','thanksRightY','thanksRightN','thanksHintY','thanksHintN','helpT','helpRight','helpHint','sorryT','sorryRight','sorryHint'].forEach(function(k){ add(t(k)); });
+      Object.keys(PICK).forEach(function(k){ PICK[k].items.forEach(function(it){ if (it.prompt) add(it.prompt[lg]); it.choices.forEach(function(ch){ add(ch[lg]); }); }); });
       out[lg] = list;
     });
     st.lang = keep;
