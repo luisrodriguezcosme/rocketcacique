@@ -74,7 +74,7 @@ Every game now plays differently at each level. At Level 3, a child answers a qu
 - **Grown-up tips.** Turn them on, and each screen shows one short tip, such as "Point to each picture as it is read. Let your child point too."
 - **Your child's name.** Type it in the Grown-up corner, and the home screen says hi to your child. It stays on your device.
 - **Both languages at once.** English and Spanish can show together, for homes that use both.
-- **Printables for every lesson.** Story cards and a 10-minute parent guide for each lesson. They aren't posted yet.
+- **Printables for every lesson.** Story cards and a 10-minute parent guide for each lesson, plus word and sign cards and a sticker chart. [Download the printables](/demos/little-lights/little-lights-printables.pdf) (PDF, 18 pages, letter size).
 
 **For classes and tablets**
 

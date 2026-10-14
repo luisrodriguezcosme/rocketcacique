@@ -20,5 +20,7 @@ Disallow: /
 
 User-agent: *
 Allow: /
+# The Little Lights demo is a draft for feedback (its page is noindex; a PDF can't carry that tag)
+Disallow: /demos/little-lights/little-lights-printables.pdf
 
 Sitemap: https://rocketcacique.com/sitemap-index.xml
