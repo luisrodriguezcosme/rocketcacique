@@ -61,13 +61,29 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
+          retention-days: 1
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+      actions: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+      # Anyone can download a public repo's run artifacts, and this one holds the private game and its address,
+      # so it's deleted as soon as the deploy is done (or fails).
+      - if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          for id in $(gh api "repos/$REPO/actions/runs/$RUN_ID/artifacts" --jq '.artifacts[].id'); do
+            gh api -X DELETE "repos/$REPO/actions/artifacts/$id"
+          done
