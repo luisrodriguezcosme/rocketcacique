@@ -25,6 +25,36 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx astro build
+      # A private game, shared by link only. It's built from its own private repo and placed at an address
+      # kept in the GAME_PATH secret, so neither the game nor its address is in this public repo.
+      # Without the GAME_TOKEN secret these steps are skipped and the site publishes as usual.
+      - id: game
+        env:
+          GAME_TOKEN: ${{ secrets.GAME_TOKEN }}
+        run: echo "on=$([ -n "$GAME_TOKEN" ] && echo yes || echo no)" >> "$GITHUB_OUTPUT"
+      - if: steps.game.outputs.on == 'yes'
+        uses: actions/checkout@v4
+        with:
+          repository: cru-Luis-Rodriguez/bobblehead-boxing
+          token: ${{ secrets.GAME_TOKEN }}
+          path: game
+          persist-credentials: false
+      - if: steps.game.outputs.on == 'yes'
+        uses: pnpm/action-setup@v4
+        with:
+          package_json_file: game/package.json
+      - if: steps.game.outputs.on == 'yes'
+        working-directory: game
+        run: pnpm install --frozen-lockfile && pnpm build
+      - if: steps.game.outputs.on == 'yes'
+        env:
+          GAME_PATH: ${{ secrets.GAME_PATH }}
+        run: |
+          case "$GAME_PATH" in
+            ''|/*|*..*|*[!a-z0-9/-]*) echo "::error::GAME_PATH must be lowercase letters, digits, dashes and slashes"; exit 1 ;;
+          esac
+          mkdir -p "dist/$GAME_PATH"
+          cp game/dist/bobblehead-boxing.html "dist/$GAME_PATH/index.html"
       - uses: actions/configure-pages@v5
         with:
           enablement: true
