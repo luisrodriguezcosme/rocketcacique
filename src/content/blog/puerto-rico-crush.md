@@ -60,8 +60,11 @@ I'm grateful for this season, mosquitoes and all.
 
 [Play Puerto Rico Crush](/games/puerto-rico-crush/). It runs in the browser, and one day takes about five minutes.
 
-- Walk with the arrow keys or WASD, or tap where you want to go.
+- Walk with the arrow keys or WASD, or tap where you want to go. On a phone, you can also use the joystick.
 - Stand at a task to do it. Some tasks need an item first: eggs from the nest, water from the barrel, cafecito from the kitchen.
 - **Space** or the Zap button swings the zapper. **P** pauses. **M** turns the sound off.
+- On a phone, turn it sideways for the biggest yard. Held upright, the yard sits on top, with your messages, a to-do list, the joystick, and the Zap button below it. On an iPhone, tap Share, then Add to Home Screen, and it opens full screen.
 
-The game was built with Claude, which wrote the code. All of the art and sound is drawn and made in code, with no image or audio files. The original team leaderboard followed the pattern a teammate used in their own arcade game.
+The game was built with Claude, which wrote the code. All of the art and sound in the game is drawn and made in code. The original team leaderboard followed the pattern a teammate used in their own arcade game.
+
+*Updated November 27: After the game went live, I played it on my phone, and it didn't use the screen well. It now fills the screen when you hold the phone sideways. Held upright, it shows your messages and a to-do list under the yard. Both ways have a joystick for your left thumb and the Zap button for your right.*

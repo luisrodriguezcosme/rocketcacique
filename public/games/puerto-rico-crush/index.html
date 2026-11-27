@@ -83,7 +83,17 @@ html[data-layout="land"],html[data-layout="land"] body{height:100%;overflow:hidd
 html[data-layout="land"] body{padding:0;margin:0}
 html[data-layout="land"] .shell{max-width:none;height:100vh;height:100dvh;margin:0;gap:0;grid-template-columns:1fr auto 1fr;align-items:center;padding:0 env(safe-area-inset-right,0px) 0 env(safe-area-inset-left,0px)}
 html[data-layout="land"] .stage{width:min(calc(100vh*1.6),calc(100vw - 210px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px)));width:min(calc(100dvh*1.6),calc(100vw - 210px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px)));border-radius:0;box-shadow:none}
-html[data-layout="land"] .gut{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;height:100%;min-width:96px}
+html[data-layout="land"] .gut{box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;height:100%;min-width:96px}
+html[data-layout="land"] #gutL{justify-content:space-between;padding:12px 0 18px}
+html[data-layout="land"] #gutR{justify-content:flex-end;padding-bottom:22px}
+.gbtns{display:flex;flex-direction:column;gap:8px}
+.gut .pjoy{width:96px;height:96px}
+.gut .pknob,.stage .pknob{width:44px;height:44px;margin:-22px 0 0 -22px}
+.stage .pjoy{position:absolute;left:8px;bottom:8px;width:96px;height:96px;opacity:.8}
+html[data-layout="land"][data-tight] #pauseBtn{left:112px}
+html[data-layout="land"][data-tight] #muteBtn{left:156px}
+html[data-layout="land"][data-tight] #fsBtn{left:200px}
+html:not([data-mode="play"]) #pJoy{visibility:hidden}
 html[data-layout="land"][data-tight] .shell{grid-template-columns:auto;justify-content:center}
 html[data-layout="land"][data-tight] .stage{width:min(calc(100vh*1.6),calc(100vw - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px)));width:min(calc(100dvh*1.6),calc(100vw - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px)))}
 html[data-layout="land"][data-tight] .gut{display:none}
@@ -129,7 +139,7 @@ html[data-layout="port"][data-mode="play"] .foot{display:none}
 <body>
 
 <main class="shell">
-  <div class="gut" id="gutL"></div>
+  <div class="gut" id="gutL"><div class="gbtns" id="gutBtns"></div></div>
   <div class="stage" id="stage">
     <canvas id="c" width="1280" height="800" role="img" aria-label="Puerto Rico Crush game: a cozy island yard with a pink casita, chickens, a garden, palm trees, and the beach"></canvas>
     <button id="zapBtn" type="button" aria-label="Zap mosquitoes" hidden>ZAP</button>
@@ -179,7 +189,7 @@ html[data-layout="port"][data-mode="play"] .foot{display:none}
         <div class="pline"><span id="pWork">Work 0/0</span><span id="pCasa">Casa 0/0</span><span id="pHearts" class="phearts" aria-label="Hearts"></span></div></div>
         <div class="pctl" id="pCtl"></div>
       </div>
-      <div class="pjrow">
+      <div class="pjrow" id="pJrow">
         <div class="pjoy" id="pJoy" role="application" aria-label="Joystick: drag to walk"><div class="pknob" id="pKnob"></div></div>
         <div class="pzap" id="pZap"></div>
       </div>
@@ -996,10 +1006,12 @@ const fsEl = () => document.fullscreenElement || document.webkitFullscreenElemen
 const fsOK = !!(document.fullscreenEnabled || document.webkitFullscreenEnabled);
 let LAYOUT = '', TIGHT = false;
 function placeControls(){
-  const ctl = ['pauseBtn','muteBtn','fsBtn'].map($), zapB = $('zapBtn');
-  if (LAYOUT==='land' && !TIGHT){ $('gutL').append(...ctl); $('gutR').append(zapB); }
-  else if (LAYOUT==='port'){ $('pCtl').append(...ctl); $('pZap').append(zapB); }
-  else { const st=$('stage'), ov=$('titleOv'); for (const b of [zapB, ...ctl]) st.insertBefore(b, ov); }   // under the menu cards
+  const ctl = ['pauseBtn','muteBtn','fsBtn'].map($), zapB = $('zapBtn'), joyB = $('pJoy');
+  joyEnd();
+  if (LAYOUT==='land' && !TIGHT){ $('gutBtns').append(...ctl); $('gutL').append(joyB); $('gutR').append(zapB); }   // stick left, Zap right
+  else if (LAYOUT==='port'){ $('pCtl').append(...ctl); $('pJrow').insertBefore(joyB, $('pZap')); $('pZap').append(zapB); }
+  else if (LAYOUT==='land'){ const st=$('stage'), ov=$('titleOv'); for (const b of [joyB, zapB, ...ctl]) st.insertBefore(b, ov); }   // small phones: on the yard, under the menu cards
+  else { const st=$('stage'), ov=$('titleOv'); for (const b of [zapB, ...ctl]) st.insertBefore(b, ov); $('pJrow').insertBefore(joyB, $('pZap')); }   // desktop: no stick
 }
 function setLayout(){
   const lay = (mqLand.matches || fsEl()) ? 'land' : mqPort.matches ? 'port' : 'desk';
@@ -1052,9 +1064,8 @@ function updatePanel(force){
 }
 function panelTick(){ if (LAYOUT==='port' && S.mode==='play') updatePanel(false); }
 
-// Joystick in the portrait panel: drag the knob and the player walks that way.
-const JR=40;
-function joyAt(e){ const r=$('pJoy').getBoundingClientRect(); let dx=e.clientX-(r.left+r.width/2), dy=e.clientY-(r.top+r.height/2); const d=Math.hypot(dx,dy); if (d>JR){ dx*=JR/d; dy*=JR/d; } joy.x=dx/JR; joy.y=dy/JR; $('pKnob').style.transform='translate('+dx.toFixed(1)+'px,'+dy.toFixed(1)+'px)'; }
+// Joystick on phones (portrait panel, landscape gutter, or on the yard): drag the knob and the player walks that way.
+function joyAt(e){ const r=$('pJoy').getBoundingClientRect(), JR=r.width*0.34; let dx=e.clientX-(r.left+r.width/2), dy=e.clientY-(r.top+r.height/2); const d=Math.hypot(dx,dy); if (d>JR){ dx*=JR/d; dy*=JR/d; } joy.x=dx/JR; joy.y=dy/JR; $('pKnob').style.transform='translate('+dx.toFixed(1)+'px,'+dy.toFixed(1)+'px)'; }
 function joyEnd(){ joy.on=false; joy.x=0; joy.y=0; joy.id=null; $('pKnob').style.transform=''; }
 $('pJoy').addEventListener('pointerdown',e=>{ if (S.mode!=='play') return; e.preventDefault(); joy.on=true; joy.id=e.pointerId; try{ $('pJoy').setPointerCapture(e.pointerId); }catch(_){} joyAt(e); });
 $('pJoy').addEventListener('pointermove',e=>{ if (joy.on && e.pointerId===joy.id) joyAt(e); });
